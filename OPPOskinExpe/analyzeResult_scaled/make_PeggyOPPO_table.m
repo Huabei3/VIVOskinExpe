@@ -107,7 +107,7 @@ for i_lastPart = 1:5  % 与给出代码一致，仅前 5 个
         end
 
         % 聚合行
-        col_source{curr_row,1}               = db_source;
+        col_source{curr_row,1}               = strcat(db_source,"_",pn);
         col_lab_values{curr_row,1}           = lab_group;
         col_opinion_scores{curr_row,1}       = p_group;              % OPPO 段无主观分数
         col_par{curr_row,1}                  = par_vec;
@@ -131,6 +131,81 @@ for i_lastPart = 1:5  % 与给出代码一致，仅前 5 个
     end
 
 
+end
+
+% 追加 self 数据（observer_type = "model"）
+self_folder = fullfile(output_folder, "self");
+self_file = fullfile(self_folder, "fitRes_self.mat");
+if exist(self_file, 'file')
+    self_data = load(self_file, "lab_group_all", "SV_group_all", "mean_center_all");
+    mean_center_all = self_data.mean_center_all;
+    lab_group_all = self_data.lab_group_all;
+    SV_group_all = self_data.SV_group_all;
+
+    n_self = size(mean_center_all, 1);
+    if n_self > 0
+        n_render = floor(size(lab_group_all, 1) / n_self);
+    else
+        n_render = 0;
+    end
+
+    for i_self = 1:n_self
+        curr_row = curr_row + 1;
+        name_str = string(mean_center_all{i_self, 1});
+        lab_center = mean_center_all{i_self, 2};
+        if size(lab_center, 1) > 1
+            lab_center = mean(lab_center, 1, 'omitnan');
+        end
+
+        if n_render > 0
+            idx_start = (i_self - 1) * n_render + 1;
+            idx_end = min(i_self * n_render, size(lab_group_all, 1));
+            lab_group = lab_group_all(idx_start:idx_end, :);
+            p_group = SV_group_all(idx_start:idx_end, :);
+        else
+            lab_group = [];
+            p_group = [];
+        end
+
+        if isempty(lab_group)
+            ave_lab = NaN(1,3);
+        else
+            ave_lab = mean(lab_group, 1, 'omitnan');
+        end
+
+        model_id = resolve_model_id(name_str, match_table);
+        if contains(lower(name_str), "female")
+            model_gender = "female";
+        elseif contains(lower(name_str), "male")
+            model_gender = "male";
+        elseif contains(model_id, "fe")
+            model_gender = "female";
+        else
+            model_gender = "male";
+        end
+
+        info = struct();
+        info.self_name = char(name_str);
+
+        col_source{curr_row,1}               = db_source;
+        col_lab_values{curr_row,1}           = lab_group;
+        col_opinion_scores{curr_row,1}       = p_group;
+        col_par{curr_row,1}                  = [];
+        col_fit_equation{curr_row,1}         = fit_equation_str;
+        col_lab_center{curr_row,1}           = lab_center;
+        col_average_lab{curr_row,1}          = ave_lab;
+        col_cct{curr_row,1}                  = NaN;
+        col_illuminance{curr_row,1}          = NaN;
+        col_scene{curr_row,1}                = "self " + name_str;
+        col_lighting{curr_row,1}             = "D65";
+        col_D_equation_str{curr_row,1}       = D_equation_str;
+        col_model_ethnicity{curr_row,1}      = "Asian";
+        col_model_gender{curr_row,1}         = model_gender;
+        col_model_id{curr_row,1}             = model_id;
+        col_observer_type{curr_row,1}        = "model";
+        col_opinion_score_range{curr_row,1}  = "-3~3";
+        col_other_info{curr_row,1}           = info;
+    end
 end
 
 % 生成表（字段名与 Peggy_VIVO_table 一致）
@@ -162,6 +237,21 @@ fprintf('Saved: %s\n', out_xlsx);
 
 
 % -------- helper for Excel summary --------
+function model_id = resolve_model_id(name_str, match_table)
+model_id = "nan";
+if isempty(match_table)
+    return;
+end
+for i_match = 1:size(match_table, 1)
+    col1 = string(match_table{i_match, 1});
+    col3 = string(match_table{i_match, 3});
+    if strcmp(name_str, col3) || strcmp(name_str, col1)
+        model_id = col1;
+        return;
+    end
+end
+end
+
 function T = summarize_for_excel_final(fit_table)
 n = height(fit_table);
 lab_n   = zeros(n,1);

@@ -10,22 +10,31 @@ lastParts=["inLab","indoorAdd","nightAdd","outdoorAdd","sunsetAdd","recen"];
 load('documents\group_Lab.mat','cellMatrix');
 wd65=[94.811 100.00 107.304];   
 XYZw_pre_all=XYZ_gray./XYZ_gray(:,2).*100;
-Dtype="OPPO_CAT16";
+% Dtype="OPPO_CAT16";
+Dtype="efit_p";
+lightness_type="rela";
+rgb2xyz_type="display";
 cell_CATed={};
-summary_filename=fullfile("AnalyseResults",Dtype,"sum_list/MCDM.XLSX");
+save_folder=fullfile("AnalyseResults_p",rgb2xyz_type,lightness_type,Dtype,"sum_list");
+if ~exist(save_folder,"dir")
+    mkdir(save_folder);
+end
+summary_filename=fullfile(save_folder,"MCDM.XLSX");
 concatenated_table={};
-for i_lastPart=1:length(lastParts)
+MCDM_mean_scenes=[];
+for i_lastPart=1:5
+% for i_lastPart=1:length(lastParts)
     clear("picname_check","score_all","score_all_mean", ...
-        "score_all_scaled","score_lab","scores");
+        "score_all_scaled","score_lab","scores","MCDM");
     lastPart=lastParts(i_lastPart);
-    directory = fullfile('ExperimentResult',lastPart);
-    dir_res = dir(fullfile(directory, '*.csv'));
+    directory = fullfile('ExperimentResult1',lastPart);
+    dir_res = dir(fullfile(directory, '*.xlsx'));
     
     slashes = strfind(directory, '\');   
     
     n_file = length(dir_res);    
 
-    output_folder=fullfile('AnalyseResults',Dtype);
+    output_folder=fullfile('AnalyseResults_p',rgb2xyz_type,lightness_type,Dtype);
     if ~exist(output_folder, 'dir')
         mkdir(output_folder);
     end
@@ -115,7 +124,7 @@ for i_lastPart=1:length(lastParts)
 
     %%
     n_render=49;
-    load(fullfile("AnalyseResults",Dtype,lastPart, ...
+    load(fullfile("AnalyseResults_p",rgb2xyz_type,lightness_type,Dtype,lastPart, ...
     "ellipPara_scaled\fitRes_level.mat"), ...
     "lab_group_all","picname_check","par_ind");
     for i_group = 1:n_render:length(score_all_scaled)
@@ -127,9 +136,9 @@ for i_lastPart=1:length(lastParts)
         mean_cen(i_nog,:)=par_ind(i_nog,5:7);
         for i_obs=1:size(score_all_scaled,2)
             score_ind_temp=score_all_scaled(i_group:i_group+n_render-1,i_obs);
-            cen_ind(i_obs,:) = calculate_weighted_or_simple_mean( ...
+            cen_ind(i_obs,:) = calculate_weighted_or_simple_mean3D( ...
                 score_ind_temp, lab_group);
-            dE_FM(i_nog,i_obs)=deltaE2000(mean_cen(i_nog,:),cen_ind(i_obs,:));
+            MCDM(i_nog,i_obs)=deltaE2000(mean_cen(i_nog,:),cen_ind(i_obs,:));
         end
 
             
@@ -137,18 +146,85 @@ for i_lastPart=1:length(lastParts)
     picname_check=picname_check(:,1);
     picname_check{end+1,1}="mean";
     picname_check=cell2table(picname_check(:,1));
-    dE_FM(end+1,:)=mean(dE_FM,1);
-    dE_FM(:,end+1)=mean(dE_FM,2);
-    list_table = array2table(dE_FM);
-    % list_table=[picname_check,list_table];
+    MCDM_ori=MCDM;
+    MCDM_mean_scenes=[MCDM_mean_scenes;mean(MCDM_ori,2)];
+    
+    MCDM(end+1,:)=mean(MCDM,1);
+    MCDM(:,end+1)=mean(MCDM,2);
+    
+    MCDM_scene(i_lastPart,1)=MCDM(end,end);
+    list_table = array2table(MCDM);
+    list_table=[picname_check,list_table];
     writetable(list_table, summary_filename, 'Sheet', lastPart);  
 
     % concatenated_table = [concatenated_table; list_table];
 
 end
+
+res=[mean(mean(MCDM_mean_scenes)),max(max(MCDM_mean_scenes)),min(min(MCDM_mean_scenes))];
+
 % writetable(concatenated_table, summary_filename, 'Sheet', lastPart );  
 disp("finish MCDM calculating");
 save("documents\lab_group_CATed.mat","cell_CATed");
+
+
+%% 画图
+
+figure(1);
+hold on;
+
+n_lastParts = 5;
+hue_MCDM_scene = linspace(0, 1, n_lastParts + 1);
+hue_MCDM_scene = hue_MCDM_scene(1:end-1); 
+hsv_matrix = [hue_MCDM_scene', 0.8 * ones(n_lastParts, 1), 0.8 * ones(n_lastParts, 1)];
+colors = hsv2rgb(hsv_matrix);
+
+bar_width = 0.8 /n_lastParts; % 计算每个 bar 的宽度
+figure(1)
+b = bar(MCDM_scene(1:5,1));
+% for i_lastPart = 1:5
+%     b.FaceColor = 'flat';        % 允许为每个 bar 单独设置颜色
+%     b.CData(i_lastPart,:) = colors(i_lastPart,:);  % 为每个 bar 指定颜色
+% end
+
+% for attribute = 1:n_lastParts
+%     x = (1:size(nation_indices, 1)) + (attribute - 1) * bar_width - bar_width * (size(MCDM_global_1, 2) - 1) / 2;
+%     bar(x, MCDM_nation(:, attribute), bar_width, 'FaceColor', colors(attribute, :));
+% end
+% ylim([1,3]);
+% xticklabels({"实验室","室内","夜景","室外","黄昏"});
+% xlabel('场景');
+% ylabel('MCDM');
+
+
+% 数据
+labels = {"实验室","室内","夜景","室外","黄昏"};
+
+% 绘制柱状图
+b = bar(MCDM_scene, 'FaceColor', 'flat');
+
+% 应用每个柱子的颜色
+b.CData = colors;
+
+% 添加数值标签
+for i = 1:length(MCDM_scene)
+    text(i, MCDM_scene(i) + 1, num2str(MCDM_scene(i)), ...
+        'HorizontalAlignment','center', ...
+        'VerticalAlignment','bottom');
+end
+
+set(gca, 'XTick', 1:length(labels), 'XTickLabel', labels);
+xlabel('场景');
+ylabel('MCDM');
+
+ylim([1,1.8]);
+
+MCDM_folder=fullfile(save_folder,"MCDM");
+if ~exist(MCDM_folder,"dir")
+    mkdir(MCDM_folder)
+end
+saveas(gcf,fullfile(MCDM_folder,"MCDM.jpg"));
+
 %%
 %atan2d_360
 function degree = atan2d_360(y, x)

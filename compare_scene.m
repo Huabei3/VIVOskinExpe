@@ -152,9 +152,28 @@ for i_eth=[1]
     % title(ethnic_names(i_eth))
     xlabel('\it a* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
     ylabel('\it b* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
-    exportgraphics(gcf, fullfile(output_folder, ...
-        strcat(ethnic_groups(i_eth),'.jpg')),'resolution',300);
+
+    ax = gca;
+    targetFontSize=12;
+    set(ax, 'FontSize', targetFontSize);
+    xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+    ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+    yPos = ax.YLabel.Position;
+    yPos(1) = yPos(1) - 5; % 数字越大，离得越远
+    ax.YLabel.Position = yPos;
+    xPos = ax.XLabel.Position;
+    xPos(2) = xPos(2) - 5; % 数字越大，离得越远
+    ax.XLabel.Position = xPos;
+    set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
+    img_name=fullfile(output_folder, ...
+        strcat(ethnic_groups(i_eth),'.jpg'));    
+    savefig(gcf, strrep(img_name,'jpg','fig'));
+
+    exportgraphics(gcf,img_name ,'resolution',300);
 
 end
 
 concatenate_images1noSerial(output_folder,4);
+
+%%
+

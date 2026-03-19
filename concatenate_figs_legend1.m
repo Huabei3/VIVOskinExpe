@@ -26,7 +26,11 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     % 1) Read source aspect ratios from primary axes
     origAspectRatios = zeros(1, numFigs);
     for i = 1:numFigs
-        src_path = fullfile(save_folder, figFiles{i});
+        if isfield(legend_labels,"dir_figs")
+            src_path = fullfile(legend_labels.dir_figs(i).folder, legend_labels.dir_figs(i).name);
+        else
+            src_path = fullfile(save_folder, figFiles{i});
+        end
         tempFig = openfig(src_path, 'invisible');
         tempAx = get_primary_axes(tempFig);
 
@@ -38,23 +42,20 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
 
     % 2) Create main canvas
     % 修改后：让宽度更宽，高度更紧凑（例如将宽度系数改为 700）
-    if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"MCDM")
-        figWidth = 1000 * n_col;         % 增大每列占用的宽度像素
-        figHeight = 450 * n_row + 120;  % 适当减小每行高度和图例预留空间
-    elseif isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")
-        figWidth = 1000 * n_col;         % 增大每列占用的宽度像素
-        figHeight = 900 * n_row + 120;  % 适当减小每行高度和图例预留空间
+    if isfield(legend_labels,"fig_wh_base")
+        figWidth = legend_labels.fig_wh_base(1) * n_col;         % 增大每列占用的宽度像素
+        figHeight = legend_labels.fig_wh_base(2) * n_row + 120;  % 适当减小每行高度和图例预留空间
     else
         figWidth = 500 * n_col;
         figHeight = 450 * n_row + 150;
     end
+
     mainFig = figure('Units', 'pixels', 'Position', [100, 100, figWidth, figHeight], 'Color', 'w');
-    if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"MCDM")
-        marginL = 0.2;
-    elseif isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")
-        marginL = 0;
+
+    if isfield(legend_labels,"marginL")
+        marginL=legend_labels.marginL;
     else
-        marginL = 0.08;
+        marginL=0.08;
     end
     marginR = 0.05;
     marginTop = 0.05;
@@ -74,8 +75,12 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     for i = 1:numFigs
         currRow = ceil(i / n_col);
         currCol = mod(i - 1, n_col) + 1;
-
-        tempFig = openfig(fullfile(save_folder, figFiles{i}), 'invisible');
+        if isfield(legend_labels,"dir_figs")
+            temp_path = fullfile(legend_labels.dir_figs(i).folder, legend_labels.dir_figs(i).name);
+        else
+            temp_path = fullfile(save_folder, figFiles{i});
+        end
+        tempFig = openfig(temp_path, 'invisible');
         tempAx = get_primary_axes(tempFig);
 
         currAspectRatio = origAspectRatios(i);
@@ -157,9 +162,29 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         end
 
         set(subAx, 'FontSize', targetFontSize, 'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
-        set([newXlabel, newYlabel, newTitle], 'FontSize', targetFontSize, 'FontWeight', 'normal');
+        % set([newXlabel, newYlabel, newTitle], 'FontSize', targetFontSize, 'FontWeight', 'normal');
+        set(newTitle, 'FontSize', targetFontSize, 'FontWeight', 'bold');
 
+        if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"attr")
+            set(newXlabel, 'FontSize', 1.2*targetFontSize, 'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', 1.2*targetFontSize, 'FontWeight', 'normal');
+        else
+            set(newXlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
+        end
+        if isfield(legend_labels,"label_fontSize")
+            set(newXlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
+        end
 
+        set([newXlabel, newYlabel], 'Interpreter', 'latex');
+        % axis(subAx, 'tight'); % 自动去掉四周多余空白
+        if isfield(legend_labels,"x_data")
+            subAx.XLim = [min(legend_labels.x_data)-0.9, max(legend_labels.x_data)+0.08]; % 假设你能拿到数据范围
+        end
+        if isfield(legend_labels,"y_data")
+            subAx.YLim = [min(min(legend_labels.y_data))-0.5, max(max(legend_labels.y_data))+0.5]; % 假设你能拿到数据范围
+        end
         % === 插入labels ===
         if isfield(legend_labels,"if_label")&&legend_labels.if_label
             letter_label = ['(', char('a' + i - 1), ')'];
@@ -211,9 +236,7 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     leg_w = min(total_content_width, 0.8);
     leg_h = 0.15;
     if isfield(legend_labels, 'label_type')
-        if strcmp(legend_labels.label_type, 'MCDM')
-            leg_x = marginL - 0.08;
-        elseif strcmp(legend_labels.label_type, 'attr')
+        if strcmp(legend_labels.label_type, 'attr')
             leg_x = marginL-0.02;
         elseif strcmp(legend_labels.label_type, 'scene')
             leg_x = marginL+0.05;
@@ -226,6 +249,11 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         end
     else
         leg_x = marginL - 0.05;
+    end
+
+
+    if isfield(legend_labels, 'leg_x_shift')
+        leg_x = marginL + legend_labels.leg_x_shift;
     end
     % leg_x = marginL + (total_content_width - leg_w) / 2;
     leg_y = 0.02;
@@ -301,7 +329,11 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
     legPxW = max(1, figPx(3) * legendPos(3));
     
     % 布局间距参数
-    sidePad = 0.1;
+    if isfield(legend_labels, 'sidePad')
+        sidePad = legend_labels.sidePad;
+    else
+        sidePad = 0.1;
+    end
     colGap1 = 1 / (n_col1 + 0.5); % 根据列数动态调整间距
     colGap2 = 1 / (n_col2 + 0.5);
     rowStep = 0.35; % 换行时的垂直间距
@@ -319,6 +351,11 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
         ty = label_Y - currR * rowStep;
         if isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'attr')
             text(legAx, tx , ty, num2str(k), ...
+                'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
+                'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
+        elseif isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'compare_nation')
+            text_char=char(labels_row1{k});
+            text(legAx, tx , ty, text_char(1), ...
                 'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
                 'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
         else

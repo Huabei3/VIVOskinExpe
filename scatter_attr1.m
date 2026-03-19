@@ -1,6 +1,8 @@
 close all; % 关闭所有图窗
 clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
+addpath("utils\")
+%%
 scale_type = "scaled"; % 新增：unscaled或scaled
 scale_type_origin="unscaled";
 % scale_time="early";
@@ -8,16 +10,18 @@ scale_time="late";
 targetFontSize=12;
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-attribute_names_ch = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
-    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
-attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
-    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
+
 nations = ["AS", "CA", "SA", "AF"];
 text_type="eng";
+% text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
+    attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
+    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
     nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 % 定义人种对应的lastParts索引
 nation_indices = cell(5, 1); % 5个人种（包括"all"）
@@ -74,6 +78,7 @@ n_scenetype=length(attributes);
 hue_values = linspace(0, 1, n_scenetype + 1);hue_values = hue_values(1:end-1);
 hsv_matrix = [hue_values', 0.8*ones(n_scenetype, 1),  0.8*ones(n_scenetype, 1)];
 colors = hsv2rgb(hsv_matrix);
+
 
 genders = ["f", "m"];
 gender_names=["female","male"];
@@ -154,7 +159,7 @@ for i_obs = 1:length(obs_types)
             for i_attr = 1:length(attributes)
                 attribute = attributes(i_attr);
                 attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
-                
+                attribute_serial=ch2eng(attribute_serial);
                 % 定义路径
                 if i_attr==7
                     obs_type_used="model_group";
@@ -281,7 +286,7 @@ for i_obs=1:length(obs_types)
         for attribute = attributes
             attribute_serial = strcat(sprintf("%02d", attribute), ...
                 attribute_names_new(attribute));
-            
+            attribute_serial=ch2eng(attribute_serial);
             % 直接从lab_fit_reshaped计算平均值
             lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
             lab = nanmean(lab, 3); 
@@ -447,7 +452,7 @@ for i_obs=1:length(obs_types)
     opts.lim_min=0; 
     opts.lim_max=40;  
     opts.targetFontSize=12;
-    opts.margin=0.2;    
+    opts.margin=0.18;    
     opts.label_type="attr";
     opts.if_rotate=false;
     opts.axis_limits=[11,24,11,24;11,24,11,24;11,24,11,24;8,13,8,13];
@@ -469,6 +474,7 @@ for i_obs=1:length(obs_types)
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
+    
     s.label_type="attr";
     dir_figs=dir(fullfile(save_folder,"*adjusted.fig"));
     clear("figFiles")
@@ -482,3 +488,5 @@ for i_obs=1:length(obs_types)
     % save_folder1 = fullfile("ellip_pic_p", Dtype,scale_type,"attr1", obs_type,iOr,"C_h");
     % concatenate_images1(save_folder1,4);
 end
+
+fullfile(pwd,save_folder)

@@ -5,14 +5,17 @@ scale_type = "unscaled"; % 新增：unscaled或scaled
 addpath("utils\")
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
-    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
+
 nations = ["AS", "CA", "SA", "AF"];
 text_type="eng";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
+    attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
+    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
     nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 % 定义人种对应的lastParts索引
 nation_indices = cell(5, 1); % 5个人种（包括"all"）
@@ -202,7 +205,7 @@ for i_obs = 1:length(obs_types)
             for i_attr = 1:length(attributes)
                 attribute = attributes(i_attr);
                 attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
-                
+                attribute_serial=ch2eng(attribute_serial);
                 % 定义路径
                 if i_attr==7
                     obs_type_used="model_group";
@@ -374,7 +377,7 @@ for i_nation = 1:length(nations)
         
         for attribute = attributes
             attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
-            
+            attribute_serial=ch2eng(attribute_serial);
             lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
             
             if all(isnan(lab(:)))
@@ -457,6 +460,7 @@ for i_nation = 1:length(nations)
         'Resolution', 1500, ...
         'ContentType', 'image', ...
         'BackgroundColor', 'white');
+    
     close(h1);
     
 
@@ -472,7 +476,9 @@ for i_nation = 1:length(nations)
     end
 
 end
+
 %%
+fullfile(pwd,save_folder)
 % 图像拼接
 opts.lim_min=0; 
 opts.lim_max=40;  
@@ -485,7 +491,13 @@ opts.axis_ticks=[2,2,2,1];
 % opts.bar_interval=0.4;
 adjust_fig(save_folder, opts);
 %-----------------
-s.labels_row1 = {"stranger","acquaitance","original"};
+if strcmp(text_type,"eng")
+    s.labels_row1 = {"stranger","acquaitance","original"};
+elseif strcmp(text_type,"ch")
+    s.labels_row1 = {"生人组","熟人组","原图"};
+end
+
+
 s.labels_row2 = {};
 s.markers_row2 = {};
 s.markers_colors = [];
@@ -507,7 +519,7 @@ for i_fig=1:length(dir_figs)
 end
 concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
 
-concatenate_images1(fullfile(save_folder_name, Dtype,"attr", "comparison", iOr),2);
+concatenate_images1(save_folder,2);
 % concatenate_images1(fullfile(save_folder_name, Dtype,"attr", "comparison", iOr, "C_h"),2);
 
 %% 新增功能：计算deltaE2000矩阵和向量并保存到XLSX

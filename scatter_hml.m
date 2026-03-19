@@ -4,14 +4,17 @@ clear;     % 清除工作区所有变量
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
-    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
+
 nations = ["AS", "CA", "SA", "AF"];
 text_type="eng";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
+    attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
+    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
     nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 % lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 % 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
@@ -160,7 +163,7 @@ for i_obs = 1:length(obs_types)
             for i_attr = 1:length(attributes)
                 attribute = attributes(i_attr);
                 attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
-                
+                attribute_serial=ch2eng(attribute_serial);
                 % 定义路径
                 if strcmp(Dtype,"efit_p_free")
                     AnalyseResults_folder="AnalyseResults_p_free";
@@ -342,7 +345,7 @@ for i_obs=1:length(obs_types)
         
         for attribute = [1]
             attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
-
+            attribute_serial=ch2eng(attribute_serial);
             
             % 直接从lab_fit_reshaped获取数据
             clear("matrix_model","lab_model");
@@ -492,11 +495,7 @@ for i_obs=1:length(obs_types)
         set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
         img_name=fullfile(save_folder, strcat(nation_serial, '_L.jpg'));    
         savefig(gcf, strrep(img_name,'jpg','fig'));
-
         exportgraphics(gcf,img_name, 'Resolution', 600);
-
-        
-        
         close(gcf);
     end
     % 合并所有图片
@@ -524,12 +523,17 @@ for i_obs=1:length(obs_types)
     s.if_label=true;
     s.color_limits = [data_min, data_max]; % 传入全局数据极值
     s.color_type = color_type;
-    
-    num_attributes = numel(s.labels_row1);
-    hue_values = linspace(0, 1, num_attributes + 1);
-    hue_values = hue_values(1:end-1);
-    hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-    s.colors_row1 = hsv2rgb(hsv_matrix);
+
+    if ~isempty(s.labels_row1)
+        num_attributes = numel(s.labels_row1);    
+        hue_values = linspace(0, 1, num_attributes + 1);
+        hue_values = hue_values(1:end-1);
+        hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+        s.colors_row1 = hsv2rgb(hsv_matrix);
+    else
+        s.colors_row1 = [];
+    end
+
     s.label_type="hml";
     dir_figs=dir(fullfile(save_folder,"*adjusted.fig"));
     clear("figFiles")
@@ -540,13 +544,18 @@ for i_obs=1:length(obs_types)
     %%
 end
 %%
-save_folder_i="D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml\abs\non_model\i\eng";
-save_folder_r="D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml\abs\non_model\r\eng";
+
+
+fullfile(pwd,save_folder)
+
+save_folder_i=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml\abs\non_model\i",text_type);
+save_folder_r=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml\abs\non_model\r",text_type);
 clear("figFiles")
 dir_figs=dir(fullfile(save_folder_i,"*adjusted.fig"));
 dir_figs=[dir_figs;dir(fullfile(save_folder_r,"*adjusted.fig"))];
 for i_fig=1:length(dir_figs)
     figFiles{i_fig}=dir_figs(i_fig).name;
 end
+s.dir_figs=dir_figs;
 concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.05,0.35);
  

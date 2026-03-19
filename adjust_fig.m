@@ -95,8 +95,8 @@ function adjust_fig(output_folder, opts)
 
 
         set(ax, 'FontSize', opts.targetFontSize);
-        xlabel(ax, '$a^*$', 'Interpreter', 'latex', 'FontSize', opts.targetFontSize);
-        ylabel(ax, '$b^*$', 'Interpreter', 'latex', 'FontSize', opts.targetFontSize);
+        xlabel(ax, '$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
+        ylabel(ax, '$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
         
         % 4. 调节 Label 间距
         % 修正：确保在 Data Units 下，Label 距离坐标轴边缘有固定的 margin

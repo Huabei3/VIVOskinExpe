@@ -3,17 +3,21 @@
 close all; % 关闭所有图窗
 clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
+addpath("utils\")
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
-    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
+
 nations = ["AS", "CA", "SA", "AF"];
 text_type="eng";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
+    attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
+    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
     nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 targetFontSize=12;
 % lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -143,7 +147,7 @@ for i_obs = 1:length(obs_types)
             for i_attr = 1:length(attributes)
                 attribute = attributes(i_attr);
                 attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
-                
+                attribute_serial=ch2eng(attribute_serial);
                 % 定义路径
                 source_file = fullfile('AnalyseResults_p', Dtype,scale_type_origin, lastPart, obs_type, attribute_serial, 'ellipPara', 'fitRes.mat');
                 
@@ -302,6 +306,7 @@ for i_obs=1:length(obs_types)
         set(gcf, 'Color', 'white');
         for attribute = [1]
             attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
+            attribute_serial=ch2eng(attribute_serial);
             % 直接从lab_fit_reshaped获取数据
             lab_data = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
             % 计算平均值并准备数据
@@ -456,7 +461,12 @@ for i_obs=1:length(obs_types)
     % opts.bar_interval=0.4;
     adjust_fig(save_folder, opts);
     %-----------------
-    s.labels_row1 = {"indoor","outdoor","night"};
+    if strcmp(text_type,"eng")
+        s.labels_row1 = {"indoor","outdoor","night"};
+    elseif strcmp(text_type,"ch")
+        s.labels_row1 = {"室内","室外","夜景"};
+    end
+
     s.labels_row2 = {};
     s.markers_row2 = {};
     s.markers_colors = [];

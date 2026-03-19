@@ -22,12 +22,12 @@ function concatenate_images1(save_folder,n_col)
     end
     
     % 设置文本的颜色和位置
-    text_color_number = [0, 0, 0]; 
-    % text_color_number = [255, 255, 255]; % 红色 (R, G, B) - 用于图像编号
+    % text_color_number = [0, 0, 0]; 
+    text_color_number = [255, 255, 255]; % 红色 (R, G, B) - 用于图像编号
     
     % 在每张图片上添加文本并保存带文本的图片
     [rows, cols, ~] = size(resized_images{1});
-    font_size_number1 = round(cols / 20);
+    font_size_number1 = round(cols / 10);
         
     for i = 1:num_images
         img = resized_images{i};
@@ -40,7 +40,7 @@ function concatenate_images1(save_folder,n_col)
         font_size_number = min(font_size_number1, round(rows / 5));
         
         % 动态计算文本位置，确保文本在图片内部且居于右下角
-        text_position_number = [cols - font_size_number*2.5, rows - font_size_number*4.5];
+        text_position_number = [cols - font_size_number*2.5, rows - font_size_number*2];
         
         % 在图片上插入编号
         font_size_number=min(font_size_number,200);
@@ -101,10 +101,57 @@ function concatenate_images1(save_folder,n_col)
     end
     output_file = fullfile(output_folder, strcat('bigImg.jpg'));
     imwrite(concatenated_image, output_file);
-    
+    figure('Name', 'Image Concatenation Progress', 'NumberTitle', 'off', 'Visible', 'on');
+    imshow(concatenated_image);
     fprintf('Concatenated image saved to %s\n', output_file);
 end
 
 %%
-% concatenate_images1("",n_col)
-
+% concatenate_images1("D:\work\VIVOskinExpe\analyze\dsp\HD65",10)
+% concatenate_images1("D:\work\VIVOskinExpe\analyze\dsp\f05_rs",7)
+%%
+% % 设置源文件夹和目标文件夹
+% source_folder = 'D:\work\VIVOskinExpe\AndroidStudio1\female41r65\app\src\main\res\drawable';  % 源文件夹路径
+% dest_folder = 'D:\work\VIVOskinExpe\analyze\dsp\drawable_hd65\concatenated';      % 目标文件夹路径
+% 
+% % 检查目标文件夹是否存在，如果不存在则创建
+% if ~exist(dest_folder, 'dir')
+%     mkdir(dest_folder);
+%     fprintf('创建目标文件夹: %s\n', dest_folder);
+% end
+% 
+% % 获取源文件夹下所有jpg文件
+% jpg_files = dir(fullfile(source_folder, '*.jpg'));
+% 
+% % 初始化计数器
+% copied_count = 0;
+% 
+% % 遍历所有jpg文件
+% for i = 1:length(jpg_files)
+%     filename = jpg_files(i).name;
+% 
+%     % 查找文件名中的'_'和'.'的位置
+%     underscore_pos = strfind(filename, '_');
+%     dot_pos = strfind(filename, '.');
+% 
+%     % 确保文件名中包含'_'和'.'，且'_'在'.'之前
+%     if ~isempty(underscore_pos) && ~isempty(dot_pos) && underscore_pos(end) < dot_pos(1)
+%         % 提取_之后.之前的内容
+%         content = filename(underscore_pos(end)+1 : dot_pos(1)-1);
+% 
+%         % 检查提取的内容是否为"33"
+%         if strcmp(content, '33')
+%             % 构建完整的源文件路径和目标文件路径
+%             source_path = fullfile(source_folder, filename);
+%             dest_path = fullfile(dest_folder, filename);
+% 
+%             % 复制文件
+%             copyfile(source_path, dest_path);
+%             copied_count = copied_count + 1;
+%             fprintf('已复制: %s\n', filename);
+%         end
+%     end
+% end
+% 
+% % 输出结果统计
+% fprintf('\n总共找到并复制了 %d 个符合条件的文件。\n', copied_count);

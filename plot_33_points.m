@@ -18,9 +18,7 @@ figure('Position', [100, 100, 800, 600]);  % 设置图形窗口大小
 scatter(x_data, y_data, 'filled', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k', 'SizeData', 50);
 
 % 设置坐标轴标签和标题
-xlabel('$\Delta$\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-ylabel('$\Delta$\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-% title('散点图', 'FontSize', 14*2, 'FontWeight', 'bold');
+
 
 % 设置坐标轴范围
 lim_max = 25;
@@ -38,6 +36,7 @@ set(href, 'Color', 'k', 'LineStyle', '--', 'LineWidth', 1.5);  % 设置属性
 % 设置图形属性
 % grid on;
 % grid minor;
+box on;
 axis equal;
 xlim([lim_min, lim_max]);
 ylim([lim_min, lim_max]);
@@ -46,8 +45,13 @@ ylim([lim_min, lim_max]);
 ax = gca;
 targetFontSize=12;
 set(ax, 'FontSize', targetFontSize);
+
 set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
 set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+xlabel('$\Delta$\textit{a*}', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
+ylabel('$\Delta$\textit{b*}', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
+% title('散点图', 'FontSize', 14*2, 'FontWeight', 'bold');
+
 exportgraphics(gcf,"documents\points_added_33.jpg","Resolution",600);
 % saveas(gcf, 'scatter_plot.png');
 % print(gcf, 'scatter_plot', '-dpng', '-r300');

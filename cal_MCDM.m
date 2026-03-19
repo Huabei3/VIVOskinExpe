@@ -341,6 +341,10 @@ s.markers_face_colors = [];
 s.n_col1=5; 
 s.n_col2=5;
 s.if_label=false;
+s.marginL=0.1;
+s.x_data=x;
+s.y_data=MCDM_nation;
+s.leg_x_shift=-0.15;
 
 num_attributes = numel(s.labels_row1);
 hue_values = linspace(0, 1, num_attributes + 1);
@@ -348,8 +352,9 @@ hue_values = hue_values(1:end-1);
 hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
 s.colors_row1 = hsv2rgb(hsv_matrix);
 s.label_type="MCDM";
+s.fig_wh_base=[1000 450];
 
-concatenate_figs_legend1(MCDM_folder, figFiles, 1,"none","draw",s,0.12,0.6);
+concatenate_figs_legend1(MCDM_folder, figFiles, 1,"none","draw",s,0.12,1.1);
 %--------------------------------
 close all;
 

@@ -1,12 +1,124 @@
 clc;clear;close all;
 addpath("utils\")
+
+%% 批量图片 4 倍压缩脚本
+
+% 1. 设置文件夹路径
+srcDir = 'E:\PeggySkinBackup\B_dataset\C_VIVO_skin_project\A_raw_image\RealScene\f05\jpg\card';   % 源文件夹
+destDir = 'D:\work\VIVOskinExpe\analyze\dsp\f05_rs';    % 目标文件夹
+
+% 2. 如果目标文件夹不存在，则创建它
+if ~exist(destDir, 'dir')
+    mkdir(destDir);
+end
+
+% 3. 获取源文件夹中所有的 jpg 文件列表
+% 支持 .jpg 和 .JPG 后缀
+fileList = [ dir(fullfile(srcDir, '*.JPG'))];
+
+if isempty(fileList)
+    error('在 source 文件夹中没有找到任何 jpg 图片！');
+end
+
+fprintf('开始处理，共计 %d 张图片...\n', length(fileList));
+
+% 4. 循环处理每一张图片
+for k = 1:length(fileList)
+    % 构建完整的输入和输出路径
+    fileName = fileList(k).name;
+    inputPath = fullfile(srcDir, fileName);
+    outputPath = fullfile(destDir, fileName);
+
+    try
+        % 读取图片
+        img = imread(inputPath);
+        % 2. 尝试读取 EXIF 方向信息
+        info = imfinfo(fullPath);
+        if isfield(info, 'Orientation')
+            orient = info.Orientation;
+            % 根据 EXIF 标准进行旋转补偿
+            switch orient
+                case 6 % 向左躺 (需顺时针转90)
+                    img = rot90(img, -1);
+                case 8 % 向右躺 (需逆时针转90)
+                    img = rot90(img, 1);
+                case 3 % 倒立 (需转180)
+                    img = rot90(img, 2);
+            end
+        end
+
+        % 缩小 4 倍 (缩放比例 0.25)
+        % imresize 会自动处理抗混叠滤波，效果比直接抽样更好
+        imgResized = imresize(img, 0.25);
+
+        imgResized=imrotate(imgResized,90);
+        % 保存图片到目标文件夹
+        % 'Quality' 设置为 95 以保持较高画质
+        imwrite(imgResized, outputPath, 'Quality', 95);
+
+        fprintf('已完成 (%d/%d): %s\n', k, length(fileList), fileName);
+
+    catch ME
+        fprintf('处理失败: %s，错误原因: %s\n', fileName, ME.message);
+    end
+end
+
+% 清理内存
+clear img imgResized;
+disp('所有图片处理完毕！');
+%% 图像压缩与居中裁剪脚本
+
+% % 1. 配置路径（在此处修改你的文件名）
+% inputPath = 'E:\PeggySkinBackup\B_dataset\C_VIVO_skin_project\A_raw_image\Hassel\m05\jpg\HD65.JPG';   % 原始图片
+% outputPath = 'D:\work\VIVOskinExpe\analyze\dsp\HD65\m05_HD65.jpg';  % 处理后的图片
+% 
+% % 2. 读取原始图像
+% % 原始尺寸预计为 11656 * 8742
+% img = imread(inputPath);
+% 
+% % 3. 压缩 4 倍 (缩放到原来的 25%)
+% % 使用 imresize 自动处理抗混叠滤波，确保缩小后图像清晰
+% imgResized = imresize(img, 0.25);
+% 
+% % 获取压缩后的尺寸
+% % 11656/4 = 2914, 8742/4 = 2185.5 -> 约 2914 * 2186
+% [h, w, ~] = size(imgResized);
+% 
+% % 4. 设置目标裁剪尺寸
+% targetH = 2186;
+% targetW = 1640;
+% 
+% % 5. 计算中心裁剪范围
+% % 垂直方向 (Height) 中心化
+% startY = floor((h - targetH) / 2) + 1;
+% endY   = startY + targetH - 1;
+% 
+% % 水平方向 (Width) 中心化
+% startX = floor((w - targetW) / 2) + 1;
+% endX   = startX + targetW - 1;
+% 
+% % 6. 执行矩阵裁剪 (矩阵索引操作)
+% % 格式：img(行范围, 列范围, 通道范围)
+% processedImg = imgResized(startY:endY, startX:endX, :);
+% 
+% % 7. 保存并显示结果
+% imwrite(processedImg, outputPath, 'Quality', 95);
+% 
+% % 在窗口展示结果
+% imshow(processedImg);
+% title(sprintf('最终尺寸: %d x %d', targetW, targetH));
+% 
+% % 清理大变量释放内存（可选）
+% clear img imgResized;
+% 
+% fprintf('处理完成！图片已保存至: %s\n', outputPath);
 %%
-img=imread("D:\work\secondYearMaster\apply\materials\身份证国徽面.jpg");
-sz=size(img);
-ratio=1/1.5;
-imwrite(imresize(img,[sz(1)*ratio,sz(2)*ratio]), ...
-    "D:\work\secondYearMaster\apply\materials\身份证国徽面1.png");
-disp("d")
+% img=imread("D:\work\secondYearMaster\apply\materials\身份证国徽面.jpg");
+% sz=size(img);
+% ratio=1/1.5;
+% imwrite(imresize(img,[sz(1)*ratio,sz(2)*ratio]), ...
+%     "D:\work\secondYearMaster\apply\materials\身份证国徽面1.png");
+% disp("d")
 %%
 % img=imread("D:\user\pictures\胶囊小兔\第二弹\出发.jpg");
 % sz=size(img);

@@ -5,8 +5,19 @@ addpath("utils\")
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
+
+
+text_type="ch";
+if strcmp(text_type,"eng")
+    nation_names = ["Asian", "Caucasian", "South Asian", "African"];
+    attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
+elseif strcmp(text_type,"ch")
+    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
+end
+
 nations = ["AS", "CA", "DA", "all"];
 
 lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -121,6 +132,7 @@ for i_obs = 1:length(obs_types)
                 % for attribute = [7]
                 for attribute = 1:length(attributes)
                     attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
+                    attribute_serial=ch2eng(attribute_serial);
                     % 定义源文件路径
                     if attribute==7
                         obs_type_used="model_group";
@@ -234,6 +246,7 @@ for i_obs = 1:length(obs_types)
         % for attribute = 1:length(attributes)
             attribute_serial = strcat(sprintf("%02d", attribute), ...
                 attribute_names_new(attribute));
+            attribute_serial=ch2eng(attribute_serial);
             figure(i_indices*10+attribute); hold on;
             for i_nation = 1:length(nations)
                 % 获取当前人种的所有索引
@@ -311,7 +324,7 @@ for i_obs = 1:length(obs_types)
 
             end
 
-            output_folder = fullfile(save_folder,"nation1",iOr,obs_type);
+            output_folder = fullfile(save_folder,"nation1",iOr,obs_type,text_type);
             if ~exist(output_folder, "dir")
                 mkdir(output_folder);
             end
@@ -361,37 +374,52 @@ for i_obs = 1:length(obs_types)
                 strcat( "fitRes.mat")),"parNr_all");
     %%
 
-    s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
-    s.labels_row2 = {'preference center', 'PMCC'};
+    opts.lim_min=0; 
+    opts.lim_max=40;  
+    opts.targetFontSize=12;
+    opts.margin=0.2;    
+    adjust_fig(output_folder, opts);
+
+    if strcmp(text_type,"eng")
+        s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
+        s.labels_row2 = {'preference center', 'PMCC'};
+    elseif strcmp(text_type,"ch")
+        s.labels_row1 = {"亚洲人", "高加索人", "南亚人", "非洲人"};
+        s.labels_row2 = {'喜好中心', 'PMCC'};
+    end
+
     s.markers_row2 = {'o', 's'};
     s.markers_colors = [0 0 0; 0 0 0];
     s.markers_face_colors=[0 0 0; 1 1 1];
+    s.sidePad=0.2;
+    s.if_label=1;
     
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
+
+
+
     %----------------------
-    dir_figs=dir(fullfile(output_folder,"*.fig"));
+    dir_figs=dir(fullfile(output_folder,"*.fig"));   
+    clear("figFiles");i_fig1=1;
     for i_fig=1:length(dir_figs)
-        if contains(dir_figs(i_fig).name, 'adjusted')
+        if ~contains(dir_figs(i_fig).name, 'adjusted')
             continue;
         end
-        figFiles{i_fig}=dir_figs(i_fig).name;
+        figFiles{i_fig1}=dir_figs(i_fig).name;
+        i_fig1=i_fig1+1;
     end
     % figFiles = {'all_a_b.fig', 'all_L_C.fig'};
     % concatenate_figs1(outputFolder,figFiles);
     legend_file="";
     % concatenate_figs_legend(outputFolder, figFiles, 2,legend_file);
     if strcmp(iOr,"i")
-        concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.12,1.7);
+        concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.1,1.7);
     elseif strcmp(iOr,"r")
-        opts.lim_min=0; 
-        opts.lim_max=40;  
-        opts.targetFontSize=12;
-        opts.margin=10;    
-        adjust_fig(output_folder, opts);
+
         concatenate_figs_legend1(output_folder, figFiles, 4,legend_file,"draw",s,0.08,2);
     end
 

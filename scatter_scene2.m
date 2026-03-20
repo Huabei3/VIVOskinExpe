@@ -9,7 +9,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 
 nations = ["AS", "CA", "SA", "AF"];
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -493,3 +493,6 @@ for i_obs=1:length(obs_types)
     concatenate_images1(save_folder, 4);
     %%
 end
+
+
+fullfile(pwd,save_folder)

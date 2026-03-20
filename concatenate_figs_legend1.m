@@ -196,7 +196,7 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
 
             total_content_width = (n_col * baseWidth) - ((n_col - 1) * gapX);
     %------------------
-    if mod(i,4)==0&&isfield(legend_labels, 'color_limits')
+    if isfield(legend_labels, 'color_limits')&&(mod(i,4)==0||strcmp(legend_labels.label_type, 'CT'))
         % 在主图右侧创建一个不可见的坐标轴用于挂载全局 Colorbar
         % 位置建议在最右侧子图的旁边
         cbAx = axes('Parent', mainFig, 'Units', 'normalized', ...
@@ -204,15 +204,22 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             'Visible', 'off');
         
         colormap(cbAx, 'copper'); % 明确指定使用 copper 渐变
+        if isfield(legend_labels, 'cmap')
+            colormap(cbAx, legend_labels.cmap);
+        end
         clim(cbAx, legend_labels.color_limits);
         
         cb = colorbar(cbAx, 'eastoutside');
         
         % 设置标签内容
-        if strcmp(legend_labels.color_type, "lightness")
-            cb.Label.String = '$L^*$';
-        else
-            cb.Label.String = 'luminance (cd/m$^2$)';
+        if strcmp(legend_labels.label_type, 'hml')
+            if strcmp(legend_labels.color_type, "lightness")
+                cb.Label.String = '$L^*$';
+            else
+                cb.Label.String = 'luminance (cd/m$^2$)';
+            end
+        elseif strcmp(legend_labels.label_type, 'CT')
+            cb.Label.String = 'CCT';
         end
         
         cb.Label.Interpreter = 'latex';
@@ -335,7 +342,11 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
         sidePad = 0.1;
     end
     colGap1 = 1 / (n_col1 + 0.5); % 根据列数动态调整间距
-    colGap2 = 1 / (n_col2 + 0.5);
+    if isfield(legend_labels,"colGap2_scale")
+        colGap2 = 1 / (n_col2 + 0.5)*legend_labels.colGap2_scale;
+    else
+        colGap2 = 1 / (n_col2 + 0.5);
+    end
     rowStep = 0.35; % 换行时的垂直间距
     if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")
         rowStep = 0.15;
@@ -355,9 +366,17 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                 'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
         elseif isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'compare_nation')
             text_char=char(labels_row1{k});
-            text(legAx, tx , ty, text_char(1), ...
-                'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
-                'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
+            i_last_others=length(labels_row1)-4;
+            colors_last4=[[0 0 0];[0 0 0];[0 0 0];[1 0 1]];
+            if k>i_last_others
+                plot(legAx, tx, ty, legend_labels.markers_row1_last4{k-i_last_others}, ...
+                    'MarkerFaceColor', colors_last4(k-i_last_others, :), ...
+                    'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
+            else
+                text(legAx, tx , ty, text_char(1), ...
+                    'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
+                    'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
+            end
         else
             plot(legAx, tx, ty, 'o', 'MarkerFaceColor', colors_row1(k, :), ...
                 'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');

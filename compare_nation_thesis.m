@@ -9,7 +9,7 @@ clear;     % 清除工作区所有变量
 Dtype="efit_p";
 targetFontSize=12;
 
-text_type= "eng";
+text_type= "ch";
 if strcmp(text_type,"ch")
     nation_names=["亚洲人","高加索人","南亚人","非洲人"];
 elseif strcmp(text_type,"eng")
@@ -18,7 +18,7 @@ end
 
 prev_folder=fullfile("ellip_pic_p",Dtype,"compare_thesis_pre");
 load(fullfile(prev_folder,"author_colors.mat"),"author_all","prev_cell");
-prev_cell([1,2,4],:)=[];
+prev_cell([1,3,4],:)=[];
 length_color=size(prev_cell,1);
 hue_values = linspace(0, 1, length_color + 1);hue_values = hue_values(1:end-1);
 hsv_matrix = [hue_values', 0.8 * ones(length_color, 1), 0.8 * ones(length_color, 1)];
@@ -49,7 +49,7 @@ if strcmp(Dtype,"efit_p_free")
 elseif strcmp(Dtype,"efit_p")
     ellip_pic_folder="ellip_pic_p";
 end
-output_folder=fullfile(ellip_pic_folder,Dtype,"compare_nation_thesis");
+output_folder=fullfile(ellip_pic_folder,Dtype,"compare_nation_thesis",text_type);
 
 if ~exist(output_folder,"dir")
     mkdir(output_folder);
@@ -145,12 +145,13 @@ for i_eth=1:size(ethnic_groups,2)
         cens(2,:)=par(1,6:7);
         % 绘制等高线
         color=[0 0 0];
-        % s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1, 'LineStyle','--',...
-        %      'Color', color);
-        hold on;
-        % 绘制特殊点
-        % plot(par(6), par(7), 'p', 'MarkerSize', 10, ...
-        %     'MarkerFaceColor', color, 'Color', color);
+        if strcmp(text_type,"ch")
+            s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1, 'LineStyle','--',...
+                 'Color', color);
+            hold on;
+            plot(par(6), par(7), 'p', 'MarkerSize', 10, ...
+                'MarkerFaceColor', color, 'Color', color);
+        end
 
         %-----------------------------------------------
         Dtype="efit_p";
@@ -170,12 +171,14 @@ for i_eth=1:size(ethnic_groups,2)
                 a(2)*(data3-a(5)).^2+a(3)*(data2-a(4)).*(data3-a(5)))>=0);
             
             % 绘制等高线
-            % s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1,'LineStyle',':', ...
-            %      'Color', color);
-            hold on;
-            % 绘制特殊点
-            % plot(par(4), par(5), 'x', 'MarkerSize', 4, ...
-            %     'MarkerFaceColor', color, 'Color', color);
+            if strcmp(text_type,"ch")
+                s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1,'LineStyle',':', ...
+                     'Color', color);
+                hold on;
+                % 绘制特殊点
+                plot(par(4), par(5), '^', 'MarkerSize', 4, ...
+                    'MarkerFaceColor', color, 'Color', color);
+            end
 
 
         end
@@ -186,22 +189,13 @@ for i_eth=1:size(ethnic_groups,2)
     ax = gca;
     targetFontSize=12;
     set(ax, 'FontSize', targetFontSize);
-    if strcmp(text_type,"ch")
-    xlabel('\it a* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
-    ylabel('\it b* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
-    elseif strcmp(text_type,"eng")
+
     xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
     ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);    
-    end
+
     title([nation_names(i_eth)],'FontSize', targetFontSize);
     
-    yPos = ax.YLabel.Position;
-    yPos(1) = yPos(1) - 5; % 数字越大，离得越远
-    ax.YLabel.Position = yPos;
-    xPos = ax.XLabel.Position;
-    xPos(2) = xPos(2) - 5; % 数字越大，离得越远
-    ax.XLabel.Position = xPos;
-    set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
+    % set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
     img_name=fullfile(output_folder, ...
         strcat(ethnic_groups(i_eth),'.jpg'));    
     savefig(gcf, strrep(img_name,'jpg','fig'));
@@ -222,12 +216,32 @@ opts.axis_ticks=[10,10,10,5];
 % opts.bar_interval=0.4;
 adjust_fig(output_folder, opts);
 %-----------------
-s.labels_row1 = prev_cell(:,2);
-s.colors_row1 = colors;
-s.labels_row2 = {"This experiment","PMCC"};
-s.markers_row2 = {"o","s"};
-s.markers_colors = [[0 0 0];[1 0 1]];
-s.markers_face_colors = [[0 0 0];[1 0 1]];
+
+if strcmp(text_type,"ch")
+    for i_row=1:size(prev_cell,1)
+        s.labels_row1{i_row,1}= strrep(prev_cell{i_row,2}," et al.","等人");
+    end
+elseif strcmp(text_type,"eng")
+    s.labels_row1 = prev_cell(:,2);
+    
+end
+
+if strcmp(text_type,"ch")
+    s.colors_row1 = [colors;[0 0 0];[0 0 0];[0 0 0];[1 0 1]];    
+    s.markers_row1_last4={"^","p","o","s"};
+    s.labels_row1 = [s.labels_row1;{"实验一"};{"实验二"};{"实验三"};{"PMCC"}];
+    s.labels_row2 = {};
+    s.markers_row2 = {};
+    s.markers_colors = [];
+    s.markers_face_colors = [];
+elseif strcmp(text_type,"eng")
+    s.colors_row1 = colors;
+    s.labels_row2 = {"This experiment","PMCC"};    
+    s.markers_row2 = {"o","s"};
+    s.markers_colors = [[0 0 0];[1 0 1]];
+    s.markers_face_colors = [[0 0 0];[1 0 1]];
+end
+
 s.n_col1=3; 
 s.n_col2=2;
 s.if_label=true;
@@ -244,6 +258,7 @@ else
 end
 s.leg_x_shift=0;
 s.label_fontSize=1.2*targetFontSize;
+s.colGap2_scale=1.5;
 
 s.label_type="compare_nation";
 dir_figs=dir(fullfile(output_folder,"*adjusted.fig"));

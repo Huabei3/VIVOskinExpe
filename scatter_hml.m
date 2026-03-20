@@ -1,12 +1,13 @@
 close all; % 关闭所有图窗
 clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
+addpath("utils\")
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 
 nations = ["AS", "CA", "SA", "AF"];
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -486,12 +487,7 @@ for i_obs=1:length(obs_types)
         set(ax, 'FontSize', targetFontSize);
         xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
         ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        yPos = ax.YLabel.Position;
-        yPos(1) = yPos(1) - 5; % 数字越大，离得越远
-        ax.YLabel.Position = yPos;
-        xPos = ax.XLabel.Position;
-        xPos(2) = xPos(2) - 5; % 数字越大，离得越远
-        ax.XLabel.Position = xPos;
+
         set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
         img_name=fullfile(save_folder, strcat(nation_serial, '_L.jpg'));    
         savefig(gcf, strrep(img_name,'jpg','fig'));

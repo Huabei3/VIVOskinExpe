@@ -94,9 +94,9 @@ function adjust_fig(output_folder, opts)
         end
 
 
-        set(ax, 'FontSize', opts.targetFontSize);
-        xlabel(ax, '$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
-        ylabel(ax, '$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
+        % set(ax, 'FontSize', opts.targetFontSize);
+        % xlabel(ax, '$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
+        % ylabel(ax, '$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
         
         % 4. 调节 Label 间距
         % 修正：确保在 Data Units 下，Label 距离坐标轴边缘有固定的 margin
@@ -116,7 +116,7 @@ function adjust_fig(output_folder, opts)
             ax.YLabel.Position(2) = 0.5;
         end
         % 5. 确保所有的 Text 对象字号统一（如之前的 (a), (b) 标签）
-        set(findobj(tempFig, 'Type', 'Text'), 'FontSize', opts.targetFontSize);
+        % set(findobj(tempFig, 'Type', 'Text'), 'FontSize', opts.targetFontSize);
         
         % 6. 保存并导出
         % 注意：如果是为了之后的拼接，导出高清 jpg 有助于预览，

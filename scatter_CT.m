@@ -100,22 +100,12 @@ labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [41.06	17.37	17.94	24.97	45.93]];
 labCh_PMCC(end+1,:)=mean(labCh_PMCC,1);
 file_missing={};
-Dtype = 'efit_p';
+% Dtype = 'efit_p';
 % Dtype = 'noCAT';
-% 定义一个函数来分离性别索引
-function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
-    gender_indices = cell(2, 1); % f和m的索引
-    for i_subject = 1:n_subjects
-        subject_idx = curr_nation_indices(i_subject);
-        lastPart = lastParts{subject_idx};
-        if lastPart(1) == 'f'
-            gender_indices{1} = [gender_indices{1}, i_subject];
-        elseif lastPart(1) == 'm'
-            gender_indices{2} = [gender_indices{2}, i_subject];
-        end
-    end
-end
+Dtypes=["noCAT","efit_p"];
+for i_Dtype=1:length(Dtypes)
 
+Dtype=Dtypes(i_Dtype);
 %% 直接按重塑后的结构加载和存储数据
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
@@ -310,6 +300,7 @@ if iOr=='r'
 elseif iOr=='i'
     XYZw_used = XYZw_mean;
 end
+obs_types=["non_model"];
 for i_obs=1:length(obs_types)
     obs_type=obs_types(i_obs);
     for i_nation = 1:length(nations)
@@ -481,12 +472,12 @@ for i_obs=1:length(obs_types)
         % 添加颜色条表示色温
         if  strcmp(Dtype,"noCAT")
         % if  i_nation==4
-            cb = colorbar;
-            cb.Label.String = 'color temperature (K)';
-            cb.Label.Interpreter = 'latex';  % 设置解释器为LaTeX
-            cb.Label.FontSize = 12;          % 可以调整字体大小
-            caxis([2500,8500]);
-            colormap(cmap);
+            % cb = colorbar;
+            % cb.Label.String = 'color temperature (K)';
+            % cb.Label.Interpreter = 'latex';  % 设置解释器为LaTeX
+            % cb.Label.FontSize = 12;          % 可以调整字体大小
+            % caxis([2500,8500]);
+            % colormap(cmap);
         end
         
         % 设置坐标轴范围
@@ -505,13 +496,98 @@ for i_obs=1:length(obs_types)
         if ~exist(save_folder, "dir")
             mkdir(save_folder);
         end
-        exportgraphics(gcf, fullfile(save_folder, strcat(iOr,obs_type,nation_serial, '_CT.jpg')), 'Resolution', 300);
+
+
+        ax = gca;
+        targetFontSize=12;
+        set(ax, 'FontSize', targetFontSize);
+        xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        yPos = ax.YLabel.Position;
+        yPos(1) = yPos(1) - 5; % 数字越大，离得越远
+        ax.YLabel.Position = yPos;
+        xPos = ax.XLabel.Position;
+        xPos(2) = xPos(2) - 5; % 数字越大，离得越远
+        ax.XLabel.Position = xPos;
+        set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
+        img_name=fullfile(save_folder, strcat(iOr,obs_type,nation_serial, '_CT.jpg'));    
+        savefig(gcf, strrep(img_name,'jpg','fig'));
+        exportgraphics(gcf,img_name ,'Resolution', 300);
         % close(gcf);
     end
     % 合并所有图片
     save_folder = fullfile("ellip_pic_p", Dtype, "CT",scale_type, obs_type, iOr);
     concatenate_images1(save_folder, 4);  
     close all
+
+ 
+end
+opts.lim_min=0; 
+opts.lim_max=40;  
+opts.targetFontSize=12;
+opts.margin=0.17;    
+opts.label_type="CT";
+opts.if_rotate=false;
+% opts.axis_limits=[9,19,9,19;9,19,9,19;9,19,9,19;7,11,7,11];
+% opts.axis_ticks=[2,2,2,1];
+% opts.bar_interval=0.4;
+adjust_fig(save_folder, opts);
 end
 
  
+%%
+
+   
+
+    %-----------------
+    s.labels_row1 = {};
+    s.labels_row2 = {};
+    s.markers_row2 = {};
+    s.markers_colors = [];
+    s.markers_face_colors = [];
+    s.n_col1=2; 
+    s.n_col2=2;
+    s.if_label=true;
+    s.color_limits = [2500,8500]; % 传入全局数据极值    
+    cmap = colormap('jet');
+    cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色温
+    s.cmap = cmap;
+
+    if ~isempty(s.labels_row1)
+        num_attributes = numel(s.labels_row1);    
+        hue_values = linspace(0, 1, num_attributes + 1);
+        hue_values = hue_values(1:end-1);
+        hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+        s.colors_row1 = hsv2rgb(hsv_matrix);
+    else
+        s.colors_row1 = [];
+    end
+
+    s.label_type="CT";
+    save_folder1=strrep(save_folder,Dtypes(2),Dtypes(1));
+    dir_figs=dir(fullfile(save_folder,"inon_model01Asian_CTadjusted.fig"));
+    dir_figs=[dir_figs;dir(fullfile(save_folder1, ...
+        "inon_model01Asian_CTadjusted.fig"))];
+    s.dir_figs=dir_figs;
+    clear("figFiles")
+    for i_fig=1:length(dir_figs)
+        figFiles{i_fig}=dir_figs(i_fig).name;
+    end
+    concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
+    
+fullfile(pwd,save_folder)
+fullfile(pwd,save_folder1)
+%%
+    % 定义一个函数来分离性别索引
+function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
+    gender_indices = cell(2, 1); % f和m的索引
+    for i_subject = 1:n_subjects
+        subject_idx = curr_nation_indices(i_subject);
+        lastPart = lastParts{subject_idx};
+        if lastPart(1) == 'f'
+            gender_indices{1} = [gender_indices{1}, i_subject];
+        elseif lastPart(1) == 'm'
+            gender_indices{2} = [gender_indices{2}, i_subject];
+        end
+    end
+end

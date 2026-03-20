@@ -1,12 +1,14 @@
 clear; close all;
-
+lightness_type="rela";
+% lightness_type="abs";
 targetFontSize = 12;
-save_folder = fullfile("ellip_pic_p", "ellipse", "OPPO_failure_case");
+save_folder = fullfile("ellip_pic_p", "ellipse", "OPPO_failure_case",lightness_type);
 if ~exist(save_folder, "dir")
     mkdir(save_folder);
 end
 
-Peggy_OPPO_folder="D:\work\project_code_backup\OPPOskinExpe\analyzeResult_scaled\AnalyseResults_p\display\abs\efit_p\resTable";
+Peggy_OPPO_folder=fullfile("D:\work\project_code_backup\OPPOskinExpe\" + ...
+    "analyzeResult_scaled\AnalyseResults_p\display",lightness_type,"efit_p\resTable");
 Peggy_OPPO_file=fullfile(Peggy_OPPO_folder,"Peggy_OPPO_table.mat");
 Peggy_OPPO_data=load(Peggy_OPPO_file);
 Peggy_OPPO_table=Peggy_OPPO_data.fit_table(1:52,:);

@@ -7,7 +7,7 @@ addpath("utils\")
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 nations = ["AS", "CA", "SA", "AF"];
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -595,3 +595,7 @@ for i_nation = 1:length(nations)
 end
 deltaE_matrix_mean=deltaE_matrix_mean';
 deltaE_ave_vector_mean=deltaE_ave_vector_mean';
+
+
+
+fullfile(pwd,save_folder)

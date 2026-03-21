@@ -9,7 +9,7 @@ clear;     % 清除工作区所有变量
 Dtype="efit_p";
 targetFontSize=12;
 
-text_type= "ch";
+text_type= "eng";
 if strcmp(text_type,"ch")
     nation_names=["亚洲人","高加索人","南亚人","非洲人"];
 elseif strcmp(text_type,"eng")
@@ -113,10 +113,13 @@ for i_eth=1:size(ethnic_groups,2)
             author_str=char(prev_cell{i_prev,2});  
             author_str_used=author_str(1);            
 
-            text(lab_pre(1, 2), lab_pre(1, 3), ...
-             author_str_used, 'FontSize', 8, ...
-             'VerticalAlignment', 'top', 'Color', colors(i_prev,:), ...
-             'FontWeight', 'bold');  % 新增字体加粗参数
+            % text(lab_pre(1, 2), lab_pre(1, 3), ...
+            %  author_str_used, 'FontSize', 8, ...
+            %  'VerticalAlignment', 'top', 'Color', colors(i_prev,:), ...
+            %  'FontWeight', 'bold');  % 新增字体加粗参数
+
+            plot(lab_pre(1, 2), lab_pre(1, 3), 'o', 'MarkerSize', 4, ...
+                'MarkerFaceColor', colors(i_prev,:), 'Color', colors(i_prev,:));
         end
     end
 

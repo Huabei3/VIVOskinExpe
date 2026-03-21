@@ -128,8 +128,8 @@ if ~exist(output_folder, 'dir')
     mkdir(output_folder);
 end
 % label_type="only_my";
-% label_type="include_this";
-label_type="include_VIVO";
+label_type="include_this";
+% label_type="include_VIVO";
 load(fullfile("ellip_pic_p\efit_p\compare_thesis_pre", ...
     "exclude_this","author_colors.mat"));
 % 生成英文图例
@@ -201,5 +201,10 @@ for i_author=1:length(author_all)
 end
 author_all(i_del,:)=[];
 
-% create_custom_legend(output_folder, author_all, true, legend_type);
-create_custom_legend(output_folder, author_all, false, legend_type);
+create_custom_legend(output_folder, author_all, true, legend_type);
+% create_custom_legend(output_folder, author_all, false, legend_type);
+
+fullfile(pwd,output_folder)
+
+
+"D:\work\FirstYearMaster\SkinColorPreferenceScale";

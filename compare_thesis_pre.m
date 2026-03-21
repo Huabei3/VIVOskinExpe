@@ -3,7 +3,7 @@ clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
 addpath("utils\")
 %%
-
+text_type="ch";
 % nations=["AS","CA","SA","AF","all"];
 Dtype="efit_p";
 %%
@@ -224,8 +224,8 @@ elseif strcmp(Dtype,"efit_p")
 end
 
 % label_type="ACSA";
-% label_type="only_my";
-label_type="include_this";
+label_type="only_my";
+% label_type="include_this";
 % label_type="exclude_this";
 output_folder=fullfile(ellip_pic_folder,Dtype,"compare_thesis_pre",label_type);
 
@@ -280,6 +280,7 @@ for i_eth=1:size(ethnic_groups,2)
     if strcmp(label_type,"include_this")||strcmp(label_type,"only_my")
         s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1.5, ...
              'Color', color);
+
         hold on;
         % 绘制特殊点
         plot(par(4), par(5), 'o', 'MarkerSize', 6, ...
@@ -288,13 +289,19 @@ for i_eth=1:size(ethnic_groups,2)
             res_cell{curr,1}=center(i_eth,:);
             res_cell{curr,2}=ethnic_groups(i_eth);
             curr=curr+1;
+        
     end
     
     
     
     axis equal
-    min_lim=0;
-    max_lim=35;
+    if strcmp(text_type,"ch")
+        min_lim=0;
+        max_lim=40;
+    else
+        min_lim=0;
+        max_lim=35;
+    end
     xlim([min_lim,max_lim])
     ylim([min_lim,max_lim])
     interval = 5;
@@ -325,10 +332,10 @@ for i_eth=1:size(ethnic_groups,2)
                     author_all{end,2}=strcat(strrep(author_str," et al.","等人")," ",prev_cell{i_prev,4}(i_eth1));
                     author_all{end,3}=colors(i_eth1,:);
                     author_all{end,4}=author_str_used;
-    
+                    target_text_size=6;
                     if ~(strcmp(label_type,"ACSA")&&i_eth1>4)
                         text(lab_pre(1, 2), lab_pre(1, 3), ...
-                             author_str_used, 'FontSize', 8, ...
+                             author_str_used, 'FontSize', target_text_size, ...
                              'VerticalAlignment', 'top', 'Color', colors(i_eth1,:), ...
                              'FontWeight', 'bold');  % 新增字体加粗参数
                     end
@@ -341,7 +348,7 @@ for i_eth=1:size(ethnic_groups,2)
         disp("d")
     end
     if ~strcmp(label_type,"only_my")
-        scatter(labCh_PMCC(i_eth,2), labCh_PMCC(i_eth,3), 40, 's', 'LineWidth', 2, ...
+        scatter(labCh_PMCC(i_eth,2), labCh_PMCC(i_eth,3), 40, 's', 'LineWidth', 1, ...
         'MarkerEdgeColor',colors(i_eth,:),'MarkerFaceColor','none');
     end
 
@@ -391,13 +398,16 @@ else
     color=colors(1,:);
 end
 if strcmp(label_type,"include_this")||strcmp(label_type,"only_my")
-    
-    % s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1, 'LineStyle','--',...
-    %      'Color', color);
+    if strcmp(text_type,"ch")
+        s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1, 'LineStyle','--',...
+             'Color', color);
+    end
     hold on;
-    % 绘制特殊点
-    % plot(par(6), par(7), 'p', 'MarkerSize', 10, ...
-    %     'MarkerFaceColor', color, 'Color', color);
+    if strcmp(text_type,"ch")
+        % 绘制特殊点
+        plot(par(6), par(7), 'p', 'MarkerSize', 10, ...
+            'MarkerFaceColor', color, 'Color', color);
+    end
 end
 
 
@@ -423,16 +433,20 @@ for i_level=1:n_para
     
     % 绘制等高线
     if strcmp(label_type,"include_this")||strcmp(label_type,"only_my")
-        % s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1,'LineStyle',':', ...
-        %      'Color', color);
+        if strcmp(text_type,"ch")
+            s0 = contour(data2, data3, y, [0.5, 1], 'LineWidth', 1,'LineStyle',':', ...
+                 'Color', color);
+        end
         hold on;
-        % 绘制特殊点
-        % plot(par(4), par(5), 'x', 'MarkerSize', 8, ...
-        %     'MarkerFaceColor', color, 'Color', color,"LineWidth",1.5);
-        %     res_matrix=[res_matrix;center(i_eth,:)];
-        %     res_cell{curr,1}=center(i_eth,:);
-        %     res_cell{curr,2}=ethnic_groups(i_eth);
-        %     curr=curr+1;
+        if strcmp(text_type,"ch")
+            % 绘制特殊点
+            plot(par(4), par(5), 'x', 'MarkerSize', 8, ...
+                'MarkerFaceColor', color, 'Color', color,"LineWidth",1.5);
+                res_matrix=[res_matrix;center(i_eth,:)];
+                res_cell{curr,1}=center(i_eth,:);
+                res_cell{curr,2}=ethnic_groups(i_eth);
+                curr=curr+1;
+        end
     end
     % plot(par(4), par(5), 'x', 'MarkerSize', 8, ...
     %     'MarkerFaceColor', color, 'Color', color);
@@ -442,9 +456,9 @@ end
 ax = gca;
 targetFontSize=12;
 set(ax, 'FontSize', targetFontSize);
-xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
+ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
+% set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
 
 img_name=fullfile(output_folder, ...
     strcat(label_type,'compare_thesis_pre.jpg'));
@@ -452,33 +466,78 @@ img_name=fullfile(output_folder, ...
 savefig(gcf, strrep(img_name,'jpg','fig'));
 exportgraphics(gcf,img_name ,'resolution',600);
 save(fullfile(output_folder,"author_colors.mat"),"author_all","prev_cell");
+
+
+fullfile(pwd,output_folder)
+
 % concatenate_images1(output_folder,4);
 %%
-% % opts.targetFontSize=12;
-% % opts.margin=0.2;    
-% % opts.label_type="compare_thesis_pre";
-% % opts.if_rotate=false;
-% % % opts.bar_interval=0.4;
-% % adjust_fig(save_folder, opts);
-% %-----------------
-% s.labels_row1 = attribute_names_new;
-% s.labels_row2 = {};
-% s.markers_row2 = {};
-% s.markers_colors = [];
-% s.markers_face_colors = [];
-% s.n_col1=5; 
-% s.n_col2=5;
-% s.if_label=true;
-% 
-% num_attributes = numel(s.labels_row1);
-% hue_values = linspace(0, 1, num_attributes + 1);
-% hue_values = hue_values(1:end-1);
-% hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-% s.colors_row1 = hsv2rgb(hsv_matrix);
-% s.label_type="compare_thesis_pre";
-% dir_figs=dir(fullfile(save_folder,"*adjusted.fig"));
-% clear("figFiles")
-% for i_fig=1:length(dir_figs)
-%     figFiles{i_fig}=dir_figs(i_fig).name;
-% end
-% concatenate_figs_legend1(output_folder, figFiles, 4,"none","draw",s,0.09,2);
+
+
+
+if strcat(label_type,"only_my")
+    s.labels_row1 = {"$L^*$=10","$L^*$=20","$L^*$=30","$L^*$=40",...
+        "$L^*$=50","$L^*$=60","$L^*$=70","$L^*$=80","实验二","实验三"};
+    s.labels_row2 = {};
+    s.markers_row2 = {};
+    s.markers_colors = [];
+    s.markers_face_colors = [];
+    s.n_col1=3; 
+    s.n_col2=3;
+    s.if_label=false;
+    s.markers_row1_last2={"p","o"};
+    s.leg_x_shift=-0.09;
+    s.marginL=0.3;
+    
+    num_attributes = numel(s.labels_row1);
+    hue_values = linspace(0, 1, num_attributes + 1);
+    hue_values = hue_values(1:end-1);
+    hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+    s.colors_row1 = hsv2rgb(hsv_matrix);
+    
+    
+    s.label_type="only_my";
+    dir_figs=dir(fullfile(output_folder,"only_mycompare_thesis_pre.fig"));
+    clear("figFiles")
+    for i_fig=1:length(dir_figs)
+        figFiles{i_fig}=dir_figs(i_fig).name;
+    end
+    
+    concatenate_figs_legend1(output_folder, figFiles, 1,"none","draw",s,0.09,1.2);
+else if strcat(label_type,"compare_thesis_pre")
+    opts.targetFontSize=12;
+    opts.margin=0.2;    
+    opts.label_type="compare_thesis_pre";
+    opts.if_rotate=false;
+    % opts.bar_interval=0.4;
+    adjust_fig(save_folder, opts);
+    s.labels_row1 = {"$L^*$=10","$L^*$=20","$L^*$=30","$L^*$=40",...
+        "$L^*$=50","$L^*$=60","$L^*$=70","$L^*$=80","实验二","实验三"};
+    s.labels_row2 = {};
+    s.markers_row2 = {};
+    s.markers_colors = [];
+    s.markers_face_colors = [];
+    s.n_col1=3; 
+    s.n_col2=3;
+    s.if_label=false;
+    s.markers_row1_last2={"p","o"};
+    s.leg_x_shift=-0.09;
+    s.marginL=0.3;
+    
+    num_attributes = numel(s.labels_row1);
+    hue_values = linspace(0, 1, num_attributes + 1);
+    hue_values = hue_values(1:end-1);
+    hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+    s.colors_row1 = hsv2rgb(hsv_matrix);
+    
+    
+    s.label_type="only_my";
+    dir_figs=dir(fullfile(output_folder,"only_mycompare_thesis_pre.fig"));
+    clear("figFiles")
+    for i_fig=1:length(dir_figs)
+        figFiles{i_fig}=dir_figs(i_fig).name;
+    end
+    
+    concatenate_figs_legend1(output_folder, figFiles, 1,"none","draw",s,0.09,1.2);
+
+end

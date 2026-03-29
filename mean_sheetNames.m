@@ -79,7 +79,8 @@ function mean_sheetNames(filename, sheetNames, sheet_name, picname_groups)
         
         % If textColumns has fewer rows than maxRows, pad it
         if height(textColumns) < maxRows
-            nanTable = cell2table(cell(maxRows - height(textColumns), width(textColumns)), 'VariableNames', textColumns.Properties.VariableNames);
+            nanTable = cell2table(cell(maxRows - height(textColumns), width(textColumns)), ...
+                'VariableNames', textColumns.Properties.VariableNames);
             textColumns = [textColumns; nanTable];
         end
         

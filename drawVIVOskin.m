@@ -17,7 +17,8 @@ hue_values = linspace(0, 1, num_colors + 1);
 hue_values = hue_values(1:end-1); 
 hsv_matrix = [hue_values', 0.8 * ones(num_colors, 1), 0.8 * ones(num_colors, 1)];
 colors = hsv2rgb(hsv_matrix);
-colors(3,:)=[0 0 1];
+colors(3,:)=[0 0 0];
+colors(4,:)=[1 0.5 0];
 % 定义人种对应的lastParts索引
 nation_indices = cell(5, 1); % 5个人种（包括"all"）
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
@@ -84,7 +85,7 @@ ab_limits = [min(min(all_a), min(all_b)) - 5, max(max(all_a), max(all_b)) + 5];
 
 %%
 
-if_arrow=1;
+if_arrow=0;
 lastParts1 = {'f01i', 'f02i', 'f03i','f04i', 'f05i', ...
     'f06i', 'f07i', 'f08i','f09i', 'f10i',...
 'm01i', 'm02i', 'm03i','m04i', 'm05i', 'm06i',...
@@ -242,9 +243,9 @@ x = linspace(ab_limits(1), ab_limits(2), 1000);
 y = x; 
 plot(x, y, 'k--', 'LineWidth', 1);
 
-% title('$a^*-b^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
-xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 2*targetFontSize);
-ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
+% title('a^*-b^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
+xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+ylabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
 ax = gca;
 
 
@@ -296,9 +297,9 @@ for i_skin = 1:length(lab_mean)
     end
     % text(lab_mean(i_skin, 2), lab_mean(i_skin, 1), model_names(i_skin), 'Color', 'black', 'FontSize', 5);
 end
-% title('$L^*-a^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
-xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 2*targetFontSize);
-ylabel('$L^*$', 'Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+% title('L^*-a^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
+xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
 axis equal;
 xlim(a_limits);
 ylim(L_limits);
@@ -336,9 +337,9 @@ for i_skin = 1:length(lab_mean)
     % text(lab_mean(i_skin, 3), lab_mean(i_skin, 1), model_names(i_skin), 'Color', 'black', 'FontSize', 5);
 end
 
-% title('$L^*-b^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
-xlabel('$b^*$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
-ylabel('$L^*$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
+% title('L^*-b^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
+xlabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
 axis equal;
 xlim(b_limits);
 ylim(L_limits);
@@ -404,9 +405,9 @@ for i_eth=1:size(labCh_PMCC,1)
         'MarkerSize', 8, 'LineWidth', 1.5);
 end
 end
-% title('$L^*-C_{ab}^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
-xlabel('$C_{ab}^*$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
-ylabel('$L^*$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
+% title('L^*-C_{ab}^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
+xlabel('C_{ab}^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
 set(ax, 'FontSize', 12);
 axis equal;
 xlim(C_limits);
@@ -459,9 +460,9 @@ for i_skin = 1:length(lab_mean)
     end
     % text(h(i_skin), lab_mean(i_skin, 1), model_names(i_skin), 'Color', 'black', 'FontSize', 5);
 end
-% title('$L^*-h_{ab}$', 'Interpreter', 'latex', 'FontSize', 24);
-xlabel('$h_{ab}$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
-ylabel('$L^*$', 'Interpreter', 'latex', 'FontSize',  2*targetFontSize);
+% title('L^*-h_{ab}', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 24);
+xlabel('h_{ab}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
 axis equal;
 xlim(h_limits);
 ylim(L_limits);
@@ -482,9 +483,10 @@ concatenate_images1(outputFolder, 5);
 
 
 opts.targetFontSize=12;
-opts.margin=0.18;    
+opts.margin=0.25;    
 opts.label_type="skinVIVO";
 opts.if_rotate=false;
+opts.margin_type="Position";
 
 if if_arrow
     opts.axis_limits=[[5,30,25,75];[0,25,0,25]];
@@ -497,6 +499,7 @@ end
 % opts.bar_interval=0.4;
 adjust_fig(outputFolder, opts);
 %%
+s.rowStep=0.17;
 
 if if_arrow
     s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
@@ -505,13 +508,18 @@ if if_arrow
     s.markers_colors = [0 0 0; 0 0 0;0 0 0];
     s.markers_face_colors = [1 1 1; 1 1 1; 1 1 1];
     s.label_type="skinVIVO_compare";
+    s.leg_x_shift=-0.02;
+    s.if_label=true;
+    
     
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
-    s.colors_row1(3,:)=[0 0 1];
+    s.colors_row1(3,:)=[0 0 0];
+    s.colors_row1(4,:)=[1 0.5 0];
+    s.fontSizeScale=1.2;
     %----------------------
     figFiles = {'all_a_badjusted.fig', 'all_L_Cadjusted.fig'};
     concatenate_figs_legend1(outputFolder, figFiles, 2,"","draw",s,0.15,1.2);
@@ -525,13 +533,17 @@ else
     s.label_type="skinVIVO";
     s.marginL=0;
     s.fig_wh_base=[1000 900];
+    s.colGap2_scale=1.5;
+    s.if_label=true;
     
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
-    s.colors_row1(3,:)=[0 0 1];
+    s.colors_row1(3,:)=[0 0 0];
+    s.colors_row1(4,:)=[1 0.5 0];
+    s.fontSizeScale=1.2;
     %----------------------
     dir_figs=dir(fullfile(outputFolder,"*adjusted.fig"));
     for i_fig=1:length(dir_figs)

@@ -458,9 +458,11 @@ for i_obs = 1:length(obs_types_plotting)
         % plot(y2, x2, 'Color', 'k', 'LineWidth', 1, 'LineStyle', ':');
         
         % --------------i-self-------------------
+        
         figure(attribute);
-        ylabel('L^*', 'FontSize', 12, 'FontAngle', 'italic');
-        xlabel('C^*', 'FontSize', 12, 'FontAngle', 'italic');
+        targetFontSize=12;
+        xlabel('C^{*}_{ab}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',targetFontSize);
+        ylabel('L^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
         % title([attribute_names_new(attribute)],'FontSize', 12*2);
         grid on;
         
@@ -476,14 +478,19 @@ for i_obs = 1:length(obs_types_plotting)
         if ~exist(output_folder_curves, 'dir')
             mkdir(output_folder_curves);
         end
-        exportgraphics(h1, fullfile(output_folder_curves, strcat(attribute_serial, '.jpg')), 'Resolution', 300);
+        grid off;box on;
+        img_name=fullfile(output_folder_curves, strcat(attribute_serial, '.jpg'));
+        savefig(gcf, strrep(img_name,'jpg','fig'));
+        exportgraphics(h1,img_name , 'Resolution', 300);
+        fullfile(pwd,output_folder_curves)
+        
         
         % ----------------i-vs-r-----------------
         figure(10+attribute);
-        ylabel('L^*', 'FontSize', 12, 'FontAngle', 'italic');
-        xlabel('C^*', 'FontSize', 12, 'FontAngle', 'italic');
+        xlabel('C^{*}_{ab}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',targetFontSize);
+        ylabel('L^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
         % title([attribute_names_new(attribute),""], 'FontSize', 14); 
-        grid on;
+        grid off;box on;
         
         % 设置坐标轴范围和刻度间隔
         axis equal; % 保持坐标轴比例一致
@@ -497,11 +504,14 @@ for i_obs = 1:length(obs_types_plotting)
         if ~exist(output_folder_curves, 'dir')
             mkdir(output_folder_curves);
         end
-        exportgraphics(h2, fullfile(output_folder_curves, strcat(attribute_serial, '.jpg')), 'Resolution', 300);
+        grid off;box on;
+        img_name=fullfile(output_folder_curves, strcat(attribute_serial, '.jpg'));
+        savefig(gcf, strrep(img_name,'jpg','fig'));
+        exportgraphics(h2,img_name , 'Resolution', 300);
         % -------------r-self--------------------
         figure(20+attribute);
-        ylabel('L^*', 'FontSize', 12, 'FontAngle', 'italic');
-        xlabel('C^*', 'FontSize', 12, 'FontAngle', 'italic');
+        xlabel('C^{*}_{ab}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',targetFontSize);
+        ylabel('L^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
         % title([attribute_names_new(attribute),""], 'FontSize', 14); 
         grid on;
         
@@ -517,7 +527,11 @@ for i_obs = 1:length(obs_types_plotting)
         if ~exist(output_folder_curves, 'dir')
             mkdir(output_folder_curves);
         end
-        exportgraphics(h3, fullfile(output_folder_curves, strcat(attribute_serial, '.jpg')), 'Resolution', 300);
+        grid off;box on;
+        img_name= fullfile(output_folder_curves, strcat(attribute_serial, '.jpg'));
+        savefig(gcf, strrep(img_name,'jpg','fig'));
+        exportgraphics(h3,img_name, 'Resolution', 300);
+        fullfile(pwd,output_folder_curves)
         %--------------------------------
 
         % 保存拟合参数
@@ -574,3 +588,58 @@ for i_obs = 1:length(obs_types_plotting)
     
     disp(strcat('写入 Excel 文件：',excel_filename, obs_type));
 end % end for i_obs
+
+%%
+
+
+output_folder="ellip_pic_p\efit_p\C_L_iNr\non_model\r\curve_fit\i_self\01Preference";
+opts.targetFontSize=12;
+opts.fontSizeScale=1;
+opts.margin=0.3;    
+opts.margin_type="Position";
+adjust_fig(output_folder, opts);
+%%
+
+text_type="eng";
+if strcmp(text_type,"eng")
+    s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
+    s.labels_row2 = {};
+elseif strcmp(text_type,"ch")
+    s.labels_row1 = {"亚洲人", "高加索人", "南亚人", "非洲人"};
+    s.labels_row2 = {};
+end
+
+s.markers_row2 = {};
+s.markers_colors = [];
+s.markers_face_colors=[];
+s.sidePad=0.2;
+s.if_label=1;
+s.n_col1=4;
+s.n_col2=2;
+
+num_attributes = numel(s.labels_row1);
+hue_values = linspace(0, 1, num_attributes + 1);
+hue_values = hue_values(1:end-1);
+hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+s.colors_row1 = hsv2rgb(hsv_matrix);
+% s.colors_row1(3,:)=[0 0 0];
+% s.colors_row1(4,:)=[1 0.5 0];
+s.fontSizeScale=1.2;
+s.leg_x_shift=-0.06;
+
+
+%----------------------
+dir_figs=dir(fullfile(output_folder,"*.fig"));   
+clear("figFiles");i_fig1=1;
+for i_fig=1:length(dir_figs)
+    if ~contains(dir_figs(i_fig).name, 'adjusted')
+        continue;
+    end
+    figFiles{i_fig1}=dir_figs(i_fig).name;
+    i_fig1=i_fig1+1;
+end
+
+legend_file="";
+concatenate_figs_legend1(output_folder, figFiles, 2,legend_file,"draw",s,0.25,1.2);
+
+fullfile(pwd,output_folder)

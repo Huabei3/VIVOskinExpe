@@ -228,7 +228,7 @@ end
 ylim([1,3]);
 %--------------------------------------------
 % 设置横坐标
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = {"Asian", "Caucasian", "South Asian", "African",'All'};
 elseif strcmp(text_type,"ch")
@@ -240,7 +240,7 @@ set(gca, 'XTickLabel', nation_names);
 % 添加标题和标签
 title('MCDM by Nation and Attribute');
 xlabel('Nation');
-ylabel('MCDM Value');
+ylabel('MCDM', 'FontName', 'Arial', 'FontSize', targetFontSize);
 if strcmp(Dtype,"efit_p_free")
     ellip_pic_folder="ellip_pic_p_free";
 elseif strcmp(Dtype,"efit_p")
@@ -264,6 +264,7 @@ img_name=fullfile(MCDM_folder,"MCDM5.jpg");
 savefig(gcf, strrep(img_name,'jpg','fig'));
 exportgraphics(gcf,img_name,'Resolution',600);
 min(min(MCDM_nation)),max(max(MCDM_nation)),nanmean(nanmean(MCDM_nation))
+
 
 % 画图
 nation_indices(5,:)=[];
@@ -313,7 +314,7 @@ exportgraphics(gcf,img_name,'Resolution',600);
 statistics_MCDM=[min(min(MCDM_nation)),max(max(MCDM_nation)),nanmean(nanmean(MCDM_nation))]
 %-------------------------
 figFiles={"MCDM4.fig"};
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"ch")
     attribute_names = {"喜好的", "有吸引力的", "女性化的", "友善的", ...
     "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"};
@@ -341,10 +342,10 @@ s.markers_face_colors = [];
 s.n_col1=5; 
 s.n_col2=5;
 s.if_label=false;
-s.marginL=0.1;
+s.marginL=0.2;
 s.x_data=x;
 s.y_data=MCDM_nation;
-s.leg_x_shift=-0.15;
+s.leg_x_shift=-0.21;
 
 num_attributes = numel(s.labels_row1);
 hue_values = linspace(0, 1, num_attributes + 1);
@@ -356,7 +357,7 @@ s.fig_wh_base=[1000 450];
 
 concatenate_figs_legend1(MCDM_folder, figFiles, 1,"none","draw",s,0.12,1.1);
 %--------------------------------
-close all;
+fullfile(pwd,MCDM_folder)
 
 %% 辅助函数
 

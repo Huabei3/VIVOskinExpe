@@ -18,11 +18,22 @@ end
 
 prev_folder=fullfile("ellip_pic_p",Dtype,"compare_thesis_pre");
 load(fullfile(prev_folder,"author_colors.mat"),"author_all","prev_cell");
-prev_cell([1,3,4],:)=[];
-length_color=size(prev_cell,1);
-hue_values = linspace(0, 1, length_color + 1);hue_values = hue_values(1:end-1);
-hsv_matrix = [hue_values', 0.8 * ones(length_color, 1), 0.8 * ones(length_color, 1)];
-colors = hsv2rgb(hsv_matrix);
+i_del=[];
+for i_row=1:size(prev_cell)
+    if ismember(prev_cell{i_row,2}, ...
+            ["Zeng et al. (2010)","Sangers et al. (1994)","Kuang et al. (2005)"])
+        i_del=[i_del;i_row];
+    end
+end
+prev_cell(i_del,:)=[];
+
+% length_color=size(prev_cell,1);
+% hue_values = linspace(0, 1, length_color + 1);hue_values = hue_values(1:end-1);
+% hsv_matrix = [hue_values', 0.8 * ones(length_color, 1), 0.8 * ones(length_color, 1)];
+% colors = hsv2rgb(hsv_matrix);
+colors=[[0.7 0 0];[0 0.5 0];[0.2 0.2 1];
+    [1 0 1];[0 0 0];[0.5 0.5 0.5];
+    [1 0.5 0];[1, 0.75, 0.8];[0.6, 0.2, 0.8];[0.6, 0.4, 0.2]];
 
 lab_cherry=[65.50 	17.21 	17.72 ];
 ab_summer=[0 17.9 18.7];
@@ -89,7 +100,7 @@ for i_eth=1:size(ethnic_groups,2)
     hold on;
     % 绘制特殊点
     plot(par(4), par(5), 'o', 'MarkerSize', 4, ...
-        'MarkerFaceColor', color, 'Color', color);
+        'MarkerFaceColor', "none", 'Color', color,'LineWidth',1);
     if i_eth==1
     cens(3,:)=par(1,4:5);
     end
@@ -123,8 +134,8 @@ for i_eth=1:size(ethnic_groups,2)
         end
     end
 
-    scatter(labCh_PMCC(i_eth,2), labCh_PMCC(i_eth,3), 20, 's', 'LineWidth', 1, ...
-    'MarkerEdgeColor','m','MarkerFaceColor','m');
+    scatter(labCh_PMCC(i_eth,2), labCh_PMCC(i_eth,3), 30, 's', 'LineWidth', 1, ...
+    'MarkerEdgeColor','k','MarkerFaceColor','none');
 
     if i_eth==1
         OPPO_inLab50_folder="D:\work\project_code_backup\OPPOskinExpe\analyzeResult_scaled\" + ...
@@ -214,12 +225,12 @@ opts.targetFontSize=targetFontSize;
 opts.margin=0.17;    
 opts.label_type="compare_nation";
 opts.if_rotate=false;
-opts.axis_limits=[0,40,0,40;0,40,0,40;0,40,0,40;0,25,0,25];
+opts.axis_limits=[0,40,0,40;0,40,0,40;0,40,0,40;0,26,0,26];
 opts.axis_ticks=[10,10,10,5];
 % opts.bar_interval=0.4;
 adjust_fig(output_folder, opts);
 %-----------------
-
+%%
 if strcmp(text_type,"ch")
     for i_row=1:size(prev_cell,1)
         s.labels_row1{i_row,1}= strrep(prev_cell{i_row,2}," et al.","等人");
@@ -241,25 +252,21 @@ elseif strcmp(text_type,"eng")
     s.colors_row1 = colors;
     s.labels_row2 = {"This experiment","PMCC"};    
     s.markers_row2 = {"o","s"};
-    s.markers_colors = [[0 0 0];[1 0 1]];
-    s.markers_face_colors = [[0 0 0];[1 0 1]];
+    s.markers_colors = [[0 0 0];[0 0 0]];
+    s.markers_face_colors = [[1 1 1];[1 1 1]];
 end
 
-s.n_col1=3; 
+s.n_col1=4; 
 s.n_col2=2;
 s.if_label=true;
 
 
 if ~isempty(s.labels_row1)
-    num_attributes = numel(s.labels_row1);    
-    hue_values = linspace(0, 1, num_attributes + 1);
-    hue_values = hue_values(1:end-1);
-    hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-    s.colors_row1 = hsv2rgb(hsv_matrix);
+    s.colors_row1 = colors;
 else
     s.colors_row1 = [];
 end
-s.leg_x_shift=0;
+s.leg_x_shift=-0.015;
 s.label_fontSize=1.2*targetFontSize;
 s.colGap2_scale=1.5;
 

@@ -188,8 +188,8 @@ for i_nation=1:length(nations)
         y = x; 
         plot(x, y, 'k--', 'LineWidth', 1);
         
-        xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
-        ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
+        xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
+        ylabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
         axis equal;
         xlim(ab_limits);
         ylim(ab_limits);
@@ -207,8 +207,8 @@ for i_nation=1:length(nations)
                 'MarkerSize', 10);
         end
         
-        xlabel('$C_{ab}^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
-        ylabel('$L^*$', 'Interpreter', 'latex', 'FontSize', 12*2);
+        xlabel('C_{ab}^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
+        ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
         axis equal;
         xlim(C_limits);
         ylim(L_limits);

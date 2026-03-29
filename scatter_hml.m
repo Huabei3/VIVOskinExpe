@@ -1,6 +1,6 @@
-close all; % 关闭所有图窗
+close all; % 关闭所有图�?
 clc;       % 清空命令窗口
-clear;     % 清除工作区所有变量
+clear;     % 清除工作区所有变�?
 addpath("utils\")
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -13,9 +13,9 @@ if strcmp(text_type,"eng")
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
-    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
-    attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
-    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
+    nation_names = ["亚洲�?, "高加索人", "南亚�?, "非洲�?];
+    attribute_names = ["喜好�?, "有吸引力�?, "女性化�?, "友善�?, ...
+    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
 end
 % lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 % 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
@@ -49,7 +49,7 @@ line_style = {'-',':','-.'};
 plot_style = {'v','^'};
 
 genders = ["f", "m"]; % 定义性别数组
-% 生成色相值（H），范围从0到1
+% 生成色相值（H），范围�?�?
 hue_values = linspace(0, 1, length(nations) + 1);hue_values = hue_values(1:end-1); 
 hsv_matrix = [hue_values', 0.8 * ones(length(nations), 1), 0.8 * ones(length(nations), 1)];
 colors = hsv2rgb(hsv_matrix);
@@ -57,7 +57,7 @@ colors = hsv2rgb(hsv_matrix);
 obs_types = ["non_model"];
 % obs_types = ["non_model", "model_group", "model"];
 % 定义人种对应的lastParts索引
-nation_indices = cell(5, 1); % 5个人种（包括"all"）
+nation_indices = cell(5, 1); % 5个人种（包括"all"�?
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
 nation_indices{1} = 1:6;
 % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
@@ -66,7 +66,7 @@ nation_indices{2} = 7:12;
 nation_indices{3} = 13:16;
 % AF (African): f09i, f10i, m09i, m10i (索引17-20)
 nation_indices{4} = 17:20;
-% all: 所有索引 (索引1-20)
+% all: 所有索�?(索引1-20)
 nation_indices{5} = 1:20;
 
 
@@ -88,10 +88,10 @@ else
         CT_nations{i_nation}=mean(model_tcp_mean_inds,2);
     end
 end
-% 初始化重塑后的数据结构
-average_reshaped = cell(5, 1); % 5个人种
-par_reshaped = cell(3, 5, 1);  % 3种观察者类型 × 5个人种
-lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类型 × 5个人种
+% 初始化重塑后的数据结�?
+average_reshaped = cell(5, 1); % 5个人�?
+par_reshaped = cell(3, 5, 1);  % 3种观察者类�?× 5个人�?
+lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类�?× 5个人�?
 labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [64.15	19.56	19.63	27.71	45.10];...
             [56.01	18.25	18.72	26.14	45.72];...
@@ -102,7 +102,7 @@ file_missing={};
 Dtype = 'efit_p';
 % 定义一个函数来分离性别索引
 function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
-    gender_indices = cell(2, 1); % f和m的索引
+    gender_indices = cell(2, 1); % f和m的索�?
     for i_subject = 1:n_subjects
         subject_idx = curr_nation_indices(i_subject);
         lastPart = lastParts{subject_idx};
@@ -119,7 +119,7 @@ for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
     
     for i_nation = 1:length(nations)
-        % 获取当前人种的所有索引
+        % 获取当前人种的所有索�?
         nation=nations(i_nation);
         curr_nation_indices = nation_indices{i_nation};
         
@@ -239,14 +239,14 @@ else
     save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
         "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
 end
-%% 计算全局坐标轴范围
-% 初始化极值变量
+%% 计算全局坐标轴范�?
+% 初始化极值变�?
 lim_min_x = inf;  % a*轴最小边界初始化为正无穷
 lim_min_y = inf;  % b*轴最小边界初始化为正无穷
 lim_max_x = -inf; % a*轴最大边界初始化为负无穷
 lim_max_y = -inf; % b*轴最大边界初始化为负无穷
 
-% 遍历所有可能的数据组合计算全局极值
+% 遍历所有可能的数据组合计算全局极�?
 for i_nation = 1:length(nations)
     for i_obs = 1:length(obs_types)
         obs_type=obs_types(i_obs);
@@ -272,7 +272,7 @@ for i_nation = 1:length(nations)
         end
 
         
-        % 考虑PMCC点
+        % 考虑PMCC�?
         lim_min_x = min(lim_min_x, labCh_PMCC(i_nation, 2));
         lim_max_x = max(lim_max_x, labCh_PMCC(i_nation, 2));
         lim_min_y = min(lim_min_y, labCh_PMCC(i_nation, 3));
@@ -301,7 +301,7 @@ lim_max_y = (lim_min_y + lim_max_y + max_range) / 2;
 %% 绘图部分 - 按lab_valid第一维度映射颜色
 nan_record={};
 
-% 创建从冷色(蓝色)到暖色(红色)的颜色映射
+% 创建从冷�?蓝色)到暖�?红色)的颜色映�?
 cmap = colormap('copper');
 load(fullfile("documents",iOr,"render_data2.mat"),"render_map");
 XYZw_gray_nations=[];
@@ -368,12 +368,12 @@ for i_obs=1:length(obs_types)
             end
             % 确保数据维度匹配
             if strcmp(color_type,"lightness")
-                data_for_color = lab(:, 1); % 使用lab的第一个维度数据
+                data_for_color = lab(:, 1); % 使用lab的第一个维度数�?
             elseif strcmp(color_type,"luminance")
                 data_for_color = XYZw_gray_mean{i_nation,1};
             end
             
-            % 找到有效数据的索引
+            % 找到有效数据的索�?
             for i_row=1:size(lab,1)
 
                 res_matrix=[res_matrix;lab(i_row,:)];
@@ -388,14 +388,14 @@ for i_obs=1:length(obs_types)
             data_valid = data_for_color(valid_idx);
 
             if ~isempty(lab_valid)
-                % 归一化数据用于颜色映射
+                % 归一化数据用于颜色映�?
                 % data_min = min(data_valid(:,1));
                 % data_max = max(data_valid(:,1));
                 data_norm = (data_valid(:,1) - data_min) / (data_max - data_min);
                 
                 % 为每个点设置颜色
                 for i_point = 1:size(lab_valid, 1)
-                    % 根据归一化数据值获取颜色
+                    % 根据归一化数据值获取颜�?
                     % if iOr=='r'
                         color_idx = round(data_norm(i_point) * (size(cmap, 1) - 1)./max(data_norm)) + 1;
                         point_color = cmap(color_idx, :);
@@ -423,12 +423,12 @@ for i_obs=1:length(obs_types)
             end
         end
         
-        % 添加PMCC点
+        % 添加PMCC�?
         lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, 1);
         lab = mean(lab, 3,"omitnan"); % 按受试者维度求平均
-        lab = mean(lab, 1,"omitnan"); % 按光源/环境维度求平均
+        lab = mean(lab, 1,"omitnan"); % 按光�?环境维度求平�?
         
-        % 绘制原始PMCC点
+        % 绘制原始PMCC�?
         xyz_mean=lab2xyz2(lab,"d65_64");
         xyz_PMCC=lab2xyz2(labCh_PMCC(i_nation,1:3),"d65_64");
         xyz_PMCC=xyz_PMCC./xyz_PMCC(2).*xyz_mean(2);
@@ -442,17 +442,17 @@ for i_obs=1:length(obs_types)
         
         % 添加图例、标签和标题
 
-        xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-        ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+        xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12*2);
+        ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12*2);
         title([nation_names(i_nation)],'FontSize', 12*2);
         % title([nation_names(i_nation),   attribute_names(attribute)], 'FontSize', 12);
         
-        % 添加颜色条表示数据值
+        % 添加颜色条表示数据�?
         % if  i_nation==4
         % % if iOr == 'r' && i_nation==4
         %     cb = colorbar;
         %     if strcmp(color_type,"lightness")
-        %     cb.Label.String = '$L^*$'; % 修改颜色条标签
+        %     cb.Label.String = '$L^*$'; % 修改颜色条标�?
         %     elseif strcmp(color_type,"luminance")
         %         cb.Label.String = 'luminance (cd/m$^2$)';
         %     end
@@ -464,7 +464,7 @@ for i_obs=1:length(obs_types)
         %     colormap(cmap);
         % end
         
-        % 设置坐标轴范围
+        % 设置坐标轴范�?
         axis equal;
         % xlim([lim_min_x, lim_max_x]);
         % ylim([lim_min_y, lim_max_y]);
@@ -485,8 +485,8 @@ for i_obs=1:length(obs_types)
         ax = gca;
         targetFontSize=12;
         set(ax, 'FontSize', targetFontSize);
-        xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+        ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
 
         set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
         img_name=fullfile(save_folder, strcat(nation_serial, '_L.jpg'));    
@@ -494,7 +494,7 @@ for i_obs=1:length(obs_types)
         exportgraphics(gcf,img_name, 'Resolution', 600);
         close(gcf);
     end
-    % 合并所有图片
+    % 合并所有图�?
     save_folder = fullfile(ellip_pic_folder, Dtype, "hml", lightness_type,obs_type, iOr,text_type);
     % concatenate_images1noSerial(save_folder, 4);   
     %%
@@ -517,7 +517,7 @@ for i_obs=1:length(obs_types)
     s.n_col1=5; 
     s.n_col2=5;
     s.if_label=true;
-    s.color_limits = [data_min, data_max]; % 传入全局数据极值
+    s.color_limits = [data_min, data_max]; % 传入全局数据极�?
     s.color_type = color_type;
 
     if ~isempty(s.labels_row1)

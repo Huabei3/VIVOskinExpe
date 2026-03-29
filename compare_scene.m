@@ -10,7 +10,7 @@ colors = hsv2rgb(hsv_matrix);
 scale_type_origin="unscaled";
 scale_type="scaled";
 Dtype="efit_p";
-lab_cherry=[65.50 	17.21 	17.72 ];
+lab_cherry=[65.50 	17.21 	17.72];
 ab_summer=[0 17.9 18.7];
 % ab_zeng=[0 19.9 23.0];
 ab_zeng=[0 18 21];
@@ -57,7 +57,8 @@ ethnic_groups=["1AS","2CA","3SA","4AF"];
 res_matrix=[];curr=1;
 for i_eth=[1]
     figure(i_eth);
-    grid on;box on;
+    % grid on;
+    box on;
     hold on;
     if strcmp(Dtype,"efit_p_free")
         AnalyseResults_folder="AnalyseResults_p_free";
@@ -100,13 +101,15 @@ for i_eth=[1]
         res_cell{curr,2}=num2str(i_indices);
         curr=curr+1;
         axis equal
-        min_lim=-5;
+        min_lim=0;
         max_lim=40;
         xlim([min_lim,max_lim])
         ylim([min_lim,max_lim])
+        xticks(min_lim:10:max_lim)
+        yticks(min_lim:10:max_lim)
         x = linspace(min_lim, max_lim, 1000);
         y = x;
-        plot(x, y);
+        plot(x, y,'LineStyle','--','LineWidth',1,'Color','k');
         %-------------------------
         lastPart_OPPO=lastParts_OPPO(i_indices);
         OPPO_inLab50_folder=fullfile("D:\work\project_code_backup\OPPOskinExpe\analyzeResult_scaled\" + ...
@@ -156,14 +159,8 @@ for i_eth=[1]
     ax = gca;
     targetFontSize=12;
     set(ax, 'FontSize', targetFontSize);
-    xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-    ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-    yPos = ax.YLabel.Position;
-    yPos(1) = yPos(1) - 5; % 数字越大，离得越远
-    ax.YLabel.Position = yPos;
-    xPos = ax.XLabel.Position;
-    xPos(2) = xPos(2) - 5; % 数字越大，离得越远
-    ax.XLabel.Position = xPos;
+    xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
+    ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
     set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
     img_name=fullfile(output_folder, ...
         strcat(ethnic_groups(i_eth),'.jpg'));    
@@ -177,3 +174,40 @@ concatenate_images1noSerial(output_folder,4);
 
 %%
 
+
+text_type="ch";
+if strcmp(text_type,"eng")
+    s.labels_row1 = {'indoor', 'night', 'outdoor', 'sunset'};
+    s.labels_row2 = { 'this experiment','PMCC'};
+    s.markers_row2 = { 'o','s'};
+    s.markers_colors = [ 0 0 0; 1 0 1];
+    s.markers_face_colors=[ 0 0 0; 1 0 1];
+elseif strcmp(text_type,"ch")
+    s.labels_row1 = {"室内", "夜景", "室外", "黄昏"};
+    s.labels_row2 = {'实验二', '实验三','PMCC'};
+    s.markers_row2 = {'p', 'o','s'};
+    s.markers_colors = [0 0 0; 0 0 0; 1 0 1];
+    s.markers_face_colors=[0 0 0; 0 0 0; 1 0 1];
+
+
+end
+
+
+s.sidePad=0.2;
+s.if_label=0;
+s.colors_row1 = colors;
+s.marginL=0.25;
+s.leg_x_shift=-0.1;
+%----------------------
+dir_figs=dir(fullfile(output_folder,"*.fig"));   
+clear("figFiles");i_fig1=1;
+for i_fig=1:length(dir_figs)
+    figFiles{i_fig1}=dir_figs(i_fig).name;
+    i_fig1=i_fig1+1;
+end
+
+legend_file="";
+concatenate_figs_legend1(output_folder, figFiles, 1,legend_file,"draw",s,0,1);
+
+
+fullfile(pwd,output_folder)

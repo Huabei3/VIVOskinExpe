@@ -1,8 +1,8 @@
 
 
-close all; % 关闭所有图窗
+close all; % 关闭所有图�?
 clc;       % 清空命令窗口
-clear;     % 清除工作区所有变量
+clear;     % 清除工作区所有变�?
 addpath("utils\")
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -15,19 +15,19 @@ if strcmp(text_type,"eng")
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
-    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
-    attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
-    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
+    nation_names = ["亚洲�?, "高加索人", "南亚�?, "非洲�?];
+    attribute_names = ["喜好�?, "有吸引力�?, "女性化�?, "友善�?, ...
+    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
 end
 targetFontSize=12;
-% lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
-% 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
-% 'f07i', 'f08i','m07i', 'm08i',...
-% 'f09i', 'f10i','m09i', 'm10i'};n_para = 21;iOr='i';
-lastParts = {'f04r', 'f05r', 'f06r', 'm04r', 'm05r', 'm06r',...
-'f01r', 'f02r', 'f03r', 'm01r', 'm02r', 'm03r',...
-'f07r', 'f08r','m07r', 'm08r',...
-'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
+lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
+'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
+'f07i', 'f08i','m07i', 'm08i',...
+'f09i', 'f10i','m09i', 'm10i'};n_para = 21;iOr='i';
+% lastParts = {'f04r', 'f05r', 'f06r', 'm04r', 'm05r', 'm06r',...
+% 'f01r', 'f02r', 'f03r', 'm01r', 'm02r', 'm03r',...
+% 'f07r', 'f08r','m07r', 'm08r',...
+% 'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
 if iOr =='i'
     picnames_groups = ["h3k","h4k","h5k","h6k","hd65","h7k","h8k",...
                     "m3k","m4k","m5k","m6k","md65","m7k","m8k",...
@@ -54,7 +54,7 @@ genders = ["f", "m"]; % 定义性别数组
 
 obs_types = ["non_model", "model_group"];
 % 定义人种对应的lastParts索引
-nation_indices = cell(5, 1); % 5个人种（包括"all"）
+nation_indices = cell(5, 1); % 5个人种（包括"all"�?
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
 nation_indices{1} = 1:6;
 % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
@@ -63,15 +63,15 @@ nation_indices{2} = 7:12;
 nation_indices{3} = 13:16;
 % AF (African): f09i, f10i, m09i, m10i (索引17-20)
 nation_indices{4} = 17:20;
-% all: 所有索引 (索引1-20)
+% all: 所有索�?(索引1-20)
 nation_indices{5} = 1:20;
 
 
 
 if iOr == 'i'
     indices_target = [1:21];
-    load("optmizedD\light_i.mat","CCT_light");
-    CT = CCT_light;
+    load('optimizedD\neutral_gray\combi_XYZw_i.mat', 'XYZ_combi',"CCT_combi");
+    CT = CCT_combi;
 else
     indices_target = 1:14;    
     for i_nation=1:length(nations)
@@ -85,10 +85,10 @@ else
         CT_nations{i_nation}=mean(model_tcp_mean_inds,2);
     end
 end
-% 初始化重塑后的数据结构
-average_reshaped = cell(5, 1); % 5个人种
-par_reshaped = cell(3, 5, 1);  % 3种观察者类型 × 5个人种
-lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类型 × 5个人种
+% 初始化重塑后的数据结�?
+average_reshaped = cell(5, 1); % 5个人�?
+par_reshaped = cell(3, 5, 1);  % 3种观察者类�?× 5个人�?
+lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类�?× 5个人�?
 labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [64.15	19.56	19.63	27.71	45.10];...
             [56.01	18.25	18.72	26.14	45.72];...
@@ -99,7 +99,7 @@ Dtype = 'efit_p';
 
 % 定义一个函数来分离性别索引
 function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
-    gender_indices = cell(2, 1); % f和m的索引
+    gender_indices = cell(2, 1); % f和m的索�?
     for i_subject = 1:n_subjects
         subject_idx = curr_nation_indices(i_subject);
         lastPart = lastParts{subject_idx};
@@ -116,7 +116,7 @@ for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
     
     for i_nation = 1:length(nations)
-        % 获取当前人种的所有索引
+        % 获取当前人种的所有索�?
         nation=nations(i_nation);
         curr_nation_indices = nation_indices{i_nation};
         
@@ -155,15 +155,26 @@ for i_obs = 1:length(obs_types)
                 if exist(source_file, 'file')
                     par_all_data = load(source_file);
                     par_all = par_all_data.par_all;
-                    par_current(:, :, i_subject, i_attr) = par_all;
-                    lab_bf=[average_current(:, 1, i_subject), par_all(:,4:5)];
+                    % par_current(:, :, i_subject, i_attr) = par_all;
+                    [target_rows, target_cols] = size(par_current, 1, 2);
+                    par_padded = nan(target_rows, target_cols);
+                    par_padded(1:size(par_all, 1), 1:size(par_all, 2)) = par_all;
+                    par_current(:, :, i_subject, i_attr) = par_padded;
+
+                    lab_bf=[average_current(:, 1, i_subject), par_padded(:,4:5)];
                     if strcmp(lightness_type,"rela")
                         xyz_fit=[];lab_scaled=[];
                         for i_para=1:size(par_all,1)                                
                             xyz_fit(i_para,:)=lab2xyz2(lab_bf(i_para,:),"user",wd65./wd65(2).*XYZw_LUT(2));
                             lab_scaled(i_para,:)=xyz2lab(xyz_fit(i_para,:),"user",wd65./wd65(2).*XYZw_white(i_para,2));
                         end
-                        lab_fit_current(:, :, i_subject, i_attr) = lab_scaled;
+
+                        [max_rows, max_cols] = size(lab_fit_current, 1, 2);
+                        lab_padded = nan(max_rows, max_cols);
+                        rows_to_fill = min(size(lab_scaled, 1), max_rows);
+                        cols_to_fill = min(size(lab_scaled, 2), max_cols);
+                        lab_padded(1:rows_to_fill, 1:cols_to_fill) = lab_scaled(1:rows_to_fill, 1:cols_to_fill);
+                        lab_fit_current(:, :, i_subject, i_attr) = lab_padded;
                     else
                         lab_fit_current(:, :, i_subject, i_attr) = lab_bf;
                     end
@@ -206,14 +217,14 @@ else
     save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
         "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
 end
-%% 计算全局坐标轴范围
-% 初始化极值变量
+%% 计算全局坐标轴范�?
+% 初始化极值变�?
 lim_min_x = inf;  % a*轴最小边界初始化为正无穷
 lim_min_y = inf;  % b*轴最小边界初始化为正无穷
 lim_max_x = -inf; % a*轴最大边界初始化为负无穷
 lim_max_y = -inf; % b*轴最大边界初始化为负无穷
 
-% 遍历所有可能的数据组合计算全局极值
+% 遍历所有可能的数据组合计算全局极�?
 for i_nation = 1:length(nations)
     for i_obs = 1:length(obs_types)
         obs_type=obs_types(i_obs);
@@ -239,7 +250,7 @@ for i_nation = 1:length(nations)
         end
 
         
-        % 考虑PMCC点
+        % 考虑PMCC�?
         lim_min_x = min(lim_min_x, labCh_PMCC(i_nation, 2));
         lim_max_x = max(lim_max_x, labCh_PMCC(i_nation, 2));
         lim_min_y = min(lim_min_y, labCh_PMCC(i_nation, 3));
@@ -268,9 +279,9 @@ lim_max_y = (lim_min_y + lim_max_y + max_range) / 2;
 %% 绘图部分 - 按lab_valid第一维度映射颜色
 nan_record={};
 res_matrix=[];curr=1;
-% 创建从冷色(蓝色)到暖色(红色)的颜色映射
+% 创建从冷�?蓝色)到暖�?红色)的颜色映�?
 cmap = colormap('jet');
-% 生成色相值（H），范围从0到1
+% 生成色相值（H），范围�?�?
 n_scenetype=3;
 hue_values = linspace(0, 1, n_scenetype + 1);hue_values = hue_values(1:end-1);
 hsv_matrix = [hue_values', 0.8*ones(n_scenetype, 1),  0.8*ones(n_scenetype, 1)];
@@ -281,8 +292,8 @@ LUT=load(datafile);
 XYZw_LUT=LUT.XYZw;
 wd65_scaled=wd65./100.*XYZw_LUT(2);
 
-% --- 新增的开关变量 ---
-plot_45_only = true; % 设置为 true 则只绘制 45° 线，设置为 false 则绘制所有角度线。
+% --- 新增的开关变�?---
+plot_45_only = true; % 设置�?true 则只绘制 45° 线，设置�?false 则绘制所有角度线�?
 obs_types=["non_model"];
 for i_obs=1:length(obs_types)
     obs_type=obs_types(i_obs);
@@ -301,7 +312,7 @@ for i_obs=1:length(obs_types)
         curr_nation_indices = nation_indices{i_nation};
         % 分离性别索引
         gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts);
-        figure;
+        figure(i_nation);
         hold on;
         set(gcf, 'Color', 'white');
         for attribute = [1]
@@ -319,8 +330,8 @@ for i_obs=1:length(obs_types)
             curr=curr+1;
             end
             % 确保数据维度匹配
-            data_for_color = lab(:, 1); % 使用lab的第一个维度数据
-            % 找到有效数据的索引
+            data_for_color = lab(:, 1); % 使用lab的第一个维度数�?
+            % 找到有效数据的索�?
             valid_idx = ~all(isnan(lab), 2);
             lab_valid = lab(valid_idx, :);
             data_valid = data_for_color(valid_idx);
@@ -345,7 +356,7 @@ for i_obs=1:length(obs_types)
                     end
                     % scatter(lab_valid(i_point, 2), lab_valid(i_point, 3), 50, 'o', 'filled', ...
                     %     'MarkerFaceColor', point_color, 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
-                    % % 标记数据值
+                    % % 标记数据�?
                     % text(lab_valid(i_point, 2)+1, lab_valid(i_point, 3), ...
                     %      num2str(i_point), 'FontSize', 6, ...
                     %     'VerticalAlignment', 'top', 'Color', 'k');
@@ -359,11 +370,11 @@ for i_obs=1:length(obs_types)
                 hue_all{i_obs, i_nation, attribute}=nanmean(atan2d(lab_valid(:,3),lab_valid(:,2)));
             end
         end
-        % 添加PMCC点
+        % 添加PMCC�?
         lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, 1);
         lab = nanmean(lab, 3); % 按受试者维度求平均
-        lab = nanmean(lab, 1); % 按光源/环境维度求平均
-        % 绘制原始PMCC点
+        lab = nanmean(lab, 1); % 按光�?环境维度求平�?
+        % 绘制原始PMCC�?
         xyz_mean=lab2xyz2(lab,"d65_64");
         xyz_PMCC=lab2xyz2(labCh_PMCC(i_nation,1:3),"d65_64");
         xyz_PMCC=xyz_PMCC./xyz_PMCC(2).*xyz_mean(2);
@@ -374,10 +385,10 @@ for i_obs=1:length(obs_types)
         %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'm');
         % 添加图例、标签和标题
 
-        xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+        ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
         title([nation_names(i_nation)],'FontSize', targetFontSize);
-        % 设置坐标轴范围
+        % 设置坐标轴范�?
         axis equal;
         xlim([0, lim_max_x]);
         ylim([0, lim_max_y]);
@@ -423,30 +434,30 @@ for i_obs=1:length(obs_types)
         % 统一设置 X 轴和 Y 轴的显示范围
         % xlim([lim_min, lim_max]);
         % ylim([lim_min, lim_max]);
-        % ax.XTick = lim_min:10:lim_max; % 每隔 10 个单位一个刻度
+        % ax.XTick = lim_min:10:lim_max; % 每隔 10 个单位一个刻�?
         % ax.YTick = lim_min:10:lim_max;
         
         set(ax, 'FontSize', targetFontSize);
-        xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+        ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
         yPos = ax.YLabel.Position;
-        yPos(1) = yPos(1) - 5; % 数字越大，离得越远
+        yPos(1) = yPos(1) - 5; % 数字越大，离得越�?
         ax.YLabel.Position = yPos;
         xPos = ax.XLabel.Position;
-        xPos(2) = xPos(2) - 5; % 数字越大，离得越远
+        xPos(2) = xPos(2) - 5; % 数字越大，离得越�?
         ax.XLabel.Position = xPos;
         set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
         
-        % 保存为 .fig
+        % 保存�?.fig
         img_name=fullfile(save_folder, strcat(nation_serial, '_L.jpg'));
 
         savefig(gcf, strrep(img_name,'jpg','fig'));
         %--------------
         exportgraphics(gcf, img_name, 'Resolution', 300);
         
-        close(gcf);
+        % close(gcf);
     end
-    % 合并所有图片
+    % 合并所有图�?
     save_folder = fullfile("ellip_pic_p", Dtype, "scene2", lightness_type,obs_type, iOr,text_type);
     
     %%

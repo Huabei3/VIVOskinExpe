@@ -9,6 +9,7 @@ function concatenate_images1(save_folder,n_col)
     % 读取第一张图片并获取其大小
     first_image = imread(fullfile(save_folder, image_files(1).name));
     [first_rows, first_cols, channels] = size(first_image);
+    first_rows=first_rows./2;
     
     % 将所有图片的高度调整为与第一张图片相同，保持宽高比
     num_images = length(image_files);
@@ -28,7 +29,7 @@ function concatenate_images1(save_folder,n_col)
     % 在每张图片上添加文本并保存带文本的图片
     [rows, cols, ~] = size(resized_images{1});
     font_size_number1 = round(cols / 10);
-        
+    numberSizeScale=1;
     for i = 1:num_images
         img = resized_images{i};
         [rows, cols, ~] = size(img);
@@ -37,16 +38,55 @@ function concatenate_images1(save_folder,n_col)
         % font_size_number = round(cols / 10);
         
         % 确保字体大小不超过图片尺寸
-        font_size_number = min(font_size_number1, round(rows / 5));
-        
+        font_size_number = min(font_size_number1, round(rows / 5));        
         % 动态计算文本位置，确保文本在图片内部且居于右下角
-        text_position_number = [cols - font_size_number*2.5, rows - font_size_number*2];
-        
+        cr_start(1)=cols - font_size_number*2.5*numberSizeScale;
+        cr_start(2)=rows - font_size_number*2*numberSizeScale;
+        mean_val=mean(mean(mean(img(cr_start(2):cr_start(2)+font_size_number, ...
+            cr_start(1):cr_start(1)+font_size_number,:))));
+        if mean_val>127
+            text_color_number=[0 0 0];
+        else
+            text_color_number=[1 1 1]*255;
+        end
+
+        text_position_number = cr_start;        
         % 在图片上插入编号
+        font_size_number=font_size_number*numberSizeScale;
         font_size_number=min(font_size_number,200);
-        letter_label = ['(', char('a' + i - 1), ')'];  % 生成 (a), (b), (c)...
+        letter_label = strcat('(', char('a' + i - 1), ')');  % 生成 (a), (b), (c)...
+        % img_with_text = img;
         img_with_text = insertText(img, text_position_number, letter_label, ...
-            'FontSize', font_size_number, 'TextColor', text_color_number, 'BoxOpacity', 0);
+            'FontSize', round(font_size_number), ...
+            'TextColor', text_color_number, 'BoxOpacity', 0);
+        %---------插入场景编号--------------------------
+        % cr_start(1)=font_size_number*0.5;
+        % cr_start(2)=font_size_number*0.5;
+        % mean_val=mean(mean(mean(img(cr_start(2):cr_start(2)+font_size_number, ...
+        %     cr_start(1):cr_start(1)+font_size_number,:))));
+        % if mean_val>127
+        %     text_color_number=[0 0 0];
+        % else
+        %     text_color_number=[1 1 1]*255;
+        % end
+        % 
+        % text_position_number = [font_size_number*0.5, font_size_number*0.5];     
+        % letter_label = sprintf("%d",i);
+        % img_with_text = insertText(img, text_position_number, letter_label, ...
+        %     'FontSize', font_size_number, 'TextColor', text_color_number, 'BoxOpacity', 0);        
+
+        %---------插入模特编号--------------------------
+
+        % text_position_number = [font_size_number*0.5, font_size_number*0.5];        
+        % if i<=10
+        %     letter_label = sprintf("f%02d",i);
+        % else
+        %     letter_label = sprintf("m%02d",i-10);
+        % end
+        % 
+        % img_with_text = insertText(img, text_position_number, letter_label, ...
+        %     'FontSize', font_size_number, 'TextColor', text_color_number, 'BoxOpacity', 0);
+        %---------------------------------------
         % img_with_text=img;
         resized_images{i} = img_with_text;
     end
@@ -109,6 +149,12 @@ end
 %%
 % concatenate_images1("D:\work\VIVOskinExpe\analyze\dsp\HD65",10)
 % concatenate_images1("D:\work\VIVOskinExpe\analyze\dsp\f05_rs",7)
+% addpath("utils\")
+% fig_path=fullfile("D:\work\VIVOskinExpe\analyze\dsp\HD65\concatenated\untitled.fig");
+% bold_fig_text(fig_path)
+% concatenate_images1("D:\work\project_code_backup\OPPOskinExpe\analyzeResult_scaled\images\sample\r",4)
+%%
+
 %%
 % % 设置源文件夹和目标文件夹
 % source_folder = 'D:\work\VIVOskinExpe\AndroidStudio1\female41r65\app\src\main\res\drawable';  % 源文件夹路径

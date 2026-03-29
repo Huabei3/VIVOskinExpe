@@ -1,6 +1,6 @@
-close all; % 关闭所有图窗
+close all; % 关闭所有图�?
 clc;       % 清空命令窗口
-clear;     % 清除工作区所有变量
+clear;     % 清除工作区所有变�?
 addpath('utils\')
 %% 定义所有需要处理的 attribute
 % attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -35,7 +35,7 @@ line_style = {'-',':','-.'};
 plot_style = {'v','^'};
 
 genders = ["f", "m"]; % 定义性别数组
-% 生成色相值（H），范围从0到1
+% 生成色相值（H），范围�?�?
 hue_values = linspace(0, 1, length(nations) + 1);hue_values = hue_values(1:end-1); 
 hsv_matrix = [hue_values', 0.8 * ones(length(nations), 1), 0.8 * ones(length(nations), 1)];
 colors = hsv2rgb(hsv_matrix);
@@ -45,7 +45,7 @@ obs_types = ["non_model"];
 scale_type="scaled";
 
 % 定义人种对应的lastParts索引
-nation_indices = cell(5, 1); % 5个人种（包括"all"）
+nation_indices = cell(5, 1); % 5个人种（包括"all"�?
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
 nation_indices{1} = 1:6;
 % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
@@ -54,7 +54,7 @@ nation_indices{2} = 7:12;
 nation_indices{3} = 13:16;
 % AF (African): f09i, f10i, m09i, m10i (索引17-20)
 nation_indices{4} = 17:20;
-% all: 所有索引 (索引1-20)
+% all: 所有索�?(索引1-20)
 nation_indices{5} = 1:20;
 
 
@@ -90,10 +90,10 @@ else
         CT_nations{i_nation}=mean(model_tcp_mean_inds,2);
     end
 end
-% 初始化重塑后的数据结构
-average_reshaped = cell(5, 1); % 5个人种
-par_reshaped = cell(3, 5, 1);  % 3种观察者类型 × 5个人种
-lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类型 × 5个人种
+% 初始化重塑后的数据结�?
+average_reshaped = cell(5, 1); % 5个人�?
+par_reshaped = cell(3, 5, 1);  % 3种观察者类�?× 5个人�?
+lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类�?× 5个人�?
 labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [64.15	19.56	19.63	27.71	45.10];...
             [56.01	18.25	18.72	26.14	45.72];...
@@ -102,7 +102,8 @@ labCh_PMCC(end+1,:)=mean(labCh_PMCC,1);
 file_missing={};
 % Dtype = 'efit_p';
 % Dtype = 'noCAT';
-Dtypes=["noCAT","efit_p"];
+% Dtypes=["noCAT","efit_p"];
+Dtypes=["efit_p"];
 for i_Dtype=1:length(Dtypes)
 
 Dtype=Dtypes(i_Dtype);
@@ -110,7 +111,7 @@ Dtype=Dtypes(i_Dtype);
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
     for i_nation = 1:length(nations)
-        % 获取当前人种的所有索引
+        % 获取当前人种的所有索�?
         nation=nations(i_nation);
         curr_nation_indices = nation_indices{i_nation};
         
@@ -205,14 +206,14 @@ if ~exist(output_folder,"dir")
 end
 save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
     "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
-%% 计算全局坐标轴范围
-% 初始化极值变量
+%% 计算全局坐标轴范�?
+% 初始化极值变�?
 lim_min_x = inf;  % a*轴最小边界初始化为正无穷
 lim_min_y = inf;  % b*轴最小边界初始化为正无穷
 lim_max_x = -inf; % a*轴最大边界初始化为负无穷
 lim_max_y = -inf; % b*轴最大边界初始化为负无穷
 
-% 遍历所有可能的数据组合计算全局极值
+% 遍历所有可能的数据组合计算全局极�?
 for i_nation = 1:length(nations)
     for i_obs = 1:length(obs_types)
         obs_type=obs_types(i_obs);
@@ -238,7 +239,7 @@ for i_nation = 1:length(nations)
         end
 
         
-        % 考虑PMCC点
+        % 考虑PMCC�?
         lim_min_x = min(lim_min_x, labCh_PMCC(i_nation, 2));
         lim_max_x = max(lim_max_x, labCh_PMCC(i_nation, 2));
         lim_min_y = min(lim_min_y, labCh_PMCC(i_nation, 3));
@@ -264,264 +265,276 @@ lim_min_y = (lim_min_y + lim_max_y - max_range) / 2;
 lim_max_y = (lim_min_y + lim_max_y + max_range) / 2;
 
 
-%% 绘图部分 - 按色温映射颜色
-% output_folder=fullfile("ellip_pic_p", Dtype);
-% if ~exist(output_folder,"dir")
-%     mkdir(output_folder);
-% end
-% load(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
-%     "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
-
-output_folder1=fullfile("ellip_pic_p_free", "noCAT");
-if ~exist(output_folder1,"dir")
-    mkdir(output_folder1);
-end
-data_noCAT=load(fullfile(output_folder1,strcat("data_reshaped_",iOr,".mat")), ...
-    "par_mean","average_mean", ...
-    "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
-nan_record={};
-
-
-% 创建从冷色(蓝色)到暖色(红色)的颜色映射
-cmap = colormap('jet');
-cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色温
-cmap_hsv = rgb2hsv(cmap);
-cmap_hsv(:,2) = cmap_hsv(:,2) * 0.8;   % Saturation 降到 0.8 倍
-cmap_hsv(:,3) = cmap_hsv(:,3) * 0.8;   % Value 降到 0.8 倍% 防止超过范围
-cmap_hsv = max(min(cmap_hsv,1),0);% 转回 RGB
-cmap = hsv2rgb(cmap_hsv);% 使用新的 colormap
-colormap(cmap);
-
-load(fullfile("optimizedD\backGroundGray\XYZ_gray.mat"),"xyz_gray");
-E=xyz_gray(:,2);
-
-if iOr=='r'
-    XYZw_used = XYZw_mean{i_nation};
-elseif iOr=='i'
-    XYZw_used = XYZw_mean;
-end
-obs_types=["non_model"];
-for i_obs=1:length(obs_types)
-    obs_type=obs_types(i_obs);
-    for i_nation = 1:length(nations)
-        nation=nations(i_nation);
-        nation_name=nation_names(i_nation);
-        nation_serial=strcat(sprintf("%02d",i_nation),nation_name);
-        if iOr=='r'
-            CT=CT_nations{i_nation};
-        end
-        % 获取当前人种的subject数量
-        n_subjects = size(lab_fit_reshaped{i_obs, i_nation}, 3);
-        if n_subjects == 0
-            continue;
-        end
-        
-        % 获取当前人种对应的lastPart索引
-        curr_nation_indices = nation_indices{i_nation};        
-        % 分离性别索引
-        gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts);
-        
-        for attribute = [1]
-            attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
-
-            
-            % 直接从lab_fit_reshaped获取数据
-            lab_data = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
-            lab_data1 = data_noCAT.lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
-            
-            % 计算平均值并准备色温数据
-            lab = nanmean(lab_data, 3); % 按受试者维度求平均
-            lab1 = nanmean(lab_data1, 3); % 按受试者维度求平均
-            %late CAT
-            XYZ_bf=lab2xyz2(lab1,'d65_64');
-            for i_para=1:size(lab1,1)
-                D_pre(i_para,1)= calculateD(CT(i_para,1), 0, "efit_p",E(i_para,1));
-                XYZt(i_para,:) = CAT16_D(XYZ_bf(i_para,:), ...
-                    XYZw_used(i_para,:), wd65, D_pre(i_para,1));                
-            end
-            Labt = xyz2lab(XYZt, 'd65_64');
-            %从最近的点转过去
-            Labt_near=Labt;
-            for i_para=[1]
-                XYZt_near(i_para,:) = CAT16_D(XYZ_bf(i_para+1,:), ...
-                    XYZw_used(i_para+1,:), XYZw_used(i_para,:), D_pre(i_para+1,1)); 
-
-                XYZt_near(i_para+1,:) = CAT16_D(XYZ_bf(i_para,:), ...
-                    XYZw_used(i_para,:), XYZw_used(i_para+1,:), D_pre(i_para,1));
-
-            end
-            Labt_near(1:2,:) = xyz2lab(XYZt_near(1:2,:), 'd65_64');
-
-            %从D65转过去
-            Labt_frD65=Labt;
-            for i_para=1:size(lab1,1)
-                XYZt_frD65(i_para,:) = CAT16_D(XYZ_bf(5,:), ...
-                    XYZw_used(5,:), XYZw_used(i_para,:), D_pre(5,1)); 
-            end
-            Labt_frD65 = xyz2lab(XYZt_frD65, 'd65_64');
-                        
-            % 确保CT数据与lab数据维度匹配
-            CT_for_plot = CT(indices_target);
-            
-            % 找到有效数据的索引
-            valid_idx = ~all(isnan(lab), 2);
-            lab_valid = lab(valid_idx, :);
-            CT_valid = CT_for_plot(valid_idx);
-            
-            if ~isempty(lab_valid)
-                % 归一化色温值用于颜色映射
-                CT_min = min(CT_valid);
-                CT_max = max(CT_valid);
-                CT_norm = (CT_valid - CT_min) / (CT_max - CT_min);
-                
-                % 为每个点设置颜色
-                figure(i_nation);hold on;
-                for i_point = 1:size(lab_valid, 1)
-                    % 根据归一化色温值获取颜色
-                    color_idx = round(CT_norm(i_point) * (size(cmap, 1) - 1)) + 1;
-                    point_color = cmap(color_idx, :);
-                    % point_color = colors(color_idx, :);
-                    
-                    % 绘制散点
-                    plot_style='o';
-
-                    scatter(lab_valid(i_point, 2), lab_valid(i_point, 3), 20, plot_style, 'filled', ...
-                        'MarkerFaceColor', point_color, 'MarkerEdgeColor', point_color, 'LineWidth', 0.5);
-                    % text(lab_valid(i_point, 2), lab_valid(i_point, 3), ...
-                    %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
-                    %     'VerticalAlignment', 'top', 'Color', 'k');
-                    
-                    % scatter(lab1(i_point, 2), lab1(i_point, 3), 10, '^', 'filled', ...
-                    %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', ...
-                    %     point_color, 'LineWidth', 0.5);
-                    % text(lab1(i_point, 2), lab1(i_point, 3), ...
-                    %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
-                    %     'VerticalAlignment', 'top', 'Color', 'k');
-
-                    % scatter(Labt_near(i_point, 2), Labt_near(i_point, 3), 10, 'd', 'filled', ...
-                    %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', ...
-                    %     point_color, 'LineWidth', 0.5);
-                    % text(Labt_near(i_point, 2), Labt_near(i_point, 3), ...
-                    %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
-                    %     'VerticalAlignment', 'top', 'Color', 'k');
-                    % 
-                    % scatter(Labt_frD65(i_point, 2), Labt_frD65(i_point, 3), 10, 's', 'filled', ...
-                    %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', ...
-                    %     point_color, 'LineWidth', 0.5);
-                    % text(Labt_frD65(i_point, 2), Labt_frD65(i_point, 3), ...
-                    %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
-                    %     'VerticalAlignment', 'top', 'Color', 'k');
-
-                end
-                hue_all{i_obs, i_nation, attribute}=nanmean(atan2d(lab_valid(:,3),lab_valid(:,2)),1);
-                % nanmean(atan2d(Labt(:,3),Labt(:,2)))
-                % max(atan2d(Labt(:,3),Labt(:,2)))
-                % min(atan2d(Labt(:,3),Labt(:,2)))
-                dE_eNl{i_obs,i_nation}=deltaE2000(Labt,lab_valid);
-                dE_eNl_mean{i_obs,i_nation}=mean(deltaE2000(Labt,lab_valid));
-                for i=1:size(lab_valid,1)
-                    for j=1:size(lab_valid,1)
-                        dE(i,j)=deltaE2000(lab_valid(i,:),lab_valid(j,:));
-                    end
-                end
-                dE_labels{i_obs,i_nation}=nanmean(nanmean(dE));
-                lab_valid(CT_valid<4200,:)=[];
-                for i=1:size(lab_valid,1)
-                    for j=1:size(lab_valid,1)
-                        dE1(i,j)=deltaE2000(lab_valid(i,:),lab_valid(j,:));
-                    end
-                end
-                dE_labels_del{i_obs,i_nation}=nanmean(nanmean(dE1));
-
-
-
-
-
-                for i=1:size(lab1,1)
-                    for j=1:size(lab1,1)
-                        dE1(i,j)=deltaE2000(lab1(i,:),lab1(j,:));
-                    end
-                end
-                dE_labels1{i_obs,i_nation}=nanmean(nanmean(dE1));
-                disp("d")
-
-            end
-        end
-
-        
-        % 添加PMCC点
-        lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, 1);
-        lab = nanmean(lab, 3); % 按受试者维度求平均
-        lab = nanmean(lab, 1); % 按光源/环境维度求平均
-        
-        % 绘制原始PMCC点
-        xyz_mean=lab2xyz2(lab,"d65_64");
-        xyz_PMCC=lab2xyz2(labCh_PMCC(i_nation,1:3),"d65_64");
-        xyz_PMCC=xyz_PMCC./xyz_PMCC(2).*xyz_mean(2);
-        labCh_PMCC_pre(i_nation,:)=xyz2lab(xyz_PMCC,"d65_64");
-        % plot(labCh_PMCC(i_nation, 2), labCh_PMCC(i_nation, 3), 's', 'MarkerSize', 8, ...
-        %     'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'm');
-        % plot(labCh_PMCC_pre(i_nation, 2), labCh_PMCC_pre(i_nation, 3), 's', 'MarkerSize', 8, ...
-        %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'm');
-        
-        % 添加图例、标签和标题
-        xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-        ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-        % title([nation_names(i_nation)],'FontSize', 12*2);
-        
-        % 添加颜色条表示色温
-        if  strcmp(Dtype,"noCAT")
-        % if  i_nation==4
-            % cb = colorbar;
-            % cb.Label.String = 'color temperature (K)';
-            % cb.Label.Interpreter = 'latex';  % 设置解释器为LaTeX
-            % cb.Label.FontSize = 12;          % 可以调整字体大小
-            % caxis([2500,8500]);
-            % colormap(cmap);
-        end
-        
-        % 设置坐标轴范围
-        axis equal;
-        % xlim([lim_min_x, lim_max_x]);
-        % ylim([lim_min_y, lim_max_y]);
-        xlim([0, 50]);
-        ylim([0, 50]);
-        
-        % 绘制y=x参考线
-        x = linspace(0, 50, 100);
-        plot(x, x, 'k--', 'LineWidth', 0.8);
-        
-        % 保存图片
-        save_folder = fullfile("ellip_pic_p", Dtype, "CT", scale_type,obs_type, iOr);
-        if ~exist(save_folder, "dir")
-            mkdir(save_folder);
-        end
-
-
-        ax = gca;
-        targetFontSize=12;
-        set(ax, 'FontSize', targetFontSize);
-        xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        yPos = ax.YLabel.Position;
-        yPos(1) = yPos(1) - 5; % 数字越大，离得越远
-        ax.YLabel.Position = yPos;
-        xPos = ax.XLabel.Position;
-        xPos(2) = xPos(2) - 5; % 数字越大，离得越远
-        ax.XLabel.Position = xPos;
-        set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
-        img_name=fullfile(save_folder, strcat(iOr,obs_type,nation_serial, '_CT.jpg'));    
-        savefig(gcf, strrep(img_name,'jpg','fig'));
-        exportgraphics(gcf,img_name ,'Resolution', 300);
-        % close(gcf);
+%% 绘图部分 - 按色温映射颜�?
+iOrs=['i','r'];
+for i_iOr=1:2
+    iOr=iOrs(i_iOr);
+    output_folder=fullfile("ellip_pic_p", Dtype);
+    if ~exist(output_folder,"dir")
+        mkdir(output_folder);
     end
-    % 合并所有图片
-    save_folder = fullfile("ellip_pic_p", Dtype, "CT",scale_type, obs_type, iOr);
-    concatenate_images1(save_folder, 4);  
-    close all
+    
+    load(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
+        "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
+    
+    output_folder1=fullfile("ellip_pic_p_free", "noCAT");
+    if ~exist(output_folder1,"dir")
+        mkdir(output_folder1);
+    end
+    data_noCAT=load(fullfile(output_folder1,strcat("data_reshaped_",iOr,".mat")), ...
+        "par_mean","average_mean", ...
+        "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
+    nan_record={};
+    
+    
+    % 创建从冷�?蓝色)到暖�?红色)的颜色映�?
+    cmap = colormap('jet');
+    cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色�?
+    cmap_hsv = rgb2hsv(cmap);
+    cmap_hsv(:,2) = cmap_hsv(:,2) * 0.8;   % Saturation 降到 0.8 �?
+    cmap_hsv(:,3) = cmap_hsv(:,3) * 0.8;   % Value 降到 0.8 �? 防止超过范围
+    cmap_hsv = max(min(cmap_hsv,1),0);% 转回 RGB
+    cmap = hsv2rgb(cmap_hsv);% 使用新的 colormap
+    colormap(cmap);
+    
+    load(fullfile("optimizedD\backGroundGray\XYZ_gray.mat"),"xyz_gray");
+    E=xyz_gray(:,2);
+    
+    if iOr=='r'
+        XYZw_used = XYZw_mean{i_nation};
+    elseif iOr=='i'
+        XYZw_used = XYZw_mean;
+    end
+    obs_types=["non_model"];
+    for i_obs=1:length(obs_types)
+        obs_type=obs_types(i_obs);
+        for i_nation = 1:length(nations)
+            nation=nations(i_nation);
+            nation_name=nation_names(i_nation);
+            nation_serial=strcat(sprintf("%02d",i_nation),nation_name);
+            if iOr=='r'
+                CT=CT_nations{i_nation};
+            end
+            % 获取当前人种的subject数量
+            n_subjects = size(lab_fit_reshaped{i_obs, i_nation}, 3);
+            if n_subjects == 0
+                continue;
+            end
+            
+            % 获取当前人种对应的lastPart索引
+            curr_nation_indices = nation_indices{i_nation};        
+            % 分离性别索引
+            gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts);
+            
+            for attribute = [1]
+                attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
+    
+                
+                % 直接从lab_fit_reshaped获取数据
+                lab_data = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
+                lab_data1 = data_noCAT.lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
+                
+                % 计算平均值并准备色温数据
+                lab = nanmean(lab_data, 3); % 按受试者维度求平均
+                lab1 = nanmean(lab_data1, 3); % 按受试者维度求平均
+                %late CAT
+                XYZ_bf=lab2xyz2(lab1,'d65_64');
+                for i_para=1:size(lab1,1)
+                    D_pre(i_para,1)= calculateD(CT(i_para,1), 0, "efit_p",E(i_para,1));
+                    XYZt(i_para,:) = CAT16_D(XYZ_bf(i_para,:), ...
+                        XYZw_used(i_para,:), wd65, D_pre(i_para,1));                
+                end
+                Labt = xyz2lab(XYZt, 'd65_64');
+                %从最近的点转过去
+                Labt_near=Labt;
+                for i_para=[1]
+                    XYZt_near(i_para,:) = CAT16_D(XYZ_bf(i_para+1,:), ...
+                        XYZw_used(i_para+1,:), XYZw_used(i_para,:), D_pre(i_para+1,1)); 
+    
+                    XYZt_near(i_para+1,:) = CAT16_D(XYZ_bf(i_para,:), ...
+                        XYZw_used(i_para,:), XYZw_used(i_para+1,:), D_pre(i_para,1));
+    
+                end
+                Labt_near(1:2,:) = xyz2lab(XYZt_near(1:2,:), 'd65_64');
+    
+                %从D65转过�?
+                Labt_frD65=Labt;
+                for i_para=1:size(lab1,1)
+                    XYZt_frD65(i_para,:) = CAT16_D(XYZ_bf(5,:), ...
+                        XYZw_used(5,:), XYZw_used(i_para,:), D_pre(5,1)); 
+                end
+                Labt_frD65 = xyz2lab(XYZt_frD65, 'd65_64');
+                            
+                % 确保CT数据与lab数据维度匹配
+                CT_for_plot = CT(indices_target);
+                
+                % 找到有效数据的索�?
+                valid_idx = ~all(isnan(lab), 2);
+                lab_valid = lab(valid_idx, :);
+                CT_valid = CT_for_plot(valid_idx);
+                
+                if ~isempty(lab_valid)
+                    % 归一化色温值用于颜色映�?
+                    CT_min = min(CT_valid);
+                    CT_max = max(CT_valid);
+                    CT_norm = (CT_valid - CT_min) / (CT_max - CT_min);
+                    
+                    % 为每个点设置颜色
+                    figure(i_nation);hold on;
+                    for i_point = 1:size(lab_valid, 1)
+                        % 根据归一化色温值获取颜�?
+                        color_idx = round(CT_norm(i_point) * (size(cmap, 1) - 1)) + 1;
+                        point_color = cmap(color_idx, :);
+                        % point_color = colors(color_idx, :);
+                        
+                        % 绘制散点
+                        plot_style='o';
+    
+                        scatter(lab_valid(i_point, 2), lab_valid(i_point, 3), 20, plot_style, 'filled', ...
+                            'MarkerFaceColor', point_color, 'MarkerEdgeColor', point_color, 'LineWidth', 0.5);
+                        % text(lab_valid(i_point, 2), lab_valid(i_point, 3), ...
+                        %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
+                        %     'VerticalAlignment', 'top', 'Color', 'k');
+                        
+                        % scatter(lab1(i_point, 2), lab1(i_point, 3), 10, '^', 'filled', ...
+                        %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', ...
+                        %     point_color, 'LineWidth', 0.5);
+                        % text(lab1(i_point, 2), lab1(i_point, 3), ...
+                        %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
+                        %     'VerticalAlignment', 'top', 'Color', 'k');
+    
+                        % scatter(Labt_near(i_point, 2), Labt_near(i_point, 3), 10, 'd', 'filled', ...
+                        %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', ...
+                        %     point_color, 'LineWidth', 0.5);
+                        % text(Labt_near(i_point, 2), Labt_near(i_point, 3), ...
+                        %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
+                        %     'VerticalAlignment', 'top', 'Color', 'k');
+                        % 
+                        % scatter(Labt_frD65(i_point, 2), Labt_frD65(i_point, 3), 10, 's', 'filled', ...
+                        %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', ...
+                        %     point_color, 'LineWidth', 0.5);
+                        % text(Labt_frD65(i_point, 2), Labt_frD65(i_point, 3), ...
+                        %     sprintf('%dK', round(CT_valid(i_point))), 'FontSize', 4, ...
+                        %     'VerticalAlignment', 'top', 'Color', 'k');
+    
+                    end
+                    hue_all{i_obs, i_nation, attribute}=nanmean(atan2d(lab_valid(:,3),lab_valid(:,2)),1);
+                    % nanmean(atan2d(Labt(:,3),Labt(:,2)))
+                    % max(atan2d(Labt(:,3),Labt(:,2)))
+                    % min(atan2d(Labt(:,3),Labt(:,2)))
+                    dE_eNl{i_obs,i_nation}=deltaE2000(Labt,lab_valid);
+                    dE_eNl_mean{i_obs,i_nation}=mean(deltaE2000(Labt,lab_valid));
+                    for i=1:size(lab_valid,1)
+                        for j=1:size(lab_valid,1)
+                            dE(i,j)=deltaE2000(lab_valid(i,:),lab_valid(j,:));
+                        end
+                    end
+                    dE_labels{i_obs,i_nation}=nanmean(nanmean(dE));
+                    lab_valid(CT_valid<4200,:)=[];
+                    for i=1:size(lab_valid,1)
+                        for j=1:size(lab_valid,1)
+                            dE1(i,j)=deltaE2000(lab_valid(i,:),lab_valid(j,:));
+                        end
+                    end
+                    dE_labels_del{i_obs,i_nation}=nanmean(nanmean(dE1));
+    
+    
+    
+    
+    
+                    for i=1:size(lab1,1)
+                        for j=1:size(lab1,1)
+                            dE1(i,j)=deltaE2000(lab1(i,:),lab1(j,:));
+                        end
+                    end
+                    dE_labels1{i_obs,i_nation}=nanmean(nanmean(dE1));
+                    disp("d")
+    
+                end
+            end
+    
+            
+            % 添加PMCC�?
+            lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, 1);
+            lab = nanmean(lab, 3); % 按受试者维度求平均
+            lab = nanmean(lab, 1); % 按光�?环境维度求平�?
+            
+            % 绘制原始PMCC�?
+            xyz_mean=lab2xyz2(lab,"d65_64");
+            xyz_PMCC=lab2xyz2(labCh_PMCC(i_nation,1:3),"d65_64");
+            xyz_PMCC=xyz_PMCC./xyz_PMCC(2).*xyz_mean(2);
+            labCh_PMCC_pre(i_nation,:)=xyz2lab(xyz_PMCC,"d65_64");
+            % plot(labCh_PMCC(i_nation, 2), labCh_PMCC(i_nation, 3), 's', 'MarkerSize', 8, ...
+            %     'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'm');
+            % plot(labCh_PMCC_pre(i_nation, 2), labCh_PMCC_pre(i_nation, 3), 's', 'MarkerSize', 8, ...
+            %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'm');
+            
+            % 添加图例、标签和标题
+            xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12*2);
+            ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12*2);
+            % title([nation_names(i_nation)],'FontSize', 12*2);
+            
+            % 添加颜色条表示色�?
+            if  strcmp(Dtype,"noCAT")
+            % if  i_nation==4
+                % cb = colorbar;
+                % cb.Label.String = 'color temperature (K)';
+                % cb.Label.Interpreter = 'latex';  % 设置解释器为LaTeX
+                % cb.Label.FontSize = 12;          % 可以调整字体大小
+                % caxis([2500,8500]);
+                % colormap(cmap);
+            end
+            
+            % 设置坐标轴范�?
+            axis equal;
+            xlim([lim_min_x, lim_max_x]);
+            ylim([lim_min_y, lim_max_y]);
+            % xlim([0, 50]);
+            % ylim([0, 50]);
+            
+            % 绘制y=x参考线
+            x = linspace(0, 50, 100);
+            plot(x, x, 'k--', 'LineWidth', 0.8);
+            
+            % 保存图片
+            save_folder = fullfile("ellip_pic_p", Dtype, "CT", scale_type,obs_type, iOr);
+            if ~exist(save_folder, "dir")
+                mkdir(save_folder);
+            end
+    
+    
+            ax = gca;
+            targetFontSize=12;
+            set(ax, 'FontSize', targetFontSize);
+            xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+            ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+            yPos = ax.YLabel.Position;
+            yPos(1) = yPos(1) - 5; % 数字越大，离得越�?
+            ax.YLabel.Position = yPos;
+            xPos = ax.XLabel.Position;
+            xPos(2) = xPos(2) - 5; % 数字越大，离得越�?
+            ax.XLabel.Position = xPos;
+            set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
+            img_name=fullfile(save_folder, strcat(iOr,obs_type,nation_serial, '_CT.jpg'));    
+            savefig(gcf, strrep(img_name,'jpg','fig'));
+            exportgraphics(gcf,img_name ,'Resolution', 300);
+            % close(gcf);
+        end
+        % 合并所有图�?
+        save_folder = fullfile("ellip_pic_p", Dtype, "CT",scale_type, obs_type, iOr);
+        concatenate_images1(save_folder, 4);  
+        % close all
+    
+     
+    end
+    
+end
+end
 
  
-end
+%%
+
+   
 opts.lim_min=0; 
 opts.lim_max=40;  
 opts.targetFontSize=12;
@@ -532,13 +545,6 @@ opts.if_rotate=false;
 % opts.axis_ticks=[2,2,2,1];
 % opts.bar_interval=0.4;
 adjust_fig(save_folder, opts);
-end
-
- 
-%%
-
-   
-
     %-----------------
     s.labels_row1 = {};
     s.labels_row2 = {};
@@ -548,9 +554,9 @@ end
     s.n_col1=2; 
     s.n_col2=2;
     s.if_label=true;
-    s.color_limits = [2500,8500]; % 传入全局数据极值    
+    s.color_limits = [2500,8500]; % 传入全局数据极�?   
     cmap = colormap('jet');
-    cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色温
+    cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色�?
     s.cmap = cmap;
 
     if ~isempty(s.labels_row1)
@@ -580,7 +586,7 @@ fullfile(pwd,save_folder1)
 %%
     % 定义一个函数来分离性别索引
 function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
-    gender_indices = cell(2, 1); % f和m的索引
+    gender_indices = cell(2, 1); % f和m的索�?
     for i_subject = 1:n_subjects
         subject_idx = curr_nation_indices(i_subject);
         lastPart = lastParts{subject_idx};

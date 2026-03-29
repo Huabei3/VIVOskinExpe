@@ -7,7 +7,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 
 
-text_type="ch";
+text_type="eng";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -231,6 +231,8 @@ hue_values = linspace(0, 1, length(nations) + 1);
 hue_values = hue_values(1:end-1); 
 hsv_matrix = [hue_values', 0.8 * ones(length(nations), 1), 0.8 * ones(length(nations), 1)];
 colors = hsv2rgb(hsv_matrix);
+colors(3,:)=[0 0 0];
+colors(4,:)=[1 0.5 0];
 line_style = '-';  % 统一使用实线
 plot_style = 'o';  % 统一使用圆形标记
 
@@ -297,8 +299,8 @@ for i_obs = 1:length(obs_types)
 
                     parNr_all{i_obs, i_nation, attribute} = parNr;
                     hue_all{i_obs, i_nation, attribute}=atan2d(par(5),par(4));
-                    plot(labCh_PMCC(i_nation,2), labCh_PMCC(i_nation,3), 's', 'MarkerSize', 6, ...
-                    'MarkerFaceColor', "none", 'MarkerEdgeColor',colors(i_nation,:),'LineWidth',2);
+                    plot(labCh_PMCC(i_nation,2), labCh_PMCC(i_nation,3), 's', 'MarkerSize', 4, ...
+                    'MarkerFaceColor', "none", 'MarkerEdgeColor',colors(i_nation,:),'LineWidth',1);
 
 
                     Contour50(par, lab_group, MSV_group, "nation1", ...
@@ -348,10 +350,10 @@ for i_obs = 1:length(obs_types)
             xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
             ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
             yPos = ax.YLabel.Position;
-            yPos(1) = yPos(1) - 5; % 数字越大，离得越远
+            yPos(1) = yPos(1) - 3; % 数字越大，离得越远
             ax.YLabel.Position = yPos;
             xPos = ax.XLabel.Position;
-            xPos(2) = xPos(2) - 5; % 数字越大，离得越远
+            xPos(2) = xPos(2) - 3; % 数字越大，离得越远
             ax.XLabel.Position = xPos;
             set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
             
@@ -377,9 +379,9 @@ for i_obs = 1:length(obs_types)
     opts.lim_min=0; 
     opts.lim_max=40;  
     opts.targetFontSize=12;
-    opts.margin=0.2;    
+    opts.margin=0.1;    
     adjust_fig(output_folder, opts);
-
+%%
     if strcmp(text_type,"eng")
         s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
         s.labels_row2 = {'preference center', 'PMCC'};
@@ -393,12 +395,16 @@ for i_obs = 1:length(obs_types)
     s.markers_face_colors=[0 0 0; 1 1 1];
     s.sidePad=0.2;
     s.if_label=1;
+    s.n_col1=4;
+    s.n_col2=2;
     
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
+    s.colors_row1(3,:)=[0 0 0];
+    s.colors_row1(4,:)=[1 0.5 0];
 
 
 
@@ -414,19 +420,35 @@ for i_obs = 1:length(obs_types)
     end
     % figFiles = {'all_a_b.fig', 'all_L_C.fig'};
     % concatenate_figs1(outputFolder,figFiles);
+    paper_type="ICDT";
     legend_file="";
     % concatenate_figs_legend(outputFolder, figFiles, 2,legend_file);
     if strcmp(iOr,"i")
-        concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.1,1.7);
+        if strcmp(paper_type,"ICDT")
+            output_folder1=fullfile(output_folder,"1");
+            figFiles={'01Preference1adjusted.fig'};
+            s.if_label=0;
+            s.leg_x_shift=-0.25;
+            s.marginL=0.2;
+            s.iconTextGap=0.024;
+            s.n_col1=4;
+            s.n_col2=2;
+            s.colGap1_scale=1.3;
+            s.colGap2_scale=1.8;
+            concatenate_figs_legend1(output_folder1, figFiles, 1,legend_file,"draw",s,0.1,0.9);
+        else
+            concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.1,1.7);
+        end
     elseif strcmp(iOr,"r")
 
         concatenate_figs_legend1(output_folder, figFiles, 4,legend_file,"draw",s,0.08,2);
     end
 
 %-----------------------------------------
-    close all;
+    % close all;
 end            
 
+fullfile(pwd,output_folder)
 
 % output_folder="D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\50\scaled\nation1\i\non_model";
 % rgb_value = colors(3,:);

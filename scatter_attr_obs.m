@@ -1,6 +1,6 @@
-close all; % 关闭所有图窗
+close all; % 关闭所有图�?
 clc;       % 清空命令窗口
-clear;     % 清除工作区所有变量
+clear;     % 清除工作区所有变�?
 scale_type = "unscaled"; % 新增：unscaled或scaled
 addpath("utils\")
 %% 定义所有需要处理的 attribute
@@ -13,12 +13,12 @@ if strcmp(text_type,"eng")
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
-    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
-    attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
-    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
+    nation_names = ["亚洲�?, "高加索人", "南亚�?, "非洲�?];
+    attribute_names_new = ["喜好�?, "有吸引力�?, "女性化�?, "友善�?, ...
+    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
 end
 % 定义人种对应的lastParts索引
-nation_indices = cell(5, 1); % 5个人种（包括"all"）
+nation_indices = cell(5, 1); % 5个人种（包括"all"�?
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
 nation_indices{1} = 1:6;
 % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)
@@ -27,7 +27,7 @@ nation_indices{2} = 7:12;
 nation_indices{3} = 13:16;
 % AF (African): f09i, f10i, m09i, m10i (索引17-20)
 nation_indices{4} = 17:20;
-% all: 所有索引 (索引1-20)
+% all: 所有索�?(索引1-20)
 nation_indices{5} = 1:20;
 
 lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -79,7 +79,7 @@ gender_names=["female","male"];
 obs_types = ["non_model", "model_group"];
 % obs_types = ["non_model", "model_group", "model"];
 % 定义人种对应的lastParts索引
-nation_indices = cell(5, 1); % 5个人种（包括"all"）
+nation_indices = cell(5, 1); % 5个人种（包括"all"�?
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
 nation_indices{1} = 1:6;
 % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)
@@ -88,12 +88,12 @@ nation_indices{2} = 7:12;
 nation_indices{3} = 13:16;
 % AF (African): f09i, f10i, m09i, m10i (索引17-20)
 nation_indices{4} = 17:20;
-% all: 所有索引 (索引1-20)
+% all: 所有索�?(索引1-20)
 nation_indices{5} = 1:20;
-% 初始化重塑后的数据结构
-average_reshaped = cell(5, 1); % 5个人种
-par_reshaped = cell(3, 5, 1);  % 3种观察者类型 × 5个人种
-lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类型 × 5个人种
+% 初始化重塑后的数据结�?
+average_reshaped = cell(5, 1); % 5个人�?
+par_reshaped = cell(3, 5, 1);  % 3种观察者类�?× 5个人�?
+lab_fit_reshaped = cell(3, 5, 1); % 3种观察者类�?× 5个人�?
 labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [64.15	19.56	19.63	27.71	45.10];...
             [56.01	18.25	18.72	26.14	45.72];...
@@ -104,7 +104,7 @@ Dtype = 'efit_p';
 scale_type_origin="unscaled";
 % 定义一个函数来分离性别索引（此函数不再在主循环中使用，但保留）
 function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
-    gender_indices = cell(2, 1); % f和m的索引
+    gender_indices = cell(2, 1); % f和m的索�?
     for i_subject = 1:n_subjects
         subject_idx = curr_nation_indices(i_subject);
         lastPart = lastParts{subject_idx};
@@ -119,25 +119,25 @@ end
 
 
 %% 直接按重塑后的结构加载和存储数据
-% ===================== 新增：固定图片尺寸参数 =====================
+% ===================== 新增：固定图片尺寸参�?=====================
 % 定义图片尺寸（厘米）
 fig_width_cm = 15;    % 图片宽度（厘米）
 fig_height_cm = 15;   % 图片高度（厘米）
-% 转换厘米为英寸（1英寸=2.54厘米）
+% 转换厘米为英寸（1英寸=2.54厘米�?
 fig_width_in = fig_width_cm / 2.54;
 fig_height_in = fig_height_cm / 2.54;
-% 定义基础字体大小（按图片尺寸比例）
+% 定义基础字体大小（按图片尺寸比例�?
 base_font_size = 12;  % 基础字号
 font_scale = fig_width_cm / 15;  % 按宽度比例缩放（15cm为基准）
-label_font_size = base_font_size * 2 * font_scale;  % 对应原12*2
-text_font_size = 15 * font_scale;  % 对应原attribute数字的15号字体
+label_font_size = base_font_size * 2 * font_scale;  % 对应�?2*2
+text_font_size = 15 * font_scale;  % 对应原attribute数字�?5号字�?
 title_font_size = base_font_size * 2 * font_scale;  % 标题字号
 %=======================================
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
     
     for i_nation = 1:length(nations)
-        % 获取当前人种的所有索引
+        % 获取当前人种的所有索�?
         nation=nations(i_nation);
         curr_nation_indices = nation_indices{i_nation};
         
@@ -278,7 +278,7 @@ end
 save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
     "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
 %% 计算每个nation的坐标轴范围
-% 初始化每个nation的极值变量
+% 初始化每个nation的极值变�?
 nation_limits = struct();
 for i_nation = 1:length(nations)
     nation_limits(i_nation).lim_min_x = inf;
@@ -286,17 +286,17 @@ for i_nation = 1:length(nations)
     nation_limits(i_nation).lim_max_x = -inf;
     nation_limits(i_nation).lim_max_y = -inf;
 end
-% 为每个nation分别计算坐标轴范围
+% 为每个nation分别计算坐标轴范�?
 for i_nation = 1:length(nations)
     for i_obs = 1:length(obs_types)
         obs_type = obs_types(i_obs);
-        % 获取当前人种的所有 subject
+        % 获取当前人种的所�?subject
         n_subjects = size(lab_fit_reshaped{i_obs, i_nation}, 3);
         if n_subjects == 0
             continue;
         end
         
-        % 处理所有 subject 的数据，不再区分性别
+        % 处理所�?subject 的数据，不再区分性别
         for attribute = attributes
             lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
             if ~all(isnan(lab(:)))
@@ -337,17 +337,17 @@ for i_nation = 1:length(nations)
     nation=nations(i_nation);
     nation_serial=strcat(sprintf("%02d",i_nation),nation);
     
-    % 获取当前人种的所有索引
+    % 获取当前人种的所有索�?
     curr_nation_indices = nation_indices{i_nation};
     
     if isempty(curr_nation_indices)
-        continue; % 无该人种数据，跳过
+        continue; % 无该人种数据，跳�?
     end
     
     h1=figure(1);
     set(h1, ...
     'Units', 'inches', ...          % 单位设为英寸
-    'Position', [1, 1, fig_width_in, fig_height_in], ...  % [左, 下, 宽, 高]
+    'Position', [1, 1, fig_width_in, fig_height_in], ...  % [�? �? �? 高]
     'Color', 'white', ...
     'PaperUnits', 'inches', ...     % 打印单位
     'PaperSize', [fig_width_in, fig_height_in], ...       % 打印尺寸
@@ -356,12 +356,12 @@ for i_nation = 1:length(nations)
     hold on;
     set(gcf, 'Color', 'white');
     
-    % 添加PMCC点
+    % 添加PMCC�?
     % lab_PMCC = labCh_PMCC(i_nation,1:3);
     % plot(lab_PMCC(2), lab_PMCC(3), 's', 'MarkerSize', 8, ...
     %     'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'm');
     
-    % 使用第一个 attribute 的数据来计算 XYZ 均值
+    % 使用第一�?attribute 的数据来计算 XYZ 均�?
     lab_pre = lab_fit_reshaped{1,i_nation}(indices_target, :, :, 1);
     lab_pre = nanmean(nanmean(lab_pre, 3), 1);
     xyz_mean=lab2xyz2(lab_pre,"d65_64");
@@ -371,7 +371,7 @@ for i_nation = 1:length(nations)
     % plot(labCh_PMCC_pre(2), labCh_PMCC_pre(3), 's', 'MarkerSize', 8, ...
     %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'm');
     
-    % 遍历不同的obs_type，将数据点画到同一张图上
+    % 遍历不同的obs_type，将数据点画到同一张图�?
     for i_obs=1:length(obs_types)
         obs_type=obs_types(i_obs);
         
@@ -386,11 +386,11 @@ for i_nation = 1:length(nations)
             
             lab_mean = nanmean(nanmean(lab, 3), 1);
             
-            % 根据 obs_type 选择不同的 plot_style
+            % 根据 obs_type 选择不同�?plot_style
             % if strcmp(obs_type, "non_model")
                 plot_style_current = 'o'; % 'non_model'使用圆圈
             % elseif strcmp(obs_type, "model_group")
-            %     plot_style_current = '^'; % 'model_group'使用上三角
+            %     plot_style_current = '^'; % 'model_group'使用上三�?
             % end
             
             % scatter(lab_mean(2), lab_mean(3), 30, plot_style_current,'filled', ...
@@ -408,8 +408,8 @@ for i_nation = 1:length(nations)
     scatter(ave(2), ave(3), 30, 'o','filled', ...
     'MarkerFaceColor', colors(i_obs+1, :), 'MarkerEdgeColor', colors(i_obs+1,:));
     % 添加图例、标签和标题
-    xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', label_font_size);
-    ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', label_font_size);
+    xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',label_font_size);
+    ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',label_font_size);
     title([nation_names(i_nation)],'FontSize', title_font_size);
 
     res_matrix=[res_matrix;lab_mean];
@@ -440,17 +440,17 @@ for i_nation = 1:length(nations)
     ax = gca;
     targetFontSize=12;
     set(ax, 'FontSize', targetFontSize);
-    xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-    ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+    xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+    ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
     yPos = ax.YLabel.Position;
-    yPos(1) = yPos(1) - 5; % 数字越大，离得越远
+    yPos(1) = yPos(1) - 5; % 数字越大，离得越�?
     ax.YLabel.Position = yPos;
     xPos = ax.XLabel.Position;
-    xPos(2) = xPos(2) - 5; % 数字越大，离得越远
+    xPos(2) = xPos(2) - 5; % 数字越大，离得越�?
     ax.XLabel.Position = xPos;
     set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
     
-    % 保存为 .fig
+    % 保存�?.fig
     img_name=fullfile(save_folder, ...
         strcat(nation_serial, '_scatter_attr_comp_noarrow.jpg'));
 
@@ -494,7 +494,7 @@ adjust_fig(save_folder, opts);
 if strcmp(text_type,"eng")
     s.labels_row1 = {"stranger","acquaitance","original"};
 elseif strcmp(text_type,"ch")
-    s.labels_row1 = {"生人组","熟人组","原图"};
+    s.labels_row1 = {"生人�?,"熟人�?,"原图"};
 end
 
 
@@ -531,19 +531,19 @@ end
 for i_nation = 1:length(nations)
     nation = nations(i_nation);
     
-    % 遍历不同观察者类型
+    % 遍历不同观察者类�?
     for i_obs = 1:length(obs_types)
         obs_type = obs_types(i_obs);
         
-        % 获取当前观察者和人种的数据
+        % 获取当前观察者和人种的数�?
         lab_data = lab_fit_reshaped{i_obs, i_nation}(indices_target, :, :, :);
         
-        % 检查数据是否为空
+        % 检查数据是否为�?
         if all(isnan(lab_data(:)))
             continue;
         end
         
-        % 计算每个 attribute 的平均 LAB
+        % 计算每个 attribute 的平�?LAB
         attr_lab_means = zeros(length(attributes), 3);
         for i_attr = 1:length(attributes)
             lab_mean = nanmean(nanmean(lab_data(:, :, :, i_attr), 3), 1);
@@ -554,7 +554,7 @@ for i_nation = 1:length(nations)
             end
         end
         
-        % 1. 计算不同 attribute 两两之间的 deltaE2000 矩阵
+        % 1. 计算不同 attribute 两两之间�?deltaE2000 矩阵
         num_attrs = length(attributes);
         deltaE_matrix = zeros(num_attrs, num_attrs);
         attr_h=atan2d(attr_lab_means(:,3),attr_lab_means(:,2));
@@ -576,7 +576,7 @@ for i_nation = 1:length(nations)
         deltaE_matrix_all{i_nation,i_obs}=deltaE_matrix;
         deltaE_matrix_mean{i_nation,i_obs}=nanmean(nanmean(deltaE_matrix));
         
-        % 2. 计算每个 attribute 与 ave 的 deltaE2000 向量
+        % 2. 计算每个 attribute �?ave �?deltaE2000 向量
         ave_lab_mean = nanmean(average_mean{i_nation}(indices_target, :), 1);
         deltaE_ave_vector = zeros(num_attrs, 1);
         for i = 1:num_attrs

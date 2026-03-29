@@ -93,8 +93,11 @@ function adjust_fig(output_folder, opts)
             set(ax, 'XTickLabelRotation', 45);
         end
 
-
-        % set(ax, 'FontSize', opts.targetFontSize);
+        if isfield(opts,"fontSizeScale")
+            set(ax, 'FontSize', opts.fontSizeScale*opts.targetFontSize);
+        else
+            set(ax, 'FontSize', opts.targetFontSize);
+        end
         % xlabel(ax, '$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
         % ylabel(ax, '$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*opts.targetFontSize);
         
@@ -102,10 +105,22 @@ function adjust_fig(output_folder, opts)
         % 修正：确保在 Data Units 下，Label 距离坐标轴边缘有固定的 margin
         % ax.YLabel.Position(1) = opts.lim_min - opts.margin; 
         % ax.XLabel.Position(2) = opts.lim_min - opts.margin; 
-        if ~(isfield(opts, 'label_type') && strcmp(opts.label_type, "skinVIVO"))
+
+        % 建议替换原来的那段 if isfield(legend_labels, 'margin') ...
+        if isfield(opts, 'margin')&&(isfield(opts, 'margin_type')&& ...
+                strcmp(opts.margin_type,"Position"))
+            drawnow; 
+            xPos = get(ax.XLabel, 'Position');
+            set(ax.XLabel, 'Position', [xPos(1), xPos(2) - opts.margin, xPos(3)]);
+            yPos = get(ax.YLabel, 'Position');
+            set(ax.YLabel, 'Position', [yPos(1) - opts.margin, yPos(2), yPos(3)]);
+        end
+
+        if isfield(opts, 'margin')&&~(isfield(opts, 'margin_type')&& ...
+                strcmp(opts.margin_type,"Position"))
             set(ax.XLabel, 'Units', 'normalized');
             set(ax.YLabel, 'Units', 'normalized');
-            
+
             % 调整位置：
             % XLabel: 横向居中(0.5)，纵向在下方(负值，opts.margin 此时应建议设为 0.1 左右)
             ax.XLabel.Position(1) = 0.5; 

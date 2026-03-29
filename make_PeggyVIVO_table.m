@@ -275,7 +275,8 @@ fit_table = table( ...
 
 % 导出
 
-output_folder = fullfile("AnalyseResults_p\efit_p",scale_type,"resTable");
+output_folder = fullfile("AnalyseResults_p\efit_p", ...
+    scale_type,"resTable",strcat("original_",scale_type_origin));
 
 if ~exist(output_folder,'dir'), mkdir(output_folder); end
 out_mat  = fullfile(output_folder, 'Peggy_VIVO_table.mat');

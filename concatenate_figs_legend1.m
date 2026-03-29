@@ -116,6 +116,10 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")&&i==5
             posX=posX+0.04;
         end
+        if isfield(legend_labels,"Y_shift")
+            posY=posY+legend_labels.Y_shift;
+        end
+
         subAx = axes('Parent', mainFig, 'Units', 'normalized', 'Position', [posX, posY, w_space, h_space]);
 
         copyobj(allchild(tempAx), subAx);
@@ -172,12 +176,18 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             set(newXlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
             set(newYlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
         end
+        if isfield(legend_labels,"fontSizeScale")
+            set(newXlabel, 'FontSize', legend_labels.fontSizeScale*targetFontSize, ...
+                'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', legend_labels.fontSizeScale*targetFontSize, ...
+                'FontWeight', 'normal');
+        end
         if isfield(legend_labels,"label_fontSize")
             set(newXlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
             set(newYlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
         end
 
-        set([newXlabel, newYlabel], 'Interpreter', 'latex');
+        set([newXlabel, newYlabel], 'Interpreter', 'tex');
         % axis(subAx, 'tight'); % 自动去掉四周多余空白
         if isfield(legend_labels,"x_data")
             subAx.XLim = [min(legend_labels.x_data)-0.9, max(legend_labels.x_data)+0.08]; % 假设你能拿到数据范围
@@ -302,8 +312,9 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     end
 
     % 4) Save result
-    saveas(mainFig, fullfile(output_path, 'Combined_legend1.png'));
     savefig(mainFig, fullfile(output_path, 'Combined_legend1.fig'));
+    saveas(mainFig, fullfile(output_path, 'Combined_legend1.png'));
+    print(mainFig, fullfile(output_path, 'Combined_legend1.eps'), '-depsc');
     fprintf('Concatenation finished. Output saved to: %s\n', output_path);
 end
 
@@ -315,6 +326,7 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
     markers_colors = legend_labels.markers_colors;
     markers_face_colors = legend_labels.markers_face_colors;
     colors_row1 = legend_labels.colors_row1;
+    
     
     % 获取换行配置
     if isfield(legend_labels,"n_col1")
@@ -341,26 +353,35 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
     else
         sidePad = 0.1;
     end
-    colGap1 = 1 / (n_col1 + 0.5); % 根据列数动态调整间距
+    if isfield(legend_labels,"colGap1_scale")
+        colGap1 = (1 / (n_col1 + 0.5)).*legend_labels.colGap1_scale; 
+    else
+        colGap1 = 1 / (n_col1 + 0.5); 
+    end
     if isfield(legend_labels,"colGap2_scale")
-        colGap2 = 1 / (n_col2 + 0.5)*legend_labels.colGap2_scale;
+        colGap2 = (1 / (n_col2 + 0.5))*legend_labels.colGap2_scale;
     else
         colGap2 = 1 / (n_col2 + 0.5);
     end
     rowStep = 0.35; % 换行时的垂直间距
-    if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")
-        rowStep = 0.15;
+    if isfield(legend_labels,"rowStep")
+        rowStep = legend_labels.rowStep;
     end
-    iconTextGap = 0.03;
+    if isfield(legend_labels,"iconTextGap")
+        iconTextGap = legend_labels.iconTextGap;
+    else
+        iconTextGap = 0.014;
+    end
 
     % --- 绘制第一组 (labels_row1) ---
+    
     for k = 1:numel(labels_row1)
         currR = floor((k-1) / n_col1); % 当前行
         currC = mod(k-1, n_col1);      % 当前列
         
         tx = sidePad + currC * colGap1;
         ty = label_Y - currR * rowStep;
-        if isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'attr')
+        if isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'attr1')
             text(legAx, tx , ty, num2str(k), ...
                 'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
                 'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
@@ -395,12 +416,18 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                     'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
             end    
         else
-            plot(legAx, tx, ty, 'o', 'MarkerFaceColor', colors_row1(k, :), ...
-                'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
+            if isfield(legend_labels, 'plot_style_row1')
+                plot(legAx, tx, ty, legend_labels.plot_style_row1{k}, 'MarkerFaceColor', colors_row1(k, :), ...
+                    'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
+            else
+                plot(legAx, tx, ty, 'o', 'MarkerFaceColor', colors_row1(k, :), ...
+                    'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
+            end
         end
         text(legAx, tx + iconTextGap, ty, labels_row1{k}, ...
             'FontSize', targetFontSize, 'VerticalAlignment', 'middle', 'Interpreter', 'none');
     end
+    
 
     % 计算第二组的起始高度 (紧跟在第一组最后一行之后)
     numRowsRow1 = ceil(numel(labels_row1) / n_col1);

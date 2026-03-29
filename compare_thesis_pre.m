@@ -3,7 +3,7 @@ clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
 addpath("utils\")
 %%
-text_type="ch";
+text_type="eng";
 % nations=["AS","CA","SA","AF","all"];
 Dtype="efit_p";
 %%
@@ -17,6 +17,12 @@ PengCIC=[[65,0,0,25.3,46.5];[67,0,0,25.3,46.0];[58,0,0,25.1,46.5];[40,0,0,25.0,4
 PengCIC(:,2)=PengCIC(:,4).*cosd(PengCIC(:,5));
 PengCIC(:,3)=PengCIC(:,4).*sind(PengCIC(:,5));
 
+Peng_VR2023 = [
+    62.66, 18.31, 19.12, 26.47, 46.23;
+    65.08, 18.83, 18.87, 26.66, 45.05;    
+    57.04, 17.88, 18.61, 25.81, 46.14;
+    40.27, 17.77, 18.69, 25.79, 46.44;
+];
 CaoCIC=[[0,0,0,25.4,44.5];[0,0,0,24.5,43.7];[0,0,0,25.7,48.3];[0,0,0,23.0,48.0]];
 CaoCIC(:,2)=CaoCIC(:,4).*cosd(CaoCIC(:,5));
 CaoCIC(:,3)=CaoCIC(:,4).*sind(CaoCIC(:,5));
@@ -82,6 +88,8 @@ lab_est=[[0,0,0];[0,0,0];[0,0,0];[0,0,0];
     [76.98	17.43	18.29];
 [74.88	17.18	19.24];
 [78.12	16.4	13.74]];
+
+lab_est(1,:)=mean(lab_est(5:7,:),1);
 prev_cell{curr_row,1}=lab_est;
 prev_cell{curr_row,2}="Yamamoto et al. (2002)";
 prev_cell{curr_row,3}=["","","","","Japanese observer","Korean observer","Chinese observer"];
@@ -192,6 +200,17 @@ prev_cell{curr_row,2}="Peng et al. (2020)";
 prev_cell{curr_row,3}=["Oriental","Caucasian","South Asian","African"];
 prev_cell{curr_row,4}=["东方人","白种人","南亚人","非洲人"];
 curr_row=curr_row+1;
+
+%----------Peng_VR2023
+clear("lab_est");
+lab_est = Peng_VR2023(:,1:3);
+
+prev_cell{curr_row,1}=lab_est;
+prev_cell{curr_row,2}="Peng et al. (2023)";
+prev_cell{curr_row,3}=["Oriental","Caucasian","South Asian","African"];
+prev_cell{curr_row,4}=["东方人","白种人","南亚人","非洲人"];
+curr_row=curr_row+1;
+
 %-----------Cao2020
 clear("lab_est");
 lab_est = CaoCIC(:,1:3);
@@ -204,14 +223,14 @@ curr_row=curr_row+1;
 prev_cell([1,4],:)=[];
 %%
 length_color=4;
-for i_research=1:size(prev_cell,1)
-    length_color=max(length_color,size(prev_cell{i_research,1},1));
-end
 
 hue_values = linspace(0, 1, length_color + 1);hue_values = hue_values(1:end-1);
 hsv_matrix = [hue_values', 0.8 * ones(length_color, 1), 0.8 * ones(length_color, 1)];
-colors = hsv2rgb(hsv_matrix);
-
+colors_temp = hsv2rgb(hsv_matrix);
+colors=[[0.7 0 0];[0 0.5 0];[0 0 0];[1 0.5 0];[0.2 0.2 1];
+    [1 0 1];[0.5 0.5 0.5];
+    [1, 0.75, 0.8];[0.6, 0.2, 0.8];[0.6, 0.4, 0.2]];
+colors(1:2,:)=colors_temp(1:2,:);
 %%
 labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [64.15	19.56	19.63	27.71	45.10];...
@@ -224,8 +243,8 @@ elseif strcmp(Dtype,"efit_p")
 end
 
 % label_type="ACSA";
-label_type="only_my";
-% label_type="include_this";
+% label_type="only_my";
+label_type="include_this";
 % label_type="exclude_this";
 output_folder=fullfile(ellip_pic_folder,Dtype,"compare_thesis_pre",label_type);
 
@@ -283,8 +302,8 @@ for i_eth=1:size(ethnic_groups,2)
 
         hold on;
         % 绘制特殊点
-        plot(par(4), par(5), 'o', 'MarkerSize', 6, ...
-            'MarkerFaceColor', color, 'Color', color);
+        plot(par(4), par(5), 'o', 'MarkerSize', 4, ...
+            'MarkerFaceColor', color, 'Color', 'k');
             res_matrix=[res_matrix;center(i_eth,:)];
             res_cell{curr,1}=center(i_eth,:);
             res_cell{curr,2}=ethnic_groups(i_eth);
@@ -295,13 +314,15 @@ for i_eth=1:size(ethnic_groups,2)
     
     
     axis equal
-    if strcmp(text_type,"ch")
-        min_lim=0;
-        max_lim=40;
+    if strcmp(text_type,"eng")&&strcmp(label_type,"exclude_this")
+        min_lim=12;
+        max_lim=26;
+
     else
         min_lim=0;
-        max_lim=35;
+        max_lim=40;
     end
+
     xlim([min_lim,max_lim])
     ylim([min_lim,max_lim])
     interval = 5;
@@ -322,8 +343,20 @@ for i_eth=1:size(ethnic_groups,2)
                     author_str=char(prev_cell{i_prev,2});
     
                     if lab_pre(1,2)~=0
-                    if strcmp(author_str(1:2),"Pa")
-                        author_str_used=author_str(1:2);
+                    if strcmp(author_str,"Park et al. (2006)")
+                        author_str_used="P1";
+                    elseif strcmp(author_str,"Peng et al. (2020)")
+                        author_str_used="P2";
+                    elseif strcmp(author_str,"Peng et al. (2023)")
+                        author_str_used="P3";
+                    elseif strcmp(author_str,"Zeng et al. (2010)")
+                        author_str_used="Z1";
+                    elseif strcmp(author_str,"Zeng et al. (2011)")
+                        author_str_used="Z2";
+                    elseif strcmp(author_str,"Yano et al. (1998)")
+                        author_str_used="Y1";
+                    elseif strcmp(author_str,"Yamamoto et al. (2002)")
+                        author_str_used="Y2";
                     else
                         author_str_used=author_str(1);
                     end
@@ -332,7 +365,7 @@ for i_eth=1:size(ethnic_groups,2)
                     author_all{end,2}=strcat(strrep(author_str," et al.","等人")," ",prev_cell{i_prev,4}(i_eth1));
                     author_all{end,3}=colors(i_eth1,:);
                     author_all{end,4}=author_str_used;
-                    target_text_size=6;
+                    target_text_size=8;
                     if ~(strcmp(label_type,"ACSA")&&i_eth1>4)
                         text(lab_pre(1, 2), lab_pre(1, 3), ...
                              author_str_used, 'FontSize', target_text_size, ...
@@ -460,11 +493,72 @@ xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
 ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
 % set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
 
-img_name=fullfile(output_folder, ...
-    strcat(label_type,'compare_thesis_pre.jpg'));
+% view_settings = {
+%     [12, 26, 12, 26], '';           % 原始范围
+%     [16, 20, 16, 20], '_zoomed'     % 新增范围 [18, 21]
+% };
+view_settings = {
+    [0, 32, 0, 32], '';           % 原始范围
+    [16, 20, 16, 20], '_zoomed'     % 新增范围 [18, 21]
+};
+% zoom_rect = [16, 16, 4, 4];
+for s_idx = 1:1
+% for s_idx = 1:size(view_settings, 1)
+    % fig_handles(s_idx) = figure(s_idx);
+    current_lims = view_settings{s_idx, 1};
+    suffix = view_settings{s_idx, 2};
+    
+    % 更新坐标轴
+    xlim([current_lims(1), current_lims(2)]);
+    ylim([current_lims(3), current_lims(4)]);
+    
+    % 更新刻度（如果是 18-21，建议刻度加密，例如 0.5 间隔
+    interval=round((view_settings{s_idx,1}(2)-view_settings{s_idx,1}(1))/4);
+    xticks(view_settings{s_idx,1}(1):interval:view_settings{s_idx,1}(2));
+    yticks(view_settings{s_idx,1}(3):interval:view_settings{s_idx,1}(4));
+    % --- 3. 针对不同图片的特殊处理 ---
+    % if s_idx == 1
+    %     % 第一张图：让标签离轴远一点
+    %     % 方法：调整 Label 的 Position (也可以用 XLabel.VerticalAlignment)
+    %     xl = xlabel('$a^*$', 'Interpreter', 'latex');
+    %     yl = ylabel('$b^*$', 'Interpreter', 'latex');
+    % 
+    %     % 获取当前位置并向下/向左偏移 (具体数值可根据 600dpi 的观感微调)
+    %     xl.Units = 'normalized';
+    %     xl.Position(2) = xl.Position(2) - 0.05; % Y轴方向向下移
+    %     yl.Units = 'normalized';
+    %     yl.Position(1) = yl.Position(1) - 0.05; % X轴方向向左移
+    % 
+    %     % 在第一张图上画虚线矩形框
+    %     % hZoomBox = rectangle('Position', zoom_rect, 'EdgeColor', 'k', ...
+    %     %           'LineWidth', 1.5, 'LineStyle', '--');
+    % 
+    % elseif s_idx == 2
+    %     % 第二张图：去掉标签
+    %     xlabel('');
+    %     ylabel('');
+    %     delete(findall(gca, 'Type', 'rectangle', 'LineStyle', '--'));
+    % end
+    child_objs = get(gca, 'Children');
+    set(child_objs, 'Clipping', 'on');
+    drawnow;
+    
+    % 构造文件名
+    base_name = strcat(label_type, 'compare_thesis_pre', suffix);
+    img_name = fullfile(output_folder, strcat(base_name, '.jpg'));
+    fig_name = fullfile(output_folder, strcat(base_name, '.fig'));
+    
+    % 保存
+    savefig(gcf, fig_name);
+    exportgraphics(gcf, img_name, 'Resolution', 600);
+    
+    fprintf('已保存: %s\n', img_name);
+end
 
-savefig(gcf, strrep(img_name,'jpg','fig'));
-exportgraphics(gcf,img_name ,'resolution',600);
+
+
+
+% 保持后续的数据保存逻辑
 save(fullfile(output_folder,"author_colors.mat"),"author_all","prev_cell");
 
 
@@ -475,7 +569,7 @@ fullfile(pwd,output_folder)
 
 
 
-if strcat(label_type,"only_my")
+if strcmp(label_type,"only_my")
     s.labels_row1 = {"$L^*$=10","$L^*$=20","$L^*$=30","$L^*$=40",...
         "$L^*$=50","$L^*$=60","$L^*$=70","$L^*$=80","实验二","实验三"};
     s.labels_row2 = {};
@@ -488,23 +582,23 @@ if strcat(label_type,"only_my")
     s.markers_row1_last2={"p","o"};
     s.leg_x_shift=-0.09;
     s.marginL=0.3;
-    
+
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
-    
-    
+
+
     s.label_type="only_my";
     dir_figs=dir(fullfile(output_folder,"only_mycompare_thesis_pre.fig"));
     clear("figFiles")
     for i_fig=1:length(dir_figs)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
-    
+
     concatenate_figs_legend1(output_folder, figFiles, 1,"none","draw",s,0.09,1.2);
-else if strcat(label_type,"compare_thesis_pre")
+elseif strcmp(label_type,"compare_thesis_pre")
     opts.targetFontSize=12;
     opts.margin=0.2;    
     opts.label_type="compare_thesis_pre";
@@ -523,21 +617,43 @@ else if strcat(label_type,"compare_thesis_pre")
     s.markers_row1_last2={"p","o"};
     s.leg_x_shift=-0.09;
     s.marginL=0.3;
-    
+
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
-    
-    
+
+
     s.label_type="only_my";
     dir_figs=dir(fullfile(output_folder,"only_mycompare_thesis_pre.fig"));
     clear("figFiles")
     for i_fig=1:length(dir_figs)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
-    
+
     concatenate_figs_legend1(output_folder, figFiles, 1,"none","draw",s,0.09,1.2);
+
+    % elseif strcmp(label_type,"exclude_this")
+    % 
+    % 
+    % s.labels_row1 = {};
+    % s.labels_row2 = {};
+    % s.markers_row2 = {};
+    % s.markers_colors = [];
+    % s.markers_face_colors = [];
+    % s.n_col1=2; 
+    % s.n_col2=2;
+    % s.if_label=false;
+    % s.markers_row1_last2={};
+    % s.leg_x_shift=-0.09;
+    % s.marginL=0.3;
+    % 
+    % 
+    % s.label_type="exclude_this";
+    % figFiles={"exclude_thiscompare_thesis_pre.fig",...
+    %     "exclude_thiscompare_thesis_pre_zoomed.fig"};
+    % 
+    % concatenate_figs_legend1(output_folder, figFiles, 2,"none","draw",s,0.04,1.2);
 
 end

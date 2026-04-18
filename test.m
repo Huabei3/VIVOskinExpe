@@ -1,5 +1,7 @@
 clc;clear;close all;
 addpath("utils\")
+%%
+
 %% 计算面部相对亮度、白卡百分位
 
 % %-----------rs----------
@@ -1188,7 +1190,7 @@ disp('所有图片处理完毕！');
 % % 定义源文件夹和目标文件夹路径
 % source_dir = 'D:\work\VIVOskinExpe\renderCode\XYZ\r';
 % source1_dir = 'D:\work\VIVOskinExpe\camera model-20240924\whiteSquare';
-% output_dir = 'optimizedD\whiteSquare_new';
+% output_dir = 'documents\whiteSquare_4.3';
 % 
 % % 确保输出文件夹存在，如果不存在则创建
 % if ~exist(output_dir, 'dir')
@@ -1253,7 +1255,7 @@ disp('所有图片处理完毕！');
 %         end
 % 
 %         % 保存所有 XYZw_white 数据到输出文件夹
-%         output_file_name = fullfile(output_dir, [folder_name, '_XYZw_white.mat']);
+%         output_file_name = fullfile(output_dir, strcat(folder_name, '_XYZw_white.mat'));
 %         save(output_file_name, 'all_XYZw_white');
 %         disp(['已保存 ', output_file_name]);
 %     else

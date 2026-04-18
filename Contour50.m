@@ -58,8 +58,8 @@ function Contour50(par, lab_group,MSV_group,variable,average_nations, ...
 
 
     % 设置坐标轴标签和标题
-    xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12);
-    ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12);
+    xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12);
+    ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12);
     % 设置标题为斜体
     title(title_str,  'FontSize', 12);
     % 设置坐标轴范围和参考线

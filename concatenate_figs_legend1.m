@@ -1,4 +1,4 @@
-function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
+﻿function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     legend_file, legen_mode, legend_labels,gapX,label_Y)
     % Concatenate multiple fig files into a main figure, then overlay legend.
     % legen_mode: 'load' (load legend fig) or 'draw' (draw legend by code).
@@ -149,6 +149,7 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         newYlabel = copyobj(tempAx.YLabel, subAx);
         newTitle = copyobj(tempAx.Title, subAx);
 
+
         subAx.XLim = tempAx.XLim;
         subAx.YLim = tempAx.YLim;
         subAx.XTick = tempAx.XTick;
@@ -164,8 +165,9 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             subAx.DataAspectRatio = tempAx.DataAspectRatio;
             subAx.PlotBoxAspectRatio = tempAx.PlotBoxAspectRatio;
         end
-
-        set(subAx, 'FontSize', targetFontSize, 'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
+        if ~isfield(legend_labels, 'preserve_text_fontsize') || ~legend_labels.preserve_text_fontsize        
+            set(subAx, 'FontSize', targetFontSize, 'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
+        end
         % set([newXlabel, newYlabel, newTitle], 'FontSize', targetFontSize, 'FontWeight', 'normal');
         set(newTitle, 'FontSize', targetFontSize, 'FontWeight', 'bold');
 
@@ -176,18 +178,23 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             set(newXlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
             set(newYlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
         end
-        if isfield(legend_labels,"fontSizeScale")
+
+        if isfield(legend_labels,"label_fontSize") && ~isfield(legend_labels,"fontSizeScale")
+            set(newXlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
+        elseif isfield(legend_labels,"fontSizeScale")
             set(newXlabel, 'FontSize', legend_labels.fontSizeScale*targetFontSize, ...
                 'FontWeight', 'normal');
             set(newYlabel, 'FontSize', legend_labels.fontSizeScale*targetFontSize, ...
                 'FontWeight', 'normal');
         end
-        if isfield(legend_labels,"label_fontSize")
-            set(newXlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
-            set(newYlabel, 'FontSize', legend_labels.label_fontSize, 'FontWeight', 'normal');
+        % 设置Interpreter类型
+        if isfield(legend_labels, 'interpreter_type')
+            legend_interpreter = legend_labels.interpreter_type;
+        else
+            legend_interpreter = 'tex';
         end
-
-        set([newXlabel, newYlabel], 'Interpreter', 'tex');
+        set([newXlabel, newYlabel], 'Interpreter', legend_interpreter);
         % axis(subAx, 'tight'); % 自动去掉四周多余空白
         if isfield(legend_labels,"x_data")
             subAx.XLim = [min(legend_labels.x_data)-0.9, max(legend_labels.x_data)+0.08]; % 假设你能拿到数据范围
@@ -195,6 +202,14 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         if isfield(legend_labels,"y_data")
             subAx.YLim = [min(min(legend_labels.y_data))-0.5, max(max(legend_labels.y_data))+0.5]; % 假设你能拿到数据范围
         end
+        % 修正 ylabel 水平位置（防止 XLim/YLim 变化后位置漂移）
+        % 计算相对位置：ylabel 在 subplot 的左侧
+        % ylabel_offset = 0.5 * (subAx.YLim(2) - subAx.YLim(1));
+        % newYlabel.Position = [subAx.XLim(1) - ylabel_offset, mean(subAx.YLim), 0];
+        % 
+        % % 同样修正 xlabel 位置
+        % xlabel_offset = 0.5 * (subAx.XLim(2) - subAx.XLim(1));
+        % newXlabel.Position = [mean(subAx.XLim), subAx.YLim(1) - xlabel_offset, 0];
         % === 插入labels ===
         if isfield(legend_labels,"if_label")&&legend_labels.if_label
             letter_label = ['(', char('a' + i - 1), ')'];
@@ -206,37 +221,88 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
 
             total_content_width = (n_col * baseWidth) - ((n_col - 1) * gapX);
     %------------------
-    if isfield(legend_labels, 'color_limits')&&(mod(i,4)==0||strcmp(legend_labels.label_type, 'CT'))
-        % 在主图右侧创建一个不可见的坐标轴用于挂载全局 Colorbar
-        % 位置建议在最右侧子图的旁边
-        cbAx = axes('Parent', mainFig, 'Units', 'normalized', ...
-            'Position', [marginL + total_content_width - 0.05, posY, 0.01, h_space], ...
-            'Visible', 'off');
-        
-        colormap(cbAx, 'copper'); % 明确指定使用 copper 渐变
-        if isfield(legend_labels, 'cmap')
-            colormap(cbAx, legend_labels.cmap);
+    % 判断是否需要创建 colorbar
+    need_colorbar = false;
+    if isfield(legend_labels, 'color_limits')
+        if isfield(legend_labels, 'colorbar_mode') && strcmp(legend_labels.colorbar_mode, 'cover_rows')
+            % cover_rows 模式：在最后一个子图后创建
+            need_colorbar = (i == numFigs);
+        else
+            % 默认模式：每行最后一个子图后创建
+            need_colorbar = (mod(i, n_col) == 0) || strcmp(legend_labels.label_type, 'CT');
         end
-        clim(cbAx, legend_labels.color_limits);
-        
-        cb = colorbar(cbAx, 'eastoutside');
-        
-        % 设置标签内容
-        if strcmp(legend_labels.label_type, 'hml')
-            if strcmp(legend_labels.color_type, "lightness")
-                cb.Label.String = '$L^*$';
-            else
-                cb.Label.String = 'luminance (cd/m$^2$)';
+    end
+    
+    if need_colorbar
+        % 检查 colorbar_mode
+        if isfield(legend_labels, 'colorbar_mode') && strcmp(legend_labels.colorbar_mode, 'cover_rows')
+            % cover_rows 模式：colorbar 高度覆盖所有 rows + legend
+            % 计算包含 legend 在内的总高度
+            total_rows_with_legend = n_row * baseHeight;
+            % 限制最大值不超过1
+            total_rows_with_legend = min(total_rows_with_legend, 1.0);
+            % colorbar 位置：从 legend 顶部开始，覆盖所有行和底部 legend
+            cb_x_pos = marginL + total_content_width - 0.1;
+            cb_y_pos = legendHeightNorm;
+            cbAx = axes('Parent', mainFig, 'Units', 'normalized', ...
+                'Position', [cb_x_pos, cb_y_pos, 0.02, total_rows_with_legend], ...
+                'Visible', 'off');
+            
+            colormap(cbAx, 'copper');
+            if isfield(legend_labels, 'cmap')
+                colormap(cbAx, legend_labels.cmap);
             end
-        elseif strcmp(legend_labels.label_type, 'CT')
-            cb.Label.String = 'CCT';
+            clim(cbAx, legend_labels.color_limits);
+            if isfield(legend_labels,"label_fontSize") && ~isfield(legend_labels,"fontSizeScale")
+                cb = colorbar(cbAx, 'eastoutside','FontSize', ...
+                    legend_labels.label_fontSize*targetFontSize);
+            else
+                cb = colorbar(cbAx, 'eastoutside','FontSize',targetFontSize);
+            end
+            
+            if strcmp(legend_labels.label_type, 'CT')
+                cb.Label.String = 'CCT';
+            end
+            
+            cb.Label.Interpreter = 'tex';
+            disp('cover_rows colorbar set');
+            cb.Label.FontSize = targetFontSize;
+            cb.Label.FontAngle = 'italic';
+            cb.Units = 'normalized';
+        else
+            % 默认模式：colorbar 在当前行最后一个子图的右边
+            % 在主图右侧创建一个不可见的坐标轴用于挂载全局 Colorbar
+            % 位置建议在最右侧子图的旁边
+            cbAx = axes('Parent', mainFig, 'Units', 'normalized', ...
+                'Position', [marginL + total_content_width - 0.05, posY, 0.01, h_space], ...
+                'Visible', 'off');
+            
+            colormap(cbAx, 'copper'); % 明确指定使用 copper 渐变
+            if isfield(legend_labels, 'cmap')
+                colormap(cbAx, legend_labels.cmap);
+            end
+            clim(cbAx, legend_labels.color_limits);
+            
+            cb = colorbar(cbAx, 'eastoutside');
+            
+            % 设置标签内容
+            if strcmp(legend_labels.label_type, 'hml')
+                if strcmp(legend_labels.color_type, "lightness")
+                    cb.Label.String = 'L^*';
+                else
+                    cb.Label.String = 'luminance (cd/m^2)';
+                end
+            elseif strcmp(legend_labels.label_type, 'CT')
+                cb.Label.String = 'CCT';
+            end
+            
+            cb.Label.Interpreter = 'tex';
+            cb.Label.FontSize = targetFontSize;
+            cb.Label.FontAngle = 'italic';
+            
+            % 确保 Colorbar 不会因为自动调整而改变主图布局
+            cb.Units = 'normalized';
         end
-        
-        cb.Label.Interpreter = 'latex';
-        cb.Label.FontSize = targetFontSize;
-        
-        % 确保 Colorbar 不会因为自动调整而改变主图布局
-        cb.Units = 'normalized';
     end
     %--------------------
         close(tempFig);
@@ -387,21 +453,33 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                 'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
         elseif isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'compare_nation')
             text_char=char(labels_row1{k});
-            i_last_others=length(labels_row1)-4;
-            % colors_last4=[[0 0 0];[0 0 0];[0 0 0];[1 0 1]];
-            plot(legAx, tx, ty, 'o', ...
+            if isfield(legend_labels, 'text_type') && strcmp(legend_labels.text_type, 'ch')
+                i_last_others=length(labels_row1)-4;
+                colors_last4=[[0 0 0];[0 0 0];[0 0 0];[0 0 0]];
+                colors_last4_face=[[0 0 0];[0 0 0];[1 1 1];[1 1 1]];
+            else
+                i_last_others=length(labels_row1);
+                colors_last4=[[0 0 0];[0 0 0];];
+                colors_last4_face=[[1 1 1];[1 1 1]];
+                
+            end
+            % plot(legAx, tx, ty, 'o', ...
+            %     'MarkerFaceColor', colors_row1(k, :), ...
+            %     'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
+
+            if k>i_last_others
+                plot(legAx, tx, ty, legend_labels.markers_row1_last4{k-i_last_others}, ...
+                    'MarkerFaceColor', colors_last4_face(k-i_last_others, :), ...
+                    'MarkerEdgeColor', colors_last4(k-i_last_others, :), ...
+                    'MarkerSize', 10, 'Clipping', 'off',"LineWidth",1);
+            else
+                plot(legAx, tx, ty, 'o', ...
                 'MarkerFaceColor', colors_row1(k, :), ...
                 'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
-
-            % if k>i_last_others
-            %     plot(legAx, tx, ty, legend_labels.markers_row1_last4{k-i_last_others}, ...
-            %         'MarkerFaceColor', colors_last4(k-i_last_others, :), ...
-            %         'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
-            % else
-            %     text(legAx, tx , ty, text_char(1), ...
-            %         'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
-            %         'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
-            % end
+                % text(legAx, tx , ty, text_char(1), ...
+                %     'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
+                %     'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
+            end
             elseif isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'only_my')
             text_char=char(labels_row1{k});
             i_last_others=length(labels_row1)-2;

@@ -3,7 +3,7 @@ clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
 addpath("utils\")
 %%
-text_type="eng";
+text_type="ch";
 % nations=["AS","CA","SA","AF","all"];
 Dtype="efit_p";
 %%
@@ -28,7 +28,7 @@ CaoCIC(:,2)=CaoCIC(:,4).*cosd(CaoCIC(:,5));
 CaoCIC(:,3)=CaoCIC(:,4).*sind(CaoCIC(:,5));
 
 Zeng=[[0,18,21];[0,17,16];[0,0,0];[0,21,29]];%这个是肤色统计中心
-
+interpreter_type="latex";
 %%
 L_my=[[68.9490886950538	16.0083688942274	18.1852700776910];
 [69.8478673702026	18.3728292750543	15.3556270255683];
@@ -385,15 +385,15 @@ for i_eth=1:size(ethnic_groups,2)
         'MarkerEdgeColor',colors(i_eth,:),'MarkerFaceColor','none');
     end
 
-
-    % title(ethnic_names(i_eth),'FontSize',30)
-
-    % xlabel('\it a* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
-    % ylabel('\it b* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
-
-
-    xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-    ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    if strcmp(interpreter_type,"tex")
+        xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic', ...
+            'FontSize',12*1.2);
+        ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic', ...
+            'FontSize',12*1.2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('$a^{*}$','Interpreter','latex', 'FontSize',12*1.2);
+        ylabel('$b^{*}$','Interpreter','latex', 'FontSize',12*1.2);
+    end
     if strcmp(label_type,"include_this")
         author_all{end+1,1}=strcat("This experiment",ethnic_names(i_eth));
         author_all{end,2}=strcat("本实验",ethnic_names_Ch(i_eth));
@@ -489,8 +489,15 @@ end
 ax = gca;
 targetFontSize=12;
 set(ax, 'FontSize', targetFontSize);
-xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
-ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
+if strcmp(interpreter_type,"tex")
+    xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic', ...
+        'FontSize',1.2*targetFontSize);
+    ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic', ...
+        'FontSize',1.2*targetFontSize);
+elseif strcmp(interpreter_type,"latex")
+    xlabel('$a^{*}$','Interpreter','latex', 'FontSize',1.2*targetFontSize);
+    ylabel('$b^{*}$','Interpreter','latex', 'FontSize',1.2*targetFontSize);
+end
 % set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
 
 % view_settings = {
@@ -498,7 +505,7 @@ ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
 %     [16, 20, 16, 20], '_zoomed'     % 新增范围 [18, 21]
 % };
 view_settings = {
-    [0, 32, 0, 32], '';           % 原始范围
+    [0, 40, 0, 40], '';           % 原始范围
     [16, 20, 16, 20], '_zoomed'     % 新增范围 [18, 21]
 };
 % zoom_rect = [16, 16, 4, 4];

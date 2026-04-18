@@ -7,7 +7,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 
 
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -42,6 +42,8 @@ line_style = {'-',':','-.'};
 plot_style = {'^','<','v'};
 
 genders = ["f", "m"]; % 定义性别数组
+targetFontSize=12;
+interpreter_type = "latex"; % "tex" 或 "latex"
 % obs_types = ["model_group"];
 obs_types = ["non_model"];
 % obs_types = ["non_model", "model_group", "model"];
@@ -239,7 +241,8 @@ plot_style = 'o';  % 统一使用圆形标记
 targetFontSize=12;
 
 
-
+outputFolder=fullfile("AnalyseResults_p",Dtype,"50", ...
+            scale_type_origin,"nation1");
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
     for i_indices = 1:length(target_indices)
@@ -250,6 +253,7 @@ for i_obs = 1:length(obs_types)
                 attribute_names_new(attribute));
             attribute_serial=ch2eng(attribute_serial);
             figure(i_indices*10+attribute); hold on;
+
             for i_nation = 1:length(nations)
                 % 获取当前人种的所有索引
                 nation = nations(i_nation);
@@ -311,8 +315,7 @@ for i_obs = 1:length(obs_types)
 
                     %保存ellipPara
                     nation_serial=strcat(num2str(i_nation),nation);
-                    fitRes_folder=fullfile("AnalyseResults_p",Dtype,"50", ...
-                        scale_type_origin,"nation1", scale_type,...
+                    fitRes_folder=fullfile(outputFolder, scale_type,...
                         obs_type,iOr,attribute_serial,nation_serial);
                     if ~exist(fitRes_folder,"dir")
                         mkdir(fitRes_folder);
@@ -347,8 +350,13 @@ for i_obs = 1:length(obs_types)
             ax.XTick = lim_min:10:lim_max; % 每隔 10 个单位一个刻度
             ax.YTick = lim_min:10:lim_max;
             set(ax, 'FontSize', targetFontSize);
-            xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-            ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+            if strcmp(interpreter_type, "tex")
+                xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+                ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+            elseif strcmp(interpreter_type, "latex")
+                xlabel('$a^{*}$','Interpreter','latex','FontSize',targetFontSize);
+                ylabel('$b^{*}$','Interpreter','latex','FontSize',targetFontSize);
+            end
             yPos = ax.YLabel.Position;
             yPos(1) = yPos(1) - 3; % 数字越大，离得越远
             ax.YLabel.Position = yPos;
@@ -379,7 +387,7 @@ for i_obs = 1:length(obs_types)
     opts.lim_min=0; 
     opts.lim_max=40;  
     opts.targetFontSize=12;
-    opts.margin=0.1;    
+    opts.margin=0.22;    
     adjust_fig(output_folder, opts);
 %%
     if strcmp(text_type,"eng")
@@ -420,8 +428,10 @@ for i_obs = 1:length(obs_types)
     end
     % figFiles = {'all_a_b.fig', 'all_L_C.fig'};
     % concatenate_figs1(outputFolder,figFiles);
-    paper_type="ICDT";
+    % paper_type="ICDT";
+    paper_type="others";
     legend_file="";
+    s.interpreter_type="latex";
     % concatenate_figs_legend(outputFolder, figFiles, 2,legend_file);
     if strcmp(iOr,"i")
         if strcmp(paper_type,"ICDT")
@@ -437,13 +447,15 @@ for i_obs = 1:length(obs_types)
             s.colGap2_scale=1.8;
             concatenate_figs_legend1(output_folder1, figFiles, 1,legend_file,"draw",s,0.1,0.9);
         else
-            concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.1,1.7);
+            s.leg_x_shift=-0.06;
+            s.fontSizeScale=1.2;
+            concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.1,1.5);
         end
     elseif strcmp(iOr,"r")
-
+        s.fontSizeScale=1.2;
         concatenate_figs_legend1(output_folder, figFiles, 4,legend_file,"draw",s,0.08,2);
     end
-
+fullfile(pwd,output_folder)
 %-----------------------------------------
     % close all;
 end            

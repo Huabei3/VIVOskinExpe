@@ -9,20 +9,56 @@ clear;     % 清除工作区所有变量
 Dtype="efit_p";
 targetFontSize=12;
 
-text_type= "eng";
+% text_type= "ch";if_ref=0;
+text_type= "eng";if_ref=1;
+interpreter_type="tex";
 if strcmp(text_type,"ch")
     nation_names=["亚洲人","高加索人","南亚人","非洲人"];
 elseif strcmp(text_type,"eng")
     nation_names=["Asian","Caucasian","South Asian","African"];
 end
 
-prev_folder=fullfile("ellip_pic_p",Dtype,"compare_thesis_pre");
+prev_folder=fullfile("ellip_pic_p",Dtype,"compare_thesis_pre\include_this");
 load(fullfile(prev_folder,"author_colors.mat"),"author_all","prev_cell");
 i_del=[];
+
 for i_row=1:size(prev_cell)
     if ismember(prev_cell{i_row,2}, ...
-            ["Zeng et al. (2010)","Sangers et al. (1994)","Kuang et al. (2005)"])
+            ["Zeng et al. (2010)","Sangers et al. (1994)", ...
+            "Kuang et al. (2005)","Peng et al. (2020)"])
         i_del=[i_del;i_row];
+    end
+    if if_ref
+        if strcmp(prev_cell{i_row,2},"Yano et al. (1998)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [5]");
+        end
+        if strcmp(prev_cell{i_row,2},"Yamamoto et al. (2002)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [6]");
+            lab_cens=prev_cell{i_row,1};
+            lab_cens(1,:)=mean(lab_cens(5:7,:),1);
+            prev_cell{i_row,1}=lab_cens;
+        end
+        if strcmp(prev_cell{i_row,2},"Park et al. (2006)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [10]");
+        end
+        if strcmp(prev_cell{i_row,2},"Zeng et al. (2011)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [27]");
+        end
+        if strcmp(prev_cell{i_row,2},"Zeng et al. (2009)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [12]");
+        end
+        if strcmp(prev_cell{i_row,2},"Peng et al. (2023)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [14]");
+        end
+        if strcmp(prev_cell{i_row,2},"Cao et al. (2020)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [15]");
+        end
+        if strcmp(prev_cell{i_row,2},"Deng et al. (2013)")
+            % prev_cell{i_row,2}=strcat(prev_cell{i_row,2}," [9]");
+            lab_cens=prev_cell{i_row,1};
+            lab_cens(1,:)=mean(lab_cens(5:8,:),1);
+            prev_cell{i_row,1}=lab_cens;
+        end
     end
 end
 prev_cell(i_del,:)=[];
@@ -203,9 +239,15 @@ for i_eth=1:size(ethnic_groups,2)
     ax = gca;
     targetFontSize=12;
     set(ax, 'FontSize', targetFontSize);
-
-    xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-    ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);    
+    if strcmp(interpreter_type,"tex")
+        xlabel('a^*', 'Interpreter','tex','FontName','Arial', ...
+            'FontAngle','italic', 'FontSize', targetFontSize);
+        ylabel('b^*', 'Interpreter','tex','FontName','Arial', ...
+            'FontAngle','italic', 'FontSize', targetFontSize);  
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('$a^*$', 'Interpreter','latex', 'FontSize', targetFontSize);
+        ylabel('$b^*$', 'Interpreter','latex','FontSize', targetFontSize);  
+    end
 
     title([nation_names(i_eth)],'FontSize', targetFontSize);
     
@@ -236,24 +278,31 @@ if strcmp(text_type,"ch")
         s.labels_row1{i_row,1}= strrep(prev_cell{i_row,2}," et al.","等人");
     end
 elseif strcmp(text_type,"eng")
-    s.labels_row1 = prev_cell(:,2);
-    
+    s.labels_row1 = prev_cell(:,2);    
 end
 
 if strcmp(text_type,"ch")
-    s.colors_row1 = [colors;[0 0 0];[0 0 0];[0 0 0];[1 0 1]];    
+    s.colors_row1 = colors;    
+    s.colors_row1(11:14,:)=[[0 0 0];[0 0 0];[0 0 0];[1 0 1]];
     s.markers_row1_last4={"^","p","o","s"};
-    s.labels_row1 = [s.labels_row1;{"实验一"};{"实验二"};{"实验三"};{"PMCC"}];
+    s.labels_row1{9,1}="实验一";s.labels_row1{10,1}="实验二";
+    s.labels_row1{11,1}="实验三";s.labels_row1{12,1}="PMCC";
     s.labels_row2 = {};
     s.markers_row2 = {};
     s.markers_colors = [];
     s.markers_face_colors = [];
+    s.text_type="ch";
+    % s.markers_row2 = {"^",'p','o',"s"};
+    % s.markers_colors = [[0 0 0];[0 0 0]];[0 0 0];[0 0 0];
+    % s.markers_face_colors = [[1 1 1];[1 1 1];[1 1 1];[1 1 1]];
 elseif strcmp(text_type,"eng")
     s.colors_row1 = colors;
     s.labels_row2 = {"This experiment","PMCC"};    
     s.markers_row2 = {"o","s"};
     s.markers_colors = [[0 0 0];[0 0 0]];
     s.markers_face_colors = [[1 1 1];[1 1 1]];
+    s.markers_row1_last4=s.markers_row2;
+    s.text_type="eng";
 end
 
 s.n_col1=4; 
@@ -261,15 +310,17 @@ s.n_col2=2;
 s.if_label=true;
 
 
-if ~isempty(s.labels_row1)
-    s.colors_row1 = colors;
-else
-    s.colors_row1 = [];
-end
-s.leg_x_shift=-0.015;
+% if ~isempty(s.labels_row1)
+%     s.colors_row1 = colors;
+% else
+%     s.colors_row1 = [];
+% end
+s.leg_x_shift=-0.06;
 s.label_fontSize=1.2*targetFontSize;
-s.colGap2_scale=1.5;
+s.colGap1_scale=1.2;
+s.colGap2_scale=2;
 
+s.interpreter_type=interpreter_type;
 s.label_type="compare_nation";
 dir_figs=dir(fullfile(output_folder,"*adjusted.fig"));
 clear("figFiles")

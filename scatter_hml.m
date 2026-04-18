@@ -13,9 +13,9 @@ if strcmp(text_type,"eng")
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
-    nation_names = ["亚洲�?, "高加索人", "南亚�?, "非洲�?];
-    attribute_names = ["喜好�?, "有吸引力�?, "女性化�?, "友善�?, ...
-    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
+    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 % lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 % 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
@@ -35,7 +35,8 @@ elseif iOr=='r'
     picnames_groups = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
              "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
 end
-lightness_type="abs";
+% lightness_type="abs";
+lightness_type="rela";
 color_type="lightness";
 load("documents\valid_attr.mat","map");
 
@@ -241,61 +242,23 @@ else
 end
 %% 计算全局坐标轴范�?
 % 初始化极值变�?
-lim_min_x = inf;  % a*轴最小边界初始化为正无穷
-lim_min_y = inf;  % b*轴最小边界初始化为正无穷
-lim_max_x = -inf; % a*轴最大边界初始化为负无穷
-lim_max_y = -inf; % b*轴最大边界初始化为负无穷
-
-% 遍历所有可能的数据组合计算全局极�?
+%% 计算每个nation的坐标轴范围
+% 初始化每个nation的极值变量
+nation_limits = struct();
+% 为每个nation分别计算坐标轴范围
 for i_nation = 1:length(nations)
-    for i_obs = 1:length(obs_types)
-        obs_type=obs_types(i_obs);
-        % 获取当前人种的subject数量
-        n_subjects = size(lab_fit_reshaped{i_obs, i_nation}, 3);
-        if n_subjects == 0
-            continue;
-        end
-        
-        % 获取当前人种对应的lastPart索引
-        curr_nation_indices = nation_indices{i_nation};
-        
-
-        for attribute = attributes
-            lab = lab_fit_reshaped{i_obs,i_nation}(indices_target, :, :, attribute);
-            lab_mean = mean(lab, 3,"omitnan");
-            if ~all(isnan(lab_mean(:)))                
-                lim_min_x = min(lim_min_x, min(lab_mean(:,2)));
-                lim_max_x = max(lim_max_x, max(lab_mean(:,2)));
-                lim_min_y = min(lim_min_y, min(lab_mean(:,3)));
-                lim_max_y = max(lim_max_y, max(lab_mean(:,3)));
-            end
-        end
-
-        
-        % 考虑PMCC�?
-        lim_min_x = min(lim_min_x, labCh_PMCC(i_nation, 2));
-        lim_max_x = max(lim_max_x, labCh_PMCC(i_nation, 2));
-        lim_min_y = min(lim_min_y, labCh_PMCC(i_nation, 3));
-        lim_max_y = max(lim_max_y, labCh_PMCC(i_nation, 3));
+    if i_nation==4
+        nation_limits(i_nation).lim_min_x = 0;
+        nation_limits(i_nation).lim_max_x = 15;
+        nation_limits(i_nation).lim_min_y = 0;
+        nation_limits(i_nation).lim_max_y = 15;
+    else
+        nation_limits(i_nation).lim_min_x = 0;
+        nation_limits(i_nation).lim_max_x = 25;
+        nation_limits(i_nation).lim_min_y = 0;
+        nation_limits(i_nation).lim_max_y = 25;
     end
 end
-
-% 添加边距
-lim_min_x = lim_min_x - 1;
-lim_max_x = lim_max_x + 1;
-lim_min_y = lim_min_y - 1;
-lim_max_y = lim_max_y + 1;
-
-% 确保x和y轴范围相同，以保持等比例显示
-range_x = lim_max_x - lim_min_x;
-range_y = lim_max_y - lim_min_y;
-max_range = max(range_x, range_y);
-
-% 调整范围使x和y轴的刻度间隔相同
-lim_min_x = (lim_min_x + lim_max_x - max_range) / 2;
-lim_max_x = (lim_min_x + lim_max_x + max_range) / 2;
-lim_min_y = (lim_min_y + lim_max_y - max_range) / 2;
-lim_max_y = (lim_min_y + lim_max_y + max_range) / 2;
 
 
 %% 绘图部分 - 按lab_valid第一维度映射颜色
@@ -452,9 +415,9 @@ for i_obs=1:length(obs_types)
         % % if iOr == 'r' && i_nation==4
         %     cb = colorbar;
         %     if strcmp(color_type,"lightness")
-        %     cb.Label.String = '$L^*$'; % 修改颜色条标�?
+        %     cb.Label.String = 'L^*'; % 修改颜色条标�?
         %     elseif strcmp(color_type,"luminance")
-        %         cb.Label.String = 'luminance (cd/m$^2$)';
+        %         cb.Label.String = 'luminance (cd/m^2)';
         %     end
         %     cb.Label.Interpreter = 'latex';  % 设置解释器为LaTeX
         %     cb.Label.FontSize = 12;          % 可以调整字体大小
@@ -468,12 +431,12 @@ for i_obs=1:length(obs_types)
         axis equal;
         % xlim([lim_min_x, lim_max_x]);
         % ylim([lim_min_y, lim_max_y]);
-        xlim([0, lim_max_x]);
-        ylim([0, lim_max_y]);
+        xlim([nation_limits(i_nation).lim_min_x, nation_limits(i_nation).lim_max_x]);
+        ylim([nation_limits(i_nation).lim_min_y, nation_limits(i_nation).lim_max_y]);
    
         
         % 绘制y=x参考线
-        x = linspace(lim_min_x, lim_max_x, 100);
+        x = linspace(-5,50, 100);
         plot(x, x, 'k--', 'LineWidth', 0.8);
         
         % 保存图片
@@ -504,10 +467,13 @@ for i_obs=1:length(obs_types)
     opts.margin=0.17;    
     opts.label_type="hml";
     opts.if_rotate=false;
-    % opts.axis_limits=[9,19,9,19;9,19,9,19;9,19,9,19;7,11,7,11];
-    % opts.axis_ticks=[2,2,2,1];
+    % if strcmp(lightness_type,"rela")
+    opts.axis_limits=[0,25,0,25;0,25,0,25;0,25,0,25;0,15,0,15];
+    opts.axis_ticks=[5,5,5,3];
+    % end
     % opts.bar_interval=0.4;
     adjust_fig(save_folder, opts);
+    %%
     %-----------------
     s.labels_row1 = {};
     s.labels_row2 = {};
@@ -544,14 +510,17 @@ end
 
 fullfile(pwd,save_folder)
 
-save_folder_i=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml\abs\non_model\i",text_type);
-save_folder_r=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml\abs\non_model\r",text_type);
+save_folder_i=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+    lightness_type,"non_model\i",text_type);
+save_folder_r=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+    lightness_type,"non_model\r",text_type);
 clear("figFiles")
 dir_figs=dir(fullfile(save_folder_i,"*adjusted.fig"));
 dir_figs=[dir_figs;dir(fullfile(save_folder_r,"*adjusted.fig"))];
 for i_fig=1:length(dir_figs)
     figFiles{i_fig}=dir_figs(i_fig).name;
 end
+s.fontSizeScale=1.2;
 s.dir_figs=dir_figs;
 concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.05,0.35);
  

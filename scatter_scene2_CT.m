@@ -9,7 +9,7 @@ addpath("utils\")
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 nations = ["AS", "CA", "SA", "AF"];
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -20,6 +20,7 @@ elseif strcmp(text_type,"ch")
     "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 targetFontSize=12;
+interpreter_type = "tex"; % "tex" 或 "latex"
 
 %% 定义i和r两组lastParts
 lastParts_i = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -379,8 +380,11 @@ lim_max_x = (lim_min_x + lim_max_x + max_range) / 2;
 lim_min_y = (lim_min_y + lim_max_y - max_range) / 2;
 lim_max_y = (lim_min_y + lim_max_y + max_range) / 2;
 
-%% 颜色模式开关: "scene" 或 "CT"
-color_mode = "scene";  % 可选: "scene" (按场景着色), "CT" (按CT值着色)
+%% 颜色模式开关: "scene", "CT" 或 "CT_scene"
+color_mode = "CT_scene";  % 可选: "scene" (按场景着色), "CT" (按CT值着色), "CT_scene" (i按CT, r按scene)
+
+%% 画线开关: "none" 或 "line"
+draw_line = "none";  % "line" 时画连接线
 
 %% 绘图部分
 nan_record={};
@@ -392,7 +396,7 @@ hue_values = linspace(0, 1, n_scenetype + 1);
 hue_values = hue_values(1:end-1);
 hsv_matrix = [hue_values', 0.8*ones(n_scenetype, 1), 0.8*ones(n_scenetype, 1)];
 scene_colors = hsv2rgb(hsv_matrix);
-
+scene_colors([2,3],:)=scene_colors([3,2],:);
 plot_45_only = true;
 obs_types_plot=["non_model"];
 
@@ -418,8 +422,8 @@ for i_obs=1:length(obs_types_plot)
         % 根据color_mode计算每个点的颜色
         point_color_all_i = zeros(size(lab_valid_i, 1), 3);
         for i_point = 1:size(lab_valid_i, 1)
-            if strcmp(color_mode, "CT")
-                % CT模式：按CT值着色
+            if strcmp(color_mode, "CT") || strcmp(color_mode, "CT_scene")
+                % CT模式或CT_scene模式：按CT值着色
                 if i_point <= length(CT_current)
                     ct_val = CT_current(i_point);
                     color_idx = CCT_to_coloridx(ct_val, lim_CCT, cmap_resolution);
@@ -460,15 +464,15 @@ for i_obs=1:length(obs_types_plot)
                     point_colors = repmat([0.5, 0.5, 0.5], size(lab_valid, 1), 1);
                 end
                 
-                if strcmp(color_mode, "CT")
-                    % CT模式：用scatter画圆点
+                if strcmp(color_mode, "CT") || strcmp(color_mode, "CT_scene")
+                    % CT模式或CT_scene模式：用scatter画圆点
                     scatter(lab_valid(:, 2), lab_valid(:, 3), 27, point_colors, 'o', 'filled', ...
                         'MarkerFaceAlpha', 0.8, 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
                 else
                     % scene模式：用text表示（黑色）
                     for i_point = 1:size(lab_valid, 1)
                         text(lab_valid(i_point, 2), lab_valid(i_point, 3), ...
-                        num2str(i_point), 'FontSize', 10, ...
+                        num2str(i_point), 'FontSize', 5, ...
                         'VerticalAlignment', 'middle','Color',[0, 0, 0], ...
                         'FontWeight', 'bold');
                     end
@@ -488,12 +492,24 @@ for i_obs=1:length(obs_types_plot)
         point_color_all_r = zeros(size(lab_valid_r, 1), 3);
         for i_point = 1:size(lab_valid_r, 1)
             if strcmp(color_mode, "CT")
+                % CT模式：按CT值着色
                 if i_point <= length(CT_current_r)
                     ct_val = CT_current_r(i_point);
                     color_idx = CCT_to_coloridx(ct_val, lim_CCT, cmap_resolution);
                     point_color_all_r(i_point, :) = current_cmap(color_idx, :);
                 else
                     point_color_all_r(i_point, :) = [0.5, 0.5, 0.5];
+                end
+            elseif strcmp(color_mode, "CT_scene")
+                % CT_scene模式：r按scene模式着色
+                if ismember(i_point, [1, 2, 4, 5, 6])
+                    point_color_all_r(i_point, :) = scene_colors(1, :);
+                elseif ismember(i_point, [3, 7, 8, 9, 10, 11, 12])
+                    point_color_all_r(i_point, :) = scene_colors(2, :);
+                elseif ismember(i_point, [13, 14])
+                    point_color_all_r(i_point, :) = scene_colors(3, :);
+                else
+                    point_color_all_r(i_point, :) = [0, 0, 0];
                 end
             else
                 % scene模式：按场景类型着色
@@ -539,15 +555,21 @@ for i_obs=1:length(obs_types_plot)
                 % r condition统一用text表示
                 for i_point = 1:size(lab_valid, 1)
                     text(lab_valid(i_point, 2), lab_valid(i_point, 3), ...
-                    num2str(i_point), 'FontSize', 10, ...
+                    num2str(i_point), 'FontSize', 8, ...
                     'VerticalAlignment', 'middle','Color',point_colors_r(i_point, :), ...
                     'FontWeight', 'bold');
                 end
+                disp("d")
             end
         end
         
-        xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        if strcmp(interpreter_type, "tex")
+            xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+            ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+        elseif strcmp(interpreter_type, "latex")
+            xlabel('a^{*}','Interpreter','latex','FontSize',targetFontSize);
+            ylabel('b^{*}','Interpreter','latex','FontSize',targetFontSize);
+        end
         title([nation_names(i_nation)],'FontSize', targetFontSize);
         axis equal;
         
@@ -574,17 +596,29 @@ for i_obs=1:length(obs_types_plot)
             plot(x_line(valid_line_idx), y_line(valid_line_idx), 'Color', 'k', 'LineStyle', '--');
         end
         
+        % 画连接线
+        if strcmp(draw_line, "line")
+            % 线1: (2,2) -> (2,3) -> (6,2) -> (6,3)
+            plot([lab_valid(2, 2), lab_valid(6, 2)], [lab_valid(2, 3), lab_valid(6, 3)], ...
+                'k-', 'LineWidth', 1);
+            % 线2: (9,2) -> (9,3) -> (10,2) -> (10,3)
+            plot([lab_valid(9, 2), lab_valid(10, 2)], [lab_valid(9, 3), lab_valid(10, 3)], ...
+                'k-', 'LineWidth', 1);
+        end
+        
         ax = gca;
         set(ax, 'FontSize', targetFontSize);
-        xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
-        ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', targetFontSize);
+        xlabel('a^*', 'Interpreter', 'tex', 'FontSize', targetFontSize, ...
+            'FontName','Arial','FontAngle','italic');
+        ylabel('b^*', 'Interpreter', 'tex', 'FontSize', targetFontSize, ...
+            'FontName','Arial','FontAngle','italic');
         yPos = ax.YLabel.Position;
         yPos(1) = yPos(1) - 5;
         ax.YLabel.Position = yPos;
         xPos = ax.XLabel.Position;
         xPos(2) = xPos(2) - 5;
         ax.XLabel.Position = xPos;
-        set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize);
+        % set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize);
         
         % 保存图片
         save_folder = fullfile("ellip_pic_p", Dtype, "scene2_CT", lightness_type, obs_type, text_type);
@@ -613,6 +647,30 @@ for i_obs=1:length(obs_types_plot)
     if strcmp(color_mode, "scene")
         % scene模式：与scatter_scene2一致，绘制row2，不绘制colorbar
         if strcmp(text_type,"eng")
+            s.labels_row1 = {"in-lab","indoor","outdoor","night"};
+        elseif strcmp(text_type,"ch")
+            s.labels_row1 = {"实验室","室内","室外","夜景"};
+        end
+        s.labels_row2 = {};
+        s.markers_row2 = {};
+        s.markers_colors = [];
+        s.markers_face_colors = [];
+        s.n_col1 = 5; 
+        s.n_col2 = 5;
+        s.if_label = true;
+        s.leg_x_shift=-0.03;
+        
+        num_attributes = 3;
+        hue_values = linspace(0, 1, num_attributes + 1);
+        hue_values = hue_values(1:end-1);
+        hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+        s.colors_row1(2:4,:) = hsv2rgb(hsv_matrix);
+        s.colors_row1(1,:)=[0 0 0];
+        s.label_type = "scene";
+        
+    else
+        % CT模式或CT_scene模式：绘制colorbar，控制位置使其横跨两行
+        if strcmp(text_type,"eng")
             s.labels_row1 = {"indoor","outdoor","night"};
         elseif strcmp(text_type,"ch")
             s.labels_row1 = {"室内","室外","夜景"};
@@ -623,35 +681,24 @@ for i_obs=1:length(obs_types_plot)
         s.markers_face_colors = [];
         s.n_col1 = 5; 
         s.n_col2 = 5;
-        s.if_label = true;
+        s.if_label = true;  % CT/CT_scene模式不显示row1标签
         
-        num_attributes = numel(s.labels_row1);
-        hue_values = linspace(0, 1, num_attributes + 1);
-        hue_values = hue_values(1:end-1);
-        hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-        s.colors_row1 = hsv2rgb(hsv_matrix);
-        s.label_type = "scene";
         
-    else
-        % CT模式：绘制colorbar，控制位置使其横跨两行
-        s.labels_row1 = {};
-        s.labels_row2 = {};
-        s.markers_row2 = {};
-        s.markers_colors = [];
-        s.markers_face_colors = [];
-        s.n_col1 = 5; 
-        s.n_col2 = 5;
-        s.if_label = false;  % CT模式不显示row1标签
-        
-        % CT模式：定义legend的位置参数，使colorbar横跨两行
+        % CT模式或CT_scene模式：定义legend的位置参数，使colorbar横跨两行
         % legend_labels包含: {colorbar位置, colorbar高度比例, colorbar距右边距离}
         % 位置: 0-1之间，表示在所有subfig之后的相对位置
         s.legend_labels = {0.95, 0.9, 0.02};  % [相对位置, 高度比例, 右边距]
         s.colorbar_height_ratio = 0.9;  % colorbar高度占两行的比例
         s.colorbar_right_margin = 0.02;  % 距离最右边subfig的距离
         s.colorbar_position = 'right';  % colorbar在右侧
+        s.colorbar_mode = 'cover_rows';  % colorbar覆盖所有行
         
-        s.colors_row1 = [];
+        num_attributes = 3;
+        hue_values = linspace(0, 1, num_attributes + 1);
+        hue_values = hue_values(1:end-1);
+        hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+        s.colors_row1 = hsv2rgb(hsv_matrix);
+        s.colors_row1([2,3],:)=s.colors_row1([3,2],:);
         s.color_limits = [2500, 8500];
         s.cmap = current_cmap;
         s.label_type = "scene";
@@ -664,6 +711,7 @@ for i_obs=1:length(obs_types_plot)
     for i_fig = 1:length(dir_figs)
         figFiles{i_fig} = dir_figs(i_fig).name;
     end
+    s.fontSizeScale=1.2;
     concatenate_figs_legend1(save_folder, figFiles, 2, "none", "draw", s, 0.09, 0.35);
     
     %% 合并图片

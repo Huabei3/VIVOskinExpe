@@ -3,8 +3,11 @@ close all; % 关闭所有图窗
 clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
 addpath("utils\")
+
+%% 参数设置
+if_fit_again = "false";  % "true": 重新拟合, "false": 如果已有结果则跳过
 %% 生成目录
-% 
+%
 lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
 'f07i', 'f08i','m07i', 'm08i',...
@@ -15,37 +18,37 @@ lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 % 'f07r', 'f08r','m07r', 'm08r',...
 % 'f09r', 'f10r','m09r', 'm10r'};
 
-% Dtype='noCAT';
-Dtype='efit_p';
+Dtype='noCAT';
+% Dtype='efit_p';
 scale_type_origin="unscaled";
 % for i_lastPart = [19]
-for i_lastPart = 1:length(lastParts)
+for i_lastPart = length(lastParts):-1:1
 % for i_lastPart = 1:length(lastParts)
     lastPart = lastParts{i_lastPart};
     %--------non-model-group-------------
     source_folder = fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
-        lastPart,'non_model'); 
+        lastPart,'non_model');
     group_type=1;
-    
+
     %--------model-group-------------
     % source_folder =  fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
     %     lastPart,'model_group');
     % group_type=2;
     %--------model-------------
     % source_folder =  fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
-    %     lastPart,'model');    
+    %     lastPart,'model');
     % group_type=3;
     % %--------model-------------
-    % source_folder = 'D:\work\VIVOskinExpe\analyze\expRes\female41i\all'; 
+    % source_folder = 'D:\work\VIVOskinExpe\analyze\expRes\female41i\all';
     % group_type=4;
     %--------all_ruddy_normal-------------
-    % source_folder = 'D:\work\VIVOskinExpe\analyze\expRes\female78i\all_ruddy_normal'; 
+    % source_folder = 'D:\work\VIVOskinExpe\analyze\expRes\female78i\all_ruddy_normal';
     % group_type=5;
     %------------------------
-    
-    
 
-    
+
+
+
     source_folder1 = char(strrep(source_folder,"renamed\",""));
     slashes = strfind(source_folder1, '\');
     obs_type=source_folder1(slashes(end) + 1:end);
@@ -80,40 +83,40 @@ for i_lastPart = 1:length(lastParts)
     % 定义所有需要处理的 attribute
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
         "Youth", "Healthy", "Fidelity","Harmony", "Fair", "Ruddy"];
-    
+
     [lastPart1]= gen_lastPart1(lastPart);
-    
+
     average_file=fullfile("aveSkin",strrep(lastPart1,"add",""),"autoNhand_scaleoverLUT.mat");
     average=load(average_file);
     average=average.average_lab_all(:,1:3);
-    
+
     % 循环处理每个 attribute
-    startTime = datetime('now'); 
+    startTime = datetime('now');
     for attribute = attributes
 
 
         fprintf('Processing savesavttribute: %d\n', attribute);
-        
+
         % 生成 attribute_serial
         attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
-        
-       
+
+
         % 获取所有格式为 obs%02d 的子文件夹
-    
+
         dir_res = findSpecificFiles(source_folder, attribute);
 
         if isempty(dir_res)
             continue
         end
-        
-    
+
+
         save_folder=fullfile('AnalyseResults_p',Dtype,scale_type_origin);
-    
+
         % 定义输出目录
-        
-        if group_type==1        
+
+        if group_type==1
             output_folder = fullfile(save_folder, strrep(lastPart,"add",""), ...
-            'non_model', attribute_serial);        
+            'non_model', attribute_serial);
         elseif group_type==2
             output_folder = fullfile(save_folder, strrep(lastPart,"add",""), ...
             "model_group" ,attribute_serial);
@@ -124,41 +127,43 @@ for i_lastPart = 1:length(lastParts)
             output_folder = fullfile(save_folder, strrep(lastPart,"add",""), ...
             "all" ,attribute_serial);
         end
-    
-    
+
+
         if ~exist(output_folder, 'dir')
             mkdir(output_folder);
         end
-    
+
         % 处理数据并保存
         process_data_CAT_p(dir_res, output_folder, strrep(lastPart,"add",""),Dtype,scale_type_origin);
-        
-    
-        
+
+
+
         % 拟合椭圆
         outputFolder = fullfile(output_folder, 'ellipPara');
         if ~exist(outputFolder, 'dir')
             mkdir(outputFolder);
         end
-        
+
+
+
         % 初始化存储拟合结果的变量
         par_all = [];
         r_all = [];
         parNr_all = [];
-        
-        % 循环处理每个 i_group        
+
+        % 循环处理每个 i_group
         delete_log_folder = fullfile(output_folder, 'delete_log');
         if ~exist(delete_log_folder, 'dir')
             mkdir(delete_log_folder);
         end
-    
+
         if exist(fullfile(delete_log_folder, 'row_delete_data.mat'),'file')
             deleteData=load(fullfile(delete_log_folder, 'row_delete_data.mat'), 'row_delete_all');
         end
-        if exist(fullfile(outputFolder, "fitRes.mat"),'file')
-            parData=load(fullfile(outputFolder, "fitRes.mat"), ...
-                'par_all', 'r_all', 'parNr_all','picname_check');
+        if exist(fullfile(outputFolder, "fitRes.mat"),'file')&&strcmp(if_fit_again,"false")
+            continue
         end
+
         % groups_again=[5];
         groups_again=[1:21];
         mix_idx=[];
@@ -174,7 +179,7 @@ for i_lastPart = 1:length(lastParts)
         for i_group = 1:length(picnames_groups)
 
             fprintf('Processing i_group: %d\n', i_group);
-    
+
             % 加载数据
             dir_labNgroup = dir(fullfile(output_folder, 'labNscore', ...
                 strcat('labNscore_group',strrep(lastPart,"add",""), picnames_groups(i_group),'*.mat')));
@@ -185,13 +190,13 @@ for i_lastPart = 1:length(lastParts)
             picname_check{i_group,1}=strcat(lastPart, picnames_groups(i_group));
             lab_group_original = MSVNlab.lab_group; % 原始 lab_group
             p_group_original = MSVNlab.p_group; % 原始 p_group
-    
-            
+
+
             % 复制一份用于修改
             lab_group = lab_group_original;
             p_group = p_group_original;
-    
-    
+
+
             if ~ismember(i_group,groups_again)
                 par=parData.par_all(i_group,:);
                 r=parData.r_all(i_group,:);
@@ -200,11 +205,11 @@ for i_lastPart = 1:length(lastParts)
                 p_group(row_delete,:)=[];
                 lab_group(row_delete,:)=[];
             else
-    
+
                 % 初始化 row_delete 和对应的 lab_group 数据
                 row_delete = [];
                 row_delete_lab_group = [];
-                
+
                 while true
                     % 拟合椭圆
                     [par_mean, r_mean] = calculate_weighted_or_simple_mean( p_group_original, lab_group_original);
@@ -224,25 +229,25 @@ for i_lastPart = 1:length(lastParts)
                     else
                         [par, r, y] = my_ellipsoidfit3_dy(lab_group, p_group,mean_cen);
                     end
-                    
+
                     [A, B, ~] = calculate_ellipse_axes_from_par(par);
                     if (4*par(1)*par(2)-par(3)^2)>0
                     % if (4*par(1)*par(2)-par(3)^2)>0&&r>=0.75
                         break;
                     end
-    
+
                     % 找到最大误差的索引
                     [~, max_ind] = max(abs(y - p_group));
-                    
+
                     % 记录原始 lab_group 中的索引
                     original_index = find(ismember(lab_group_original, lab_group(max_ind, :), 'rows'));
-                    
+
                     % 将原始索引加入 row_delete
                     row_delete = [row_delete; original_index];
-                    
+
                     % 将对应的 lab_group 数据加入 row_delete_lab_group
                     row_delete_lab_group = [row_delete_lab_group; lab_group_original(original_index, :)];
-                    
+
                     % 删除异常数据点
                     lab_group(max_ind, :) = [];
                     p_group(max_ind, :) = [];
@@ -252,12 +257,12 @@ for i_lastPart = 1:length(lastParts)
             end
             % 存储 row_delete 和对应的 lab_group 数据
             row_delete_all{i_group,1} = {row_delete, row_delete_lab_group};
-            
+
             % 存储拟合结果
             par_all = [par_all; par];
             r_all = [r_all; r];
             parNr_all = [parNr_all; [par, r]];
-            
+
             % 绘制等高线图并保存
             pre_draw_folder = fullfile(output_folder, 'pre_draw');
             if ~exist(pre_draw_folder, 'dir')
@@ -266,27 +271,26 @@ for i_lastPart = 1:length(lastParts)
             figure('Visible','off');
             plot_contour_with_scatter(par, lab_group, p_group);
             title(strrep(dir_labNgroup(1).name,'labNscore_group',''));
-    
+
             frame = getframe(gcf); % 获取当前 Figure 窗口的帧
             img = frame2im(frame); % 将帧转换为图像数据
             imwrite(img, fullfile(pre_draw_folder, ...
                 strcat(strrep(dir_labNgroup(1).name,'labNscore_group',''), '.jpg')));
             close(gcf);
-        end
-        % 保存 row_delete 和 row_delete_lab_group 到 delete_log 文件夹
-        if exist('row_delete_all','var')
-            save(fullfile(delete_log_folder, 'row_delete_data.mat'), 'row_delete_all');
-        end
-    
-        % 保存拟合结果
-        save(fullfile(outputFolder, "fitRes.mat"), ...
-            'par_all', 'r_all', 'parNr_all','picname_check');
+            end
+            
+            % 保存 row_delete 和 row_delete_lab_group 到 delete_log 文件夹
+            if exist('row_delete_all','var')
+                save(fullfile(delete_log_folder, 'row_delete_data.mat'), 'row_delete_all');
+            end
+
+        
         
         % 生成 list 并保存为表格文件
         generate_list(output_folder, par_all, r_all, average);
-    
     end
-    currentTime = datetime('now');    
+    
+    currentTime = datetime('now');
     time_diff = currentTime - startTime;
     fprintf('时间差: %s\n', time_diff);
     disp('All attributes and i_groups processed successfully.');

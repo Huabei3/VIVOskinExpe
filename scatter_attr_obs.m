@@ -7,16 +7,20 @@ addpath("utils\")
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 nations = ["AS", "CA", "SA", "AF"];
+interpreter_type="tex";
 text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
-    nation_names = ["亚洲�?, "高加索人", "南亚�?, "非洲�?];
-    attribute_names_new = ["喜好�?, "有吸引力�?, "女性化�?, "友善�?, ...
-    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
+    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
+colors=[[0.7 0 0];[0 0.5 0];[0.2 0.2 1];
+    [1 0 1];[0 0 0];[0.5 0.5 0.5];
+    [1 0.5 0];[1, 0.75, 0.8];[0.6, 0.2, 0.8];[0.6, 0.4, 0.2]];
 % 定义人种对应的lastParts索引
 nation_indices = cell(5, 1); % 5个人种（包括"all"�?
 % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
@@ -70,10 +74,10 @@ LUT=load(datai_file);
 XYZw_LUT=LUT.XYZw;
 line_style = {'-',':','-.'};
 plot_style = {'^','<','v'};
-length_color=3;
-hue_values = linspace(0, 1, length_color + 1);hue_values = hue_values(1:end-1);
-hsv_matrix = [hue_values', 0.8 * ones(length_color, 1), 0.8 * ones(length_color, 1)];
-colors = hsv2rgb(hsv_matrix);
+% length_color=3;
+% hue_values = linspace(0, 1, length_color + 1);hue_values = hue_values(1:end-1);
+% hsv_matrix = [hue_values', 0.8 * ones(length_color, 1), 0.8 * ones(length_color, 1)];
+% colors = hsv2rgb(hsv_matrix);
 genders = ["f", "m"];
 gender_names=["female","male"];
 obs_types = ["non_model", "model_group"];
@@ -396,20 +400,50 @@ for i_nation = 1:length(nations)
             % scatter(lab_mean(2), lab_mean(3), 30, plot_style_current,'filled', ...
             %     'MarkerFaceColor', colors(i_obs, :), 'MarkerEdgeColor', colors(i_obs,:));
             
-            attribute_char=char(attribute_serial);
-            converted_str = num2str(str2double(attribute_char(1:2)));
-            % ===================== 修改：适配字体大小 =====================
-            text(lab_mean(2), lab_mean(3), ...
-                converted_str, 'FontSize', text_font_size, ...
-                'VerticalAlignment', 'middle','Color',colors(i_obs,:), 'FontWeight', 'bold');
+            if strcmp(obs_type,'non_model')&&(attribute~=7||strcmp(text_type,'ch'))
+                plot(lab_mean(2),lab_mean(3),'o','MarkerSize',5, ...
+                    'MarkerFaceColor',"none", ...
+                    'MarkerEdgeColor',colors(attribute,:),'LineWidth',1.5);
+            end
         end
+        % 画箭头：从 non_model 指向 model_group
+        for attribute = attributes
+            lab_nm = lab_fit_reshaped{1, i_nation}(indices_target, :, :, attribute);
+            lab_mg = lab_fit_reshaped{2, i_nation}(indices_target, :, :, attribute);
+            if all(isnan(lab_nm(:))) || all(isnan(lab_mg(:)))
+                continue;
+            end
+            lab_mean_nm = nanmean(nanmean(lab_nm, 3), 1);
+            lab_mean_mg = nanmean(nanmean(lab_mg, 3), 1);
+            dx = lab_mean_mg(2) - lab_mean_nm(2);
+            dy = lab_mean_mg(3) - lab_mean_nm(3);
+            if sqrt(dx^2 + dy^2) < 0.01, continue; end
+            % quiver(lab_mean_nm(2), lab_mean_nm(3), dx, dy, 0, ...
+            %     'MaxHeadSize', 0.5, 'AutoScale', 'off', ...
+            %     'Color', colors(attribute, :), 'LineWidth', 1.2);
+            % 提取起点和终点坐标
+            x_start = lab_mean_nm(2);
+            y_start = lab_mean_nm(3);
+            x_end = x_start + dx;
+            y_end = y_start + dy;
+            
+            % 绘制线段
+            line([x_start, x_end], [y_start, y_end], ...
+                 'Color', colors(attribute, :), ...
+                 'LineWidth', 1.2);
+        end
+
     end
     ave=mean(average_mean{i_nation}(indices_target,:),1,"omitnan");
-    scatter(ave(2), ave(3), 30, 'o','filled', ...
-    'MarkerFaceColor', colors(i_obs+1, :), 'MarkerEdgeColor', colors(i_obs+1,:));
+    if strcmp(text_type)
+    scatter(ave(2), ave(3), 50, 'p','filled', ...
+    'MarkerFaceColor', colors(i_obs+1, :), 'MarkerEdgeColor', 'k');
+    end
     % 添加图例、标签和标题
-    xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',label_font_size);
-    ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',label_font_size);
+    xlabel('a^{*}','Interpreter',interpreter_type,'FontName','Arial','FontAngle','italic', ...
+        'FontSize',label_font_size);
+    ylabel('b^{*}','Interpreter',interpreter_type,'FontName','Arial','FontAngle','italic', ...
+        'FontSize',label_font_size);
     title([nation_names(i_nation)],'FontSize', title_font_size);
 
     res_matrix=[res_matrix;lab_mean];
@@ -440,8 +474,8 @@ for i_nation = 1:length(nations)
     ax = gca;
     targetFontSize=12;
     set(ax, 'FontSize', targetFontSize);
-    xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
-    ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+    xlabel('a^{*}', 'Interpreter',interpreter_type,'FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+    ylabel('b^{*}', 'Interpreter',interpreter_type,'FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
     yPos = ax.YLabel.Position;
     yPos(1) = yPos(1) - 5; % 数字越大，离得越�?
     ax.YLabel.Position = yPos;
@@ -491,13 +525,11 @@ opts.axis_ticks=[2,2,2,1];
 % opts.bar_interval=0.4;
 adjust_fig(save_folder, opts);
 %-----------------
+%%
+s.labels_row1=attribute_names_new;
 if strcmp(text_type,"eng")
-    s.labels_row1 = {"stranger","acquaitance","original"};
-elseif strcmp(text_type,"ch")
-    s.labels_row1 = {"生人�?,"熟人�?,"原图"};
+s.labels_row1(7)=[];
 end
-
-
 s.labels_row2 = {};
 s.markers_row2 = {};
 s.markers_colors = [];
@@ -505,23 +537,25 @@ s.markers_face_colors = [];
 s.n_col1=5; 
 s.n_col2=5;
 s.if_label=true;
+s.leg_x_shift=-0.08;
 
-num_attributes = numel(s.labels_row1);
-hue_values = linspace(0, 1, num_attributes + 1);
-hue_values = hue_values(1:end-1);
-hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-s.colors_row1 = hsv2rgb(hsv_matrix);
+
+s.colors_row1 = colors;
+if strcmp(text_type,"eng")
+s.colors_row1(7,:)=[];
+end
 s.label_type="obs";
 dir_figs=dir(fullfile(save_folder,"*adjusted.fig"));
 clear("figFiles")
 for i_fig=1:length(dir_figs)
     figFiles{i_fig}=dir_figs(i_fig).name;
 end
+s.fontSizeScale=1.2;
 concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
 
-concatenate_images1(save_folder,2);
+% concatenate_images1(save_folder,2);
 % concatenate_images1(fullfile(save_folder_name, Dtype,"attr", "comparison", iOr, "C_h"),2);
-
+fullfile(pwd,save_folder)
 %% 新增功能：计算deltaE2000矩阵和向量并保存到XLSX
 output_excel_folder = fullfile(save_folder_name, Dtype, "attr", "deltaE2000", iOr);
 if ~exist(output_excel_folder, "dir")
@@ -599,3 +633,4 @@ deltaE_ave_vector_mean=deltaE_ave_vector_mean';
 
 
 fullfile(pwd,save_folder)
+ 

@@ -154,7 +154,7 @@ for i_nation = 1:length(nations)
         nation_limits(i_nation).lim_max_y = 35;
     end
 end
-nation_ticks=[10 10 10 5];
+nation_ticks=[10 10 10 10];
 % 绘图循环
 par_type="merge_fit";
 % par_type="ave";
@@ -268,6 +268,7 @@ clear("figFiles")
 for i_fig=1:length(dir_figs)
     figFiles{i_fig}=dir_figs(i_fig).name;
 end
+s.fontSizeScale=1.2;
 concatenate_figs_legend1(save_folder_plot, figFiles, 4,"none","draw",s,0.09,2);
 %--------------------------------
 fullfile(pwd,save_folder_plot)

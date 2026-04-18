@@ -63,15 +63,15 @@ function create_custom_legend(output_folder, data_cell, use_chinese, legend_type
         identifier = row_data{4};
 
         if startsWith(row_data{1},"Park et al. (2006)")
-            identifier="P1";
+            identifier="Pa";
         elseif startsWith(row_data{1},"Peng et al. (2020)")
             identifier="P2";
         elseif startsWith(row_data{1},"Peng et al. (2023)")
-            identifier="P3";
+            identifier="P";
         elseif startsWith(row_data{1},"Zeng et al. (2010)")
             identifier="Z1";
         elseif startsWith(row_data{1},"Zeng et al. (2011)")
-            identifier="Z2";
+            identifier="Z";
         elseif startsWith(row_data{1},"Yano et al. (1998)")
             identifier="Y1";
         elseif startsWith(row_data{1},"Yamamoto et al. (2002)")
@@ -145,12 +145,27 @@ if ~exist(output_folder, 'dir')
     mkdir(output_folder);
 end
 % label_type="only_my";
-% label_type="include_this";
+label_type="include_this";
 % label_type="exclude_this";
-label_type="include_VIVO";
+% label_type="include_VIVO";
 load(fullfile("ellip_pic_p\efit_p\compare_thesis_pre", ...
     "exclude_this","author_colors.mat"));
+i_del = [];
+exclude_authors = {"Sangers et al. (1994)", "Zeng et al. (2009)", ...
+                  "Zeng et al. (2010)", "Kuang et al. (2005)", "Peng et al. (2020)"};
+for i_author = 1:length(author_all)
+    for i_ex=1:length(exclude_authors)
+        if startsWith(author_all{i_author, 1}, exclude_authors{i_ex})
+            i_del = [i_del, i_author];
+            break
+        end
+    end
+    % if startsWith(author_all{i_author, 1}, "")
+    % elseif startsWith(author_all{i_author, 1}, "")
+    % end
 
+end
+author_all(i_del,:)=[];
 % 生成英文图例
 % create_custom_legend(output_folder, author_all, false, ...
 %     'text_size', 14, ...
@@ -215,24 +230,10 @@ if strcmp(label_type, "include_this")||strcmp(label_type, "only_my")||strcmp(lab
         author_all=author_all(35:37,:);
     end
 end
-%删除Sangers和Kuang
-i_del=[];
-for i_author=1:length(author_all)
-    author=char(author_all{i_author,1});
-    blank=find(author==' ');
-    author_prefix=author(1:blank-1);
-    if strcmp(author_prefix,"Sangers")||strcmp(author_prefix,"Kuang")
-        i_del=[i_del,i_author];
-    end
-    if strcmp(author_all{i_author,1},"Yamamoto et al. (2002) ")
-        i_del=[i_del,i_author];
-    end
 
-end
-author_all(i_del,:)=[];
 
-% create_custom_legend(output_folder, author_all, true, legend_type);
-create_custom_legend(output_folder, author_all, false, legend_type);
+create_custom_legend(output_folder, author_all, true, legend_type);
+% create_custom_legend(output_folder, author_all, false, legend_type);
 
 fullfile(pwd,output_folder)
 

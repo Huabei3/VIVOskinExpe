@@ -15,9 +15,9 @@ if strcmp(text_type,"eng")
     attribute_names = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
-    nation_names = ["亚洲�?, "高加索人", "南亚�?, "非洲�?];
-    attribute_names = ["喜好�?, "有吸引力�?, "女性化�?, "友善�?, ...
-    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
+    nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
+    attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 targetFontSize=12;
 lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -335,6 +335,7 @@ for i_obs=1:length(obs_types)
             valid_idx = ~all(isnan(lab), 2);
             lab_valid = lab(valid_idx, :);
             data_valid = data_for_color(valid_idx);
+
             if ~isempty(lab_valid)
                 % 为每个点设置颜色
                 for i_point = 1:size(lab_valid, 1)

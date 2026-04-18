@@ -3,6 +3,7 @@ clear; close all;
 addpath("utils\")
 %%
 targetFontSize=12;
+interpreter_type = "tex"; % "tex" 或 "latex"
 save_folder = fullfile("ellip_pic_p\ellipse", "VIVOskin");
 if ~exist(save_folder, "dir")
     mkdir(save_folder);
@@ -85,7 +86,7 @@ ab_limits = [min(min(all_a), min(all_b)) - 5, max(max(all_a), max(all_b)) + 5];
 
 %%
 
-if_arrow=0;
+if_arrow=1;
 lastParts1 = {'f01i', 'f02i', 'f03i','f04i', 'f05i', ...
     'f06i', 'f07i', 'f08i','f09i', 'f10i',...
 'm01i', 'm02i', 'm03i','m04i', 'm05i', 'm06i',...
@@ -184,8 +185,6 @@ hold on;
 for i_skin = 1:length(lab_mean)
     lastPart=lastParts1{i_skin};
 
-
-
     if ismember(i_skin,[1,2,3,11,12,13])
         color=colors(2,:);
     elseif ismember(i_skin,[4,5,6,14,15,16])
@@ -230,22 +229,27 @@ for i_skin = 1:length(lab_mean)
     % text(cen_pre(i_skin, 2), cen_pre(i_skin, 3), num2str(i_skin), 'Color',color, 'FontSize', 10);
     % text(cen_pre(i_skin, 2), cen_pre(i_skin, 3), model_names(i_skin), 'Color',color, 'FontSize', 8);
 end
-if if_arrow
-for i_eth=1:size(labCh_PMCC,1)
-        color=colors(i_eth,:);
-        plot(labCh_PMCC(i_eth, 2), labCh_PMCC(i_eth, 3), 's', ...
-        'MarkerFaceColor', "none", 'MarkerEdgeColor', color, ...
-        'MarkerSize', 8, 'LineWidth', 1.5);
-end
-end
+% if if_arrow
+% for i_eth=1:size(labCh_PMCC,1)
+%         color=colors(i_eth,:);
+%         plot(labCh_PMCC(i_eth, 2), labCh_PMCC(i_eth, 3), 's', ...
+%         'MarkerFaceColor', "none", 'MarkerEdgeColor', color, ...
+%         'MarkerSize', 8, 'LineWidth', 1.5);
+% end
+% end
 % 添加45°线
 x = linspace(ab_limits(1), ab_limits(2), 1000);
 y = x; 
 plot(x, y, 'k--', 'LineWidth', 1);
 
 % title('a^*-b^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
-xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
-ylabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+if strcmp(interpreter_type, "tex")
+    xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+    ylabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+elseif strcmp(interpreter_type, "latex")
+    xlabel('$a^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+    ylabel('$b^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+end
 ax = gca;
 
 
@@ -298,8 +302,13 @@ for i_skin = 1:length(lab_mean)
     % text(lab_mean(i_skin, 2), lab_mean(i_skin, 1), model_names(i_skin), 'Color', 'black', 'FontSize', 5);
 end
 % title('L^*-a^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
-xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
-ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+if strcmp(interpreter_type, "tex")
+    xlabel('a^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+    ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+elseif strcmp(interpreter_type, "latex")
+    xlabel('$a^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+    ylabel('$L^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+end
 axis equal;
 xlim(a_limits);
 ylim(L_limits);
@@ -338,8 +347,13 @@ for i_skin = 1:length(lab_mean)
 end
 
 % title('L^*-b^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
-xlabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
-ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+if strcmp(interpreter_type, "tex")
+    xlabel('b^{*}', 'Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+    ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+elseif strcmp(interpreter_type, "latex")
+    xlabel('$b^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+    ylabel('$L^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+end
 axis equal;
 xlim(b_limits);
 ylim(L_limits);
@@ -398,16 +412,21 @@ for i_skin = 1:length(lab_mean)
     % text(lab_mean(i_skin, 4), lab_mean(i_skin, 1), model_names(i_skin), 'Color', 'black', 'FontSize', 5);
 end
 if if_arrow
-for i_eth=1:size(labCh_PMCC,1)
-        color=colors(i_eth,:);
-        plot(labCh_PMCC(i_eth, 4), labCh_PMCC(i_eth, 1), 's', ...
-        'MarkerFaceColor', "none", 'MarkerEdgeColor', color, ...
-        'MarkerSize', 8, 'LineWidth', 1.5);
-end
+% for i_eth=1:size(labCh_PMCC,1)
+%         color=colors(i_eth,:);
+%         plot(labCh_PMCC(i_eth, 4), labCh_PMCC(i_eth, 1), 's', ...
+%         'MarkerFaceColor', "none", 'MarkerEdgeColor', color, ...
+%         'MarkerSize', 8, 'LineWidth', 1.5);
+% end
 end
 % title('L^*-C_{ab}^*', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 12*2);
-xlabel('C_{ab}^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
-ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+if strcmp(interpreter_type, "tex")
+    xlabel('C_{ab}^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+    ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+elseif strcmp(interpreter_type, "latex")
+    xlabel('$C_{ab}^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+    ylabel('$L^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+end
 set(ax, 'FontSize', 12);
 axis equal;
 xlim(C_limits);
@@ -461,8 +480,13 @@ for i_skin = 1:length(lab_mean)
     % text(h(i_skin), lab_mean(i_skin, 1), model_names(i_skin), 'Color', 'black', 'FontSize', 5);
 end
 % title('L^*-h_{ab}', 'Interpreter', 'tex','FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 24);
-xlabel('h_{ab}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
-ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+if strcmp(interpreter_type, "tex")
+    xlabel('h_{ab}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+    ylabel('L^{*}','Interpreter', 'tex', 'FontName', 'Arial', 'FontAngle', 'italic', 'FontSize', 2*targetFontSize);
+elseif strcmp(interpreter_type, "latex")
+    xlabel('$h_{ab}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+    ylabel('$L^{*}$','Interpreter', 'latex', 'FontSize', 2*targetFontSize);
+end
 axis equal;
 xlim(h_limits);
 ylim(L_limits);
@@ -483,7 +507,7 @@ concatenate_images1(outputFolder, 5);
 
 
 opts.targetFontSize=12;
-opts.margin=0.25;    
+opts.margin=0.4;    
 opts.label_type="skinVIVO";
 opts.if_rotate=false;
 opts.margin_type="Position";
@@ -503,10 +527,10 @@ s.rowStep=0.17;
 
 if if_arrow
     s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
-    s.labels_row2 = {'female', 'male','PMCC'};
-    s.markers_row2 = {'o', 'x','s'};
-    s.markers_colors = [0 0 0; 0 0 0;0 0 0];
-    s.markers_face_colors = [1 1 1; 1 1 1; 1 1 1];
+    s.labels_row2 = {'female', 'male'};
+    s.markers_row2 = {'o', 'x'};
+    s.markers_colors = [0 0 0; 0 0 0;];
+    s.markers_face_colors = [1 1 1; 1 1 1; ];
     s.label_type="skinVIVO_compare";
     s.leg_x_shift=-0.02;
     s.if_label=true;
@@ -544,6 +568,7 @@ else
     s.colors_row1(3,:)=[0 0 0];
     s.colors_row1(4,:)=[1 0.5 0];
     s.fontSizeScale=1.2;
+    s.interpreter_type = interpreter_type;
     %----------------------
     dir_figs=dir(fullfile(outputFolder,"*adjusted.fig"));
     for i_fig=1:length(dir_figs)

@@ -8,20 +8,21 @@ scale_type_origin="unscaled";
 % scale_time="early";
 scale_time="late";
 targetFontSize=12;
+interpreter_type = "latex"; % "tex" 或 "latex"
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 nations = ["AS", "CA", "SA", "AF"];
-text_type="eng";
-% text_type="ch";
+% text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
 elseif strcmp(text_type,"ch")
     nation_names = ["亚洲人", "高加索人", "南亚人", "非洲人"];
-    attribute_names_new = ["喜好�?, "有吸引力的", "女性化�?, "友善�?, ...
-    "年轻�?, "健康�?, "真实还原�?, "与环境适配�?, "白皙�?, "红润�?];
+    attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
+    "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
 % 定义人种对应的lastParts索引
 nation_indices = cell(5, 1); % 5个人种（包括"all"�?
@@ -329,8 +330,13 @@ for i_obs=1:length(obs_types)
         %     'MarkerFaceColor', 'none', 'MarkerEdgeColor', 'm');
         
         % 添加图例、标签和标题
-        xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
-        ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+        if strcmp(interpreter_type, "tex")
+            xlabel('a^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+            ylabel('b^{*}','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',targetFontSize);
+        elseif strcmp(interpreter_type, "latex")
+            xlabel('a^{*}','Interpreter','latex','FontSize',targetFontSize);
+            ylabel('b^{*}','Interpreter','latex','FontSize',targetFontSize);
+        end
         title([nation_names(i_nation)],'FontSize', targetFontSize);
 
         % 设置坐标轴范围和刻度
@@ -370,14 +376,19 @@ for i_obs=1:length(obs_types)
         ax = gca;
         
         set(ax, 'FontSize', targetFontSize);
-        xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
-        ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
-        yPos = ax.YLabel.Position;
-        yPos(1) = yPos(1) - 5; % 数字越大，离得越�?
-        ax.YLabel.Position = yPos;
-        xPos = ax.XLabel.Position;
-        xPos(2) = xPos(2) - 5; % 数字越大，离得越�?
-        ax.XLabel.Position = xPos;
+        if strcmp(interpreter_type, "tex")
+            xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+            ylabel('b^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
+        elseif strcmp(interpreter_type, "latex")
+            xlabel('$a^{*}$', 'Interpreter','latex', 'FontSize', targetFontSize);
+            ylabel('$b^{*}$', 'Interpreter','latex', 'FontSize', targetFontSize);
+        end
+        % yPos = ax.YLabel.Position;
+        % yPos(1) = yPos(1) - 5; % 数字越大，离得越�?
+        % ax.YLabel.Position = yPos;
+        % xPos = ax.XLabel.Position;
+        % xPos(2) = xPos(2) - 5; % 数字越大，离得越�?
+        % ax.XLabel.Position = xPos;
         set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
 
         % 保存�?.fig
@@ -416,6 +427,7 @@ for i_obs=1:length(obs_types)
     s.n_col1=5; 
     s.n_col2=5;
     s.if_label=true;
+    s.interpreter_type ='latex';
     
 
     s.colors_row1 = colors;

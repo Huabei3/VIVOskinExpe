@@ -228,7 +228,7 @@ end
 ylim([1,3]);
 %--------------------------------------------
 % 设置横坐标
-text_type="ch";
+text_type="eng";
 if strcmp(text_type,"eng")
     nation_names = {"Asian", "Caucasian", "South Asian", "African",'All'};
 elseif strcmp(text_type,"ch")
@@ -241,6 +241,11 @@ set(gca, 'XTickLabel', nation_names);
 title('MCDM by Nation and Attribute');
 xlabel('Nation');
 ylabel('MCDM', 'FontName', 'Arial', 'FontSize', targetFontSize);
+ax = gca;
+yPos = ax.YLabel.Position;
+yPos(1) =  - 5;
+% yPos(1) = yPos(1) - 5;
+ax.YLabel.Position = yPos;
 if strcmp(Dtype,"efit_p_free")
     ellip_pic_folder="ellip_pic_p_free";
 elseif strcmp(Dtype,"efit_p")
@@ -306,7 +311,11 @@ ax = gca;
 % 统一设置 X 轴和 Y 轴的显示范围
 
 set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
-
+ylabel('MCDM', 'FontName', 'Arial', 'FontSize', targetFontSize);
+ax = gca;
+yPos = ax.YLabel.Position;
+yPos(1) = - 0.4;
+ax.YLabel.Position = yPos;
 % 保存为 .fig
 img_name=fullfile(MCDM_folder,"MCDM4.jpg");
 savefig(gcf, strrep(img_name,'jpg','fig'));
@@ -314,7 +323,7 @@ exportgraphics(gcf,img_name,'Resolution',600);
 statistics_MCDM=[min(min(MCDM_nation)),max(max(MCDM_nation)),nanmean(nanmean(MCDM_nation))]
 %-------------------------
 figFiles={"MCDM4.fig"};
-text_type="ch";
+text_type="eng";
 if strcmp(text_type,"ch")
     attribute_names = {"喜好的", "有吸引力的", "女性化的", "友善的", ...
     "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"};
@@ -323,16 +332,18 @@ elseif strcmp(text_type,"eng")
     "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"};
 end
 
-
+fullfile(pwd,MCDM_folder)
 %%
 opts.lim_min=0; 
 opts.lim_max=40;  
 opts.targetFontSize=12;
-opts.margin=10;    
+opts.margin=0.1;    
+opts.margin_type="Position";
 opts.label_type="MCDM";
 opts.if_rotate=false;
 % opts.bar_interval=0.4;
-% adjust_fig(MCDM_folder, opts);
+adjust_fig(MCDM_folder, opts);
+%%
 %-----------------
 s.labels_row1 = attribute_names;
 s.labels_row2 = {};
@@ -345,7 +356,7 @@ s.if_label=false;
 s.marginL=0.2;
 s.x_data=x;
 s.y_data=MCDM_nation;
-s.leg_x_shift=-0.21;
+s.leg_x_shift=-0.15;
 
 num_attributes = numel(s.labels_row1);
 hue_values = linspace(0, 1, num_attributes + 1);

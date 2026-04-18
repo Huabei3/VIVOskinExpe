@@ -229,7 +229,7 @@ s.n_col1=5;
 s.n_col2=2;
 s.if_label=true;
 s.leg_x_shift=0;
-s.fontSizeScale=1.0;
+s.fontSizeScale=1.2;
 
 colors=[[0.7 0 0];[0 0.5 0];[0.2 0.2 1];
     [1 0 1];[0 0 0];[0.5 0.5 0.5];

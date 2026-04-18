@@ -152,7 +152,7 @@ end
 % addpath("utils\")
 % fig_path=fullfile("D:\work\VIVOskinExpe\analyze\dsp\HD65\concatenated\untitled.fig");
 % bold_fig_text(fig_path)
-% concatenate_images1("D:\work\project_code_backup\OPPOskinExpe\analyzeResult_scaled\images\sample\r",4)
+% concatenate_images1("D:\work\FirstYearMaster\SkinColorPreferenceScale\ori\joint",4)
 %%
 
 %%

@@ -6,6 +6,7 @@ function adjust_fig(output_folder, opts)
     %       opts.lim_min        - 坐标轴最小值
     %       opts.lim_max        - 坐标轴最大值
     %       opts.targetFontSize - 字体大小
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
     %       opts.margin         - Label 距离轴的偏移量
     
     % 检查输出路径
@@ -70,6 +71,18 @@ function adjust_fig(output_folder, opts)
             ylim(ax, [opts.lim_min, opts.lim_max]);
             ax.XTick = opts.lim_min:10:opts.lim_max;
             ax.YTick = opts.lim_min:10:opts.lim_max;
+        % 延长参考线范围
+        if isfield(opts, 'refline_extend')
+            hRef = findobj(ax, 'Type', 'Line', '-and', 'LineStyle', '--');
+            if ~isempty(hRef)
+                xlims = xlim(ax);
+                ylims = ylim(ax);
+                x_range = xlims(2) - xlims(1);
+                ext = opts.refline_extend - 1;
+                set(hRef, 'XData', [xlims(1)-x_range*ext, xlims(2)+x_range*ext]);
+                set(hRef, 'YData', [xlims(1)-x_range*ext, xlims(2)+x_range*ext]);
+            end
+        end
         end
         if isfield(opts, 'axis_limits')
             xlim(ax, [opts.axis_limits(k,1), opts.axis_limits(k,2)]);
@@ -103,30 +116,35 @@ function adjust_fig(output_folder, opts)
         
         % 4. 调节 Label 间距
         % 修正：确保在 Data Units 下，Label 距离坐标轴边缘有固定的 margin
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
         % ax.YLabel.Position(1) = opts.lim_min - opts.margin; 
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
         % ax.XLabel.Position(2) = opts.lim_min - opts.margin; 
 
         % 建议替换原来的那段 if isfield(legend_labels, 'margin') ...
-        if isfield(opts, 'margin')&&(isfield(opts, 'margin_type')&& ...
-                strcmp(opts.margin_type,"Position"))
+        if isfield(opts, 'margin')&&(isfield(opts, 'margin_type')&&  strcmp(opts.margin_type,"Position"))
             drawnow; 
             xPos = get(ax.XLabel, 'Position');
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
             set(ax.XLabel, 'Position', [xPos(1), xPos(2) - opts.margin, xPos(3)]);
             yPos = get(ax.YLabel, 'Position');
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
             set(ax.YLabel, 'Position', [yPos(1) - opts.margin, yPos(2), yPos(3)]);
         end
 
-        if isfield(opts, 'margin')&&~(isfield(opts, 'margin_type')&& ...
-                strcmp(opts.margin_type,"Position"))
+        if isfield(opts, 'margin')&&~(isfield(opts, 'margin_type')&& strcmp(opts.margin_type,"Position"))
             set(ax.XLabel, 'Units', 'normalized');
             set(ax.YLabel, 'Units', 'normalized');
 
             % 调整位置：
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
             % XLabel: 横向居中(0.5)，纵向在下方(负值，opts.margin 此时应建议设为 0.1 左右)
             ax.XLabel.Position(1) = 0.5; 
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
             ax.XLabel.Position(2) = -opts.margin; 
 
             % YLabel: 纵向居中(0.5)，横向在左侧(负值)
+    %       opts.refline_extend    - 参考线延长比例 (如 1.5 表示延长50%)
             ax.YLabel.Position(1) = -opts.margin; 
             ax.YLabel.Position(2) = 0.5;
         end

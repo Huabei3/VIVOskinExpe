@@ -72,6 +72,7 @@ file_missing={};
 Dtype = 'efit_p';
 % Dtype = 'efit_p_free';
 scale_type_origin="unscaled";
+variable_type = "attr";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
 if iOr=='i'
     picnames_groups = ["h3k","h4k","h5k","h6k","hd65","h7k","h8k",...
             "m3k","m4k","m5k","m6k","md65","m7k","m8k",...
@@ -217,7 +218,7 @@ if strcmp(Dtype,"efit_p_free")
 elseif strcmp(Dtype,"efit_p")
     ellip_pic_folder="ellip_pic_p";
 end
-save_folder = fullfile(ellip_pic_folder, Dtype,"50",scale_type);
+save_folder = fullfile(ellip_pic_folder, Dtype,"50",scale_type,variable_type);
 if ~exist(save_folder, "dir")
     mkdir(save_folder);
 end
@@ -241,13 +242,26 @@ plot_style = 'o';  % 统一使用圆形标记
 targetFontSize=12;
 
 
-outputFolder=fullfile("AnalyseResults_p",Dtype,"50", ...
-            scale_type_origin,"nation1");
+% outputFolder=fullfile("AnalyseResults_p",Dtype,"50", ...
+%             scale_type_origin,"nation1");
+output_folder = fullfile(save_folder,"nation1",iOr,obs_type,text_type,variable_type);
+if ~exist(output_folder, "dir")
+    mkdir(output_folder);
+end
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
-    for i_indices = 1:length(target_indices)
-    % for i_indices = [1:3]
-        for attribute = [1]
+    if strcmp(variable_type, "hml")
+    target_idx_loop = 1:length(target_indices);
+    attr_loop = [1];
+elseif strcmp(variable_type, "attr")
+    target_idx_loop = 1;
+    attr_loop = 1:length(attributes);
+end
+
+for i_idx = target_idx_loop
+    i_indices = i_idx;
+    for attr_idx = attr_loop
+        attribute = attributes(attr_idx);
         % for attribute = 1:length(attributes)
             attribute_serial = strcat(sprintf("%02d", attribute), ...
                 attribute_names_new(attribute));
@@ -315,7 +329,7 @@ for i_obs = 1:length(obs_types)
 
                     %保存ellipPara
                     nation_serial=strcat(num2str(i_nation),nation);
-                    fitRes_folder=fullfile(outputFolder, scale_type,...
+                    fitRes_folder=fullfile(output_folder, scale_type,...
                         obs_type,iOr,attribute_serial,nation_serial);
                     if ~exist(fitRes_folder,"dir")
                         mkdir(fitRes_folder);
@@ -327,20 +341,19 @@ for i_obs = 1:length(obs_types)
 
 
 
-            end
+            % end
 
-            output_folder = fullfile(save_folder,"nation1",iOr,obs_type,text_type);
-            if ~exist(output_folder, "dir")
-                mkdir(output_folder);
-            end
+
             % 添加 45 度线
             % 添加 x=0 和 y=0 的轴
             lim_max=40;
-            lim_min=0;
+            lim_min=-10;
             % line([0, 0], [lim_min, lim_max], 'Color', 'k', 'LineStyle', '--'); % x=0
             % line([lim_min, lim_max], [0, 0], 'Color', 'k', 'LineStyle', '--'); % y=0
-            href = refline(1, 0);  % 创建参考线对象
-            set(href, 'Color', 'k', 'LineStyle', '--');  % 设置属性
+            % href = refline(1, 0);  % 创建参考线对象
+            x = linspace(-20,50, 100);
+            plot(x, x, 'k--', 'LineWidth', 0.8);
+            % set(href, 'Color', 'k', 'LineStyle', '--');  % 设置属性
 
             h1=figure(i_indices*10+attribute);
             ax = gca;
@@ -349,6 +362,9 @@ for i_obs = 1:length(obs_types)
             ylim([lim_min, lim_max]);
             ax.XTick = lim_min:10:lim_max; % 每隔 10 个单位一个刻度
             ax.YTick = lim_min:10:lim_max;
+            if strcmp(variable_type,"attr")
+            title(attribute_names_new(attribute));
+            end
             set(ax, 'FontSize', targetFontSize);
             if strcmp(interpreter_type, "tex")
                 xlabel('a^{*}', 'Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize', targetFontSize);
@@ -375,10 +391,11 @@ for i_obs = 1:length(obs_types)
             % saveas(i_indices*10+attribute, fullfile(output_folder, ...
             %     strcat(attribute_serial,num2str(i_indices), ".jpg")));
 
-        end
-
+        end  % end of for i_nation
         
-    end
+    end  % end of for attr_idx
+end  % end of for i_idx
+
     concatenate_images1(output_folder,5);
     save(fullfile(output_folder, ...
                 strcat( "fitRes.mat")),"parNr_all");
@@ -387,7 +404,12 @@ for i_obs = 1:length(obs_types)
     opts.lim_min=0; 
     opts.lim_max=40;  
     opts.targetFontSize=12;
-    opts.margin=0.22;    
+    opts.margin=0.22;   
+    opts.refline_extend = 1.5;  % 参考线延长50%
+    if strcmp(variable_type,"attr")
+    opts.axis_limits=repmat([-5,40,-5,40],10,1);
+    opts.axis_ticks=repmat([10],1,10);
+    end
     adjust_fig(output_folder, opts);
 %%
     if strcmp(text_type,"eng")
@@ -449,10 +471,19 @@ for i_obs = 1:length(obs_types)
         else
             s.leg_x_shift=-0.06;
             s.fontSizeScale=1.2;
-            concatenate_figs_legend1(output_folder, figFiles, 3,legend_file,"draw",s,0.1,1.5);
+            if strcmp(variable_type,"attr")
+                s.row_gap = -0.12;
+                s.rowStep = 0.25;  % 控制两行之间的间距
+                concatenate_figs_legend1(output_folder, figFiles, 5, ...
+                    legend_file,"draw",s,0.01,0.5);
+            else
+                concatenate_figs_legend1(output_folder, figFiles, 3, ...
+                    legend_file,"draw",s,0.1,1.5);
+            end
         end
     elseif strcmp(iOr,"r")
         s.fontSizeScale=1.2;
+
         concatenate_figs_legend1(output_folder, figFiles, 4,legend_file,"draw",s,0.08,2);
     end
 fullfile(pwd,output_folder)

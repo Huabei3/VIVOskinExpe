@@ -38,6 +38,7 @@ elseif iOr=='r'
 end
 lightness_type="rela";
 scale_type_origin="unscaled";
+variable_type = "attr";  % "nation": loop all nations, attribute=[1]; "attr": i_nation=1, attribute=1:10
 load("documents\valid_attr.mat","map");
 
 
@@ -295,9 +296,22 @@ wd65_scaled=wd65./100.*XYZw_LUT(2);
 % --- 新增的开关变�?---
 plot_45_only = true; % 设置�?true 则只绘制 45° 线，设置�?false 则绘制所有角度线�?
 obs_types=["non_model"];
+% 根据variable_type设置循环
+if strcmp(variable_type, "nation")
+    nation_loop = 1:length(nations);
+    attr_loop = [1];
+elseif strcmp(variable_type, "attr")
+    nation_loop = 1;
+    attr_loop = 1:length(attributes);
+end
+save_folder = fullfile("ellip_pic_p", Dtype, "scene2", lightness_type, obs_type, text_type);
+if ~exist(save_folder, "dir")
+    mkdir(save_folder, 'recursive');
+end
 for i_obs=1:length(obs_types)
     obs_type=obs_types(i_obs);
-    for i_nation = 1:length(nations)
+
+    for i_nation = nation_loop
         nation=nations(i_nation);
         nation_serial=strcat(sprintf("%02d",i_nation),nation);
         if iOr=='r'
@@ -315,7 +329,8 @@ for i_obs=1:length(obs_types)
         figure(i_nation);
         hold on;
         set(gcf, 'Color', 'white');
-        for attribute = [1]
+        for attr_idx = attr_loop
+            attribute = attributes(attr_idx);
             attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
             attribute_serial=ch2eng(attribute_serial);
             % 直接从lab_fit_reshaped获取数据
@@ -426,7 +441,6 @@ for i_obs=1:length(obs_types)
         % --- 结束修改部分 ---
         
         % 保存图片
-        save_folder = fullfile("ellip_pic_p", Dtype, "scene2",lightness_type, obs_type, iOr,text_type);
         if ~exist(save_folder, "dir")
             mkdir(save_folder, 'recursive');
         end
@@ -459,7 +473,6 @@ for i_obs=1:length(obs_types)
         % close(gcf);
     end
     % 合并所有图�?
-    save_folder = fullfile("ellip_pic_p", Dtype, "scene2", lightness_type,obs_type, iOr,text_type);
     
     %%
     opts.lim_min=0; 

@@ -70,6 +70,12 @@
     if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"hml")
         baseHeight=baseHeight.*0.8;
     end
+    % Row gap between sub-figures (default uses baseHeight)
+    if isfield(legend_labels, 'row_gap')
+        row_gap = legend_labels.row_gap;
+    else
+        row_gap = 0;  % 0 means use default baseHeight spacing
+    end
     % gapX = 0.15;
 
     for i = 1:numFigs
@@ -110,9 +116,14 @@
             w_space=w_space*1.5;
             h_space=h_space*1.5;
         end
+
     
         posX = marginL + (currCol - 1) * baseWidth - (currCol - 1) * gapX;
-        posY = legendHeightNorm + (n_row - currRow) * baseHeight + (baseHeight - h_space) / 2;
+        if row_gap == 0
+            posY = legendHeightNorm + (n_row - currRow) * baseHeight + (baseHeight - h_space) / 2;
+        else
+            posY = legendHeightNorm + (n_row - currRow) * (baseHeight + row_gap) + (baseHeight - h_space) / 2;
+        end
         if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")&&i==5
             posX=posX+0.04;
         end

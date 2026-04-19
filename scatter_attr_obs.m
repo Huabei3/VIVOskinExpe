@@ -106,6 +106,7 @@ labCh_PMCC(end+1,:)=mean(labCh_PMCC,1);
 file_missing={};
 Dtype = 'efit_p';
 scale_type_origin="unscaled";
+variable_type = "nation";  % "nation": loop all nations, attribute=[1]; "attr": i_nation=1, attribute=1:10
 % 定义一个函数来分离性别索引（此函数不再在主循环中使用，但保留）
 function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
     gender_indices = cell(2, 1); % f和m的索�?
@@ -284,14 +285,32 @@ save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","ave
 %% 计算每个nation的坐标轴范围
 % 初始化每个nation的极值变�?
 nation_limits = struct();
-for i_nation = 1:length(nations)
+    % 根据variable_type设置循环
+    if strcmp(variable_type, "nation")
+        nation_loop = 1:length(nations);
+        attr_loop = [1];
+    elseif strcmp(variable_type, "attr")
+        nation_loop = 1;
+        attr_loop = 1:length(attributes);
+    end
+
+    for i_nation = nation_loop
     nation_limits(i_nation).lim_min_x = inf;
     nation_limits(i_nation).lim_min_y = inf;
     nation_limits(i_nation).lim_max_x = -inf;
     nation_limits(i_nation).lim_max_y = -inf;
 end
 % 为每个nation分别计算坐标轴范�?
-for i_nation = 1:length(nations)
+    % 根据variable_type设置循环
+    if strcmp(variable_type, "nation")
+        nation_loop = 1:length(nations);
+        attr_loop = [1];
+    elseif strcmp(variable_type, "attr")
+        nation_loop = 1;
+        attr_loop = 1:length(attributes);
+    end
+
+    for i_nation = nation_loop
     for i_obs = 1:length(obs_types)
         obs_type = obs_types(i_obs);
         % 获取当前人种的所�?subject
@@ -337,7 +356,16 @@ end
 res_matrix=[];curr=1;
 nan_record={};
 % obs_types=["non_model"];
-for i_nation = 1:length(nations)
+    % 根据variable_type设置循环
+    if strcmp(variable_type, "nation")
+        nation_loop = 1:length(nations);
+        attr_loop = [1];
+    elseif strcmp(variable_type, "attr")
+        nation_loop = 1;
+        attr_loop = 1:length(attributes);
+    end
+
+    for i_nation = nation_loop
     nation=nations(i_nation);
     nation_serial=strcat(sprintf("%02d",i_nation),nation);
     
@@ -379,6 +407,7 @@ for i_nation = 1:length(nations)
     for i_obs=1:length(obs_types)
         obs_type=obs_types(i_obs);
         
+        % for attribute = attributes
         for attribute = attributes
             attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
             attribute_serial=ch2eng(attribute_serial);
@@ -435,7 +464,7 @@ for i_nation = 1:length(nations)
 
     end
     ave=mean(average_mean{i_nation}(indices_target,:),1,"omitnan");
-    if strcmp(text_type)
+    if strcmp(text_type,"ch")
     scatter(ave(2), ave(3), 50, 'p','filled', ...
     'MarkerFaceColor', colors(i_obs+1, :), 'MarkerEdgeColor', 'k');
     end
@@ -444,7 +473,8 @@ for i_nation = 1:length(nations)
         'FontSize',label_font_size);
     ylabel('b^{*}','Interpreter',interpreter_type,'FontName','Arial','FontAngle','italic', ...
         'FontSize',label_font_size);
-    title([nation_names(i_nation)],'FontSize', title_font_size);
+    title(nation_names(i_nation),'FontSize', title_font_size);
+
 
     res_matrix=[res_matrix;lab_mean];
     res_cell{curr,1}=lab_mean;
@@ -461,7 +491,8 @@ for i_nation = 1:length(nations)
     x = linspace(0, 25, 100);
     plot(x, x, 'k--');
     
-    save_folder = fullfile(save_folder_name, Dtype,"attr", "comparison", iOr,text_type);
+    save_folder = fullfile(save_folder_name, Dtype,"attr", "comparison", ...
+        iOr,text_type);
     if ~exist(save_folder, "dir")
         mkdir(save_folder);
     end
@@ -562,7 +593,16 @@ if ~exist(output_excel_folder, "dir")
     mkdir(output_excel_folder);
 end
 
-for i_nation = 1:length(nations)
+    % 根据variable_type设置循环
+    if strcmp(variable_type, "nation")
+        nation_loop = 1:length(nations);
+        attr_loop = [1];
+    elseif strcmp(variable_type, "attr")
+        nation_loop = 1;
+        attr_loop = 1:length(attributes);
+    end
+
+    for i_nation = nation_loop
     nation = nations(i_nation);
     
     % 遍历不同观察者类�?

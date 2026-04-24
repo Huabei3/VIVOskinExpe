@@ -346,13 +346,13 @@ for i_eth=1:size(ethnic_groups,2)
                     if strcmp(author_str,"Park et al. (2006)")
                         author_str_used="P1";
                     elseif strcmp(author_str,"Peng et al. (2020)")
-                        author_str_used="P2";
-                    elseif strcmp(author_str,"Peng et al. (2023)")
                         author_str_used="P3";
+                    elseif strcmp(author_str,"Peng et al. (2023)")
+                        author_str_used="P2";
                     elseif strcmp(author_str,"Zeng et al. (2010)")
                         author_str_used="Z1";
                     elseif strcmp(author_str,"Zeng et al. (2011)")
-                        author_str_used="Z2";
+                        author_str_used="Z";
                     elseif strcmp(author_str,"Yano et al. (1998)")
                         author_str_used="Y1";
                     elseif strcmp(author_str,"Yamamoto et al. (2002)")

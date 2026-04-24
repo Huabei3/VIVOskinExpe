@@ -63,11 +63,11 @@ function create_custom_legend(output_folder, data_cell, use_chinese, legend_type
         identifier = row_data{4};
 
         if startsWith(row_data{1},"Park et al. (2006)")
-            identifier="Pa";
+            identifier="P1";
         elseif startsWith(row_data{1},"Peng et al. (2020)")
-            identifier="P2";
+            identifier="P3";
         elseif startsWith(row_data{1},"Peng et al. (2023)")
-            identifier="P";
+            identifier="P2";
         elseif startsWith(row_data{1},"Zeng et al. (2010)")
             identifier="Z1";
         elseif startsWith(row_data{1},"Zeng et al. (2011)")

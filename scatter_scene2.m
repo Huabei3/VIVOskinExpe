@@ -119,8 +119,14 @@ for i_obs = 1:length(obs_types)
     for i_nation = 1:length(nations)
         % 获取当前人种的所有索�?
         nation=nations(i_nation);
+        nation_serial=sprintf("%02d%s",i_nation,nation);
         curr_nation_indices = nation_indices{i_nation};
-        
+
+        fitRes_folder = fullfile("AnalyseResults_p", Dtype, "scene2", ...
+        lightness_type, obs_type,nation_serial, text_type);
+        if ~exist(fitRes_folder, "dir")
+            mkdir(fitRes_folder, 'recursive');
+        end
         % 为当前人种组合初始化数据数组
         n_subjects = length(curr_nation_indices);
         par_current = zeros(n_para, 6, n_subjects, length(attributes));
@@ -147,10 +153,13 @@ for i_obs = 1:length(obs_types)
             % 循环处理每个 attribute
             for i_attr = 1:length(attributes)
                 attribute = attributes(i_attr);
-                attribute_serial = strcat(sprintf("%02d", attribute), attribute_names(attribute));
+                attribute_serial = strcat(sprintf("%02d", attribute), ...
+                    attribute_names(attribute));
                 attribute_serial=ch2eng(attribute_serial);
                 % 定义路径
-                source_file = fullfile('AnalyseResults_p', Dtype,scale_type_origin, lastPart, obs_type, attribute_serial, 'ellipPara', 'fitRes.mat');
+                source_file = fullfile('AnalyseResults_p', Dtype, ...
+                    scale_type_origin, lastPart, obs_type, ...
+                    attribute_serial, 'ellipPara', 'fitRes.mat');
                 
                 % 加载数据
                 if exist(source_file, 'file')
@@ -212,10 +221,12 @@ if ~exist(output_folder,"dir")
     mkdir(output_folder);
 end
 if strcmp(lightness_type,"abs")
-    save(fullfile(output_folder,strcat("data_reshaped_abs",iOr,".mat")),"par_mean","average_mean", ...
+    save(fullfile(output_folder,strcat("data_reshaped_abs",iOr,".mat")), ...
+        "par_mean","average_mean", ...
     "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
 else
-    save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")),"par_mean","average_mean", ...
+    save(fullfile(output_folder,strcat("data_reshaped_",iOr,".mat")), ...
+        "par_mean","average_mean", ...
         "lab_fit_reshaped","file_missing","par_reshaped","average_reshaped");
 end
 %% 计算全局坐标轴范�?

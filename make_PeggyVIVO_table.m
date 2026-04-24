@@ -15,7 +15,6 @@
 clc;clear;close all;
 %%
 
-
 % 基础路径（VIVO 分析目录）
 base_analyze = fullfile('D:\','work','VIVOskinExpe','analyze');
 addpath(fullfile(base_analyze,'utils')); % 以便使用 lab2xyz2 / xyz2lab 等
@@ -24,7 +23,8 @@ addpath(fullfile(base_analyze,'utils')); % 以便使用 lab2xyz2 / xyz2lab 等
 scale_type         = "scaled";    % "unscaled" 或 "scaled"（影响 lab_scaled 计算）
 scale_type_origin  = "unscaled";    % fitRes 路径中的原始尺度层级
 scale_time         = "late";        % "early" 时 fitRes 在 scaled/ 子目录下
-Dtype              = 'efit_p';      % 与 scatter_attr1 一致
+% Dtype              = 'efit_p';      % 与 scatter_attr1 一致
+Dtype              = 'noCAT';      % 与 scatter_attr1 一致
 obs_types          = ["non_model","model_group"];
 attributes         = 1:10;
 attribute_names_new = ["Preference","Attractiveness","Feminine","Cooperative", ...
@@ -275,8 +275,9 @@ fit_table = table( ...
 
 % 导出
 
-output_folder = fullfile("AnalyseResults_p\efit_p", ...
+output_folder = fullfile("AnalyseResults_p",Dtype, ...
     scale_type,"resTable",strcat("original_",scale_type_origin));
+fullfile(pwd,output_folder)
 
 if ~exist(output_folder,'dir'), mkdir(output_folder); end
 out_mat  = fullfile(output_folder, 'Peggy_VIVO_table.mat');

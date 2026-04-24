@@ -964,7 +964,7 @@ for i_obs=1:length(obs_types_plot)
         s.row_gap = -0.12;
         s.rowStep = 0.25;  % 控制两行之间的间距
         s.leg_x_shift=0.16;
-        concatenate_figs_legend1(save_folder, figFiles, 5, "none", "draw", s,0.03, 0.35);
+        concatenate_figs_legend1(save_folder, figFiles, 5, "none", "draw", s,0.03, 0.7);
     end
     
     %% 合并图片

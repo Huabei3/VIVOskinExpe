@@ -99,10 +99,7 @@ for i_lastPart = length(lastParts):-1:1
 
         % 生成 attribute_serial
         attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
-
-
         % 获取所有格式为 obs%02d 的子文件夹
-
         dir_res = findSpecificFiles(source_folder, attribute);
 
         if isempty(dir_res)

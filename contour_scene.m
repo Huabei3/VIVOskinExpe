@@ -135,7 +135,7 @@ for i_nation=1:length(nations)
         save(save_file,"parNr","lab_group","p_group","par_ave");
 end
 
-
+fullfile(pwd,save_folder)
 
 
 %% 画图部分：为每个 nation 生成一张包含所有 attribute 椭圆的图

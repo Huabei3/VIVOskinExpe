@@ -42,7 +42,8 @@ genders = ["f", "m"]; % 定义性别数组
 
 obs_types = ["non_model", "model_group", "model"];
 % 定义人种对应的lastParts索引
-max_classify=1;
+enable_plotting = false; % true=正常出图, false=只算数据不出图
+max_classify=0;
 if max_classify==1
     nations = ["AS", "CA", "DA", "all"];
     nation_indices = cell(5, 1); % 5个人种（包括"all"）
@@ -190,18 +191,19 @@ for i_obs = 1:length(obs_types)
 
     
     % 用于存储当前 obs_type 下所有 attribute 的 r 和 rmse 值，以便写入 Excel
-    r_values_for_excel_C_L = zeros(length(attributes), length(nations));
-    rmse_values_for_excel_C_L = zeros(length(attributes), length(nations));
-    r_values_for_excel_long_axis = zeros(length(attributes), length(nations));
-    rmse_values_for_excel_long_axis = zeros(length(attributes), length(nations));
-    r_values_for_excel_short_axis = zeros(length(attributes), length(nations));
-    rmse_values_for_excel_short_axis = zeros(length(attributes), length(nations));
-    r_values_for_excel_hue_angle = zeros(length(attributes), length(nations));
-    rmse_values_for_excel_hue_angle = zeros(length(attributes), length(nations));
-    r_values_for_excel_theta = zeros(length(attributes), length(nations));
-    rmse_values_for_excel_theta = zeros(length(attributes), length(nations));
-    r_values_for_excel_alpha = zeros(length(attributes), length(nations)); % 新增 alpha 的 r 值存储
-    rmse_values_for_excel_alpha = zeros(length(attributes), length(nations)); % 新增 alpha 的 rmse 值存储
+    n_n = length(nations);
+    r_values_for_excel_C_L = zeros(length(attributes), n_n);
+    rmse_values_for_excel_C_L = zeros(length(attributes), n_n);
+    r_values_for_excel_long_axis = zeros(length(attributes), n_n);
+    rmse_values_for_excel_long_axis = zeros(length(attributes), n_n);
+    r_values_for_excel_short_axis = zeros(length(attributes), n_n);
+    rmse_values_for_excel_short_axis = zeros(length(attributes), n_n);
+    r_values_for_excel_hue_angle = zeros(length(attributes), n_n);
+    rmse_values_for_excel_hue_angle = zeros(length(attributes), n_n);
+    r_values_for_excel_theta = zeros(length(attributes), n_n);
+    rmse_values_for_excel_theta = zeros(length(attributes), n_n);
+    r_values_for_excel_alpha = zeros(length(attributes), n_n); % 新增 alpha 的 r 值存储
+    rmse_values_for_excel_alpha = zeros(length(attributes), n_n); % 新增 alpha 的 rmse 值存储
     
     % 确保线条样式和散点样式索引在有效范围内
     line_style_idx = min(i_obs, length(line_styles));
@@ -215,25 +217,26 @@ for i_obs = 1:length(obs_types)
         % 假设此函数已定义
         attribute_serial = gen_attribute_new(attribute_serial);
         
-        % 初始化拟合参数存储
-        a_CL_all = zeros(length(nations), 2);
-        r_CL_all = zeros(length(nations), 1);
-        rmse_CL_all = zeros(length(nations), 1);
-        a_long_axis_all = zeros(length(nations), 4); % 三次函数 4 个参数
-        r_long_axis_all = zeros(length(nations), 1);
-        rmse_long_axis_all = zeros(length(nations), 1);
-        a_short_axis_all = zeros(length(nations), 4); % 三次函数 4 个参数
-        r_short_axis_all = zeros(length(nations), 1);
-        rmse_short_axis_all = zeros(length(nations), 1);
-        a_hue_angle_all = zeros(length(nations), 2); % 线性函数 2 个参数
-        r_hue_angle_all = zeros(length(nations), 1);
-        rmse_hue_angle_all = zeros(length(nations), 1);
-        a_theta_all = zeros(length(nations), 2); % 线性函数 2 个参数
-        r_theta_all = zeros(length(nations), 1);
-        rmse_theta_all = zeros(length(nations), 1);
-        a_alpha_all = zeros(length(nations), 2); % 新增 alpha 线性函数 2 个参数
-        r_alpha_all = zeros(length(nations), 1); % 新增 alpha r 值
-        rmse_alpha_all = zeros(length(nations), 1); % 新增 alpha rmse 值
+        % 初始化拟合参数存储（列数根据 nation 数量动态确定）
+        n_n = length(nations);
+        a_CL_all = zeros(n_n, 2);
+        r_CL_all = zeros(n_n, 1);
+        rmse_CL_all = zeros(n_n, 1);
+        a_long_axis_all = zeros(n_n, 4); % 三次函数 4 个参数
+        r_long_axis_all = zeros(n_n, 1);
+        rmse_long_axis_all = zeros(n_n, 1);
+        a_short_axis_all = zeros(n_n, 4); % 三次函数 4 个参数
+        r_short_axis_all = zeros(n_n, 1);
+        rmse_short_axis_all = zeros(n_n, 1);
+        a_hue_angle_all = zeros(n_n, 2); % 线性函数 2 个参数
+        r_hue_angle_all = zeros(n_n, 1);
+        rmse_hue_angle_all = zeros(n_n, 1);
+        a_theta_all = zeros(n_n, 2); % 线性函数 2 个参数
+        r_theta_all = zeros(n_n, 1);
+        rmse_theta_all = zeros(n_n, 1);
+        a_alpha_all = zeros(n_n, 2); % 新增 alpha 线性函数 2 个参数
+        r_alpha_all = zeros(n_n, 1); % 新增 alpha r 值
+        rmse_alpha_all = zeros(n_n, 1); % 新增 alpha rmse 值
         
         % 按人种分组处理
         for i_nation = 1:length(nations)
@@ -288,49 +291,52 @@ for i_obs = 1:length(obs_types)
             %--------测试-反算椭圆------------------
             % --- 调用建模函数并保存结果 ---
             % C_L 建模
-            % 保存图片
-            output_folder = fullfile(pic_folder,'C_L', iOr);
-            if ~exist(output_folder, 'dir')
-                mkdir(output_folder);
+            if enable_plotting
+                output_folder = fullfile(pic_folder,'C_L', iOr);
+                if ~exist(output_folder, 'dir')
+                    mkdir(output_folder);
+                end
+                [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new(output_folder,L_all, C_all, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
+            else
+                [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new([],L_all, C_all, attribute_serial, [], [], Dtype, iOr, i_nation);
             end
-            [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new(output_folder,L_all, C_all, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
             r_CL_all(i_nation) = r_C_L;
             rmse_CL_all(i_nation) = RMSE_C_L;
             a_CL_all(i_nation, :) = a_C_L;
             % 长轴建模
-            output_folder = fullfile(pic_folder,'long_axis', iOr);
-            if ~exist(output_folder, 'dir')
-                mkdir(output_folder);
+            if enable_plotting
+                output_folder = fullfile(pic_folder,'long_axis', iOr);
+                if ~exist(output_folder, 'dir')
+                    mkdir(output_folder);
+                end
+                [r_long_axis, a_long_axis, RMSE_long_axis] = model_long_axis(output_folder,L_all, long_axis, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
+            else
+                [r_long_axis, a_long_axis, RMSE_long_axis] = model_long_axis([],L_all, long_axis, attribute_serial, [], [], Dtype, iOr, i_nation);
             end
-            [r_long_axis, a_long_axis, RMSE_long_axis] = model_long_axis(output_folder,L_all, long_axis, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
             r_long_axis_all(i_nation) = r_long_axis;
             rmse_long_axis_all(i_nation) = RMSE_long_axis;
             a_long_axis_all(i_nation, :) = a_long_axis;
             % 短轴建模
-            output_folder = fullfile(pic_folder,'short_axis', iOr);
-            if ~exist(output_folder, 'dir')
-                mkdir(output_folder);
+            if enable_plotting
+                output_folder = fullfile(pic_folder,'short_axis', iOr);
+                if ~exist(output_folder, 'dir')
+                    mkdir(output_folder);
+                end
+                [r_short_axis, a_short_axis, RMSE_axis] = model_short_axis(output_folder,L_all, short_axis, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
+            else
+                [r_short_axis, a_short_axis, RMSE_axis] = model_short_axis([],L_all, short_axis, attribute_serial, [], [], Dtype, iOr, i_nation);
             end
-            [r_short_axis, a_short_axis, RMSE_axis] = model_short_axis(output_folder,L_all, short_axis, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
             r_short_axis_all(i_nation) = r_short_axis;
             rmse_short_axis_all(i_nation) = RMSE_axis;
             a_short_axis_all(i_nation, :) = a_short_axis;
-            % 色调角建模
-            output_folder = fullfile(pic_folder,'hue_angle', iOr);
-            if ~exist(output_folder, 'dir')
-                mkdir(output_folder);
-            end
+            % 色调角建模（常数）
             a_hue_angle=mean(hue_angle);
             r_hue_angle=NaN;RMSE_angle=NaN;
             % [r_hue_angle, a_hue_angle, RMSE_angle] = model_hue_angle(output_folder,L_all, hue_angle, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
             r_hue_angle_all(i_nation) = r_hue_angle;
             rmse_hue_angle_all(i_nation) = RMSE_angle;
             a_hue_angle_all(i_nation, :) = a_hue_angle;
-            % 椭圆倾角 theta 建模
-            output_folder = fullfile(pic_folder,'theta', iOr);
-            if ~exist(output_folder, 'dir')
-                mkdir(output_folder);
-            end
+            % 椭圆倾角 theta 建模（常数）
             a_theta=mean(theta);
             r_theta=NaN;RMSE_theta=NaN;
             % [r_theta, a_theta, RMSE_theta] = model_theta(output_folder,L_all, theta, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
@@ -338,11 +344,7 @@ for i_obs = 1:length(obs_types)
             rmse_theta_all(i_nation) = RMSE_theta;
             a_theta_all(i_nation,:) = a_theta; 
             
-            % alpha 建模
-            output_folder = fullfile(pic_folder,'alpha', iOr); % 保存到 'alpha' 子文件夹
-            if ~exist(output_folder, 'dir')
-                mkdir(output_folder);
-            end
+            % alpha 建模（常数）
             a_alpha=mean(alpha_values);
             r_alpha=NaN;RMSE_alpha=NaN;
             % [r_alpha, a_alpha, RMSE_alpha] = model_alpha(output_folder,L_all, alpha_values, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
@@ -354,32 +356,27 @@ for i_obs = 1:length(obs_types)
             end
         end
         % 将当前 attribute 的 r_all 和 rmse_all 值存入总的矩阵
-        a_for_excel_C_L(idx_attribute, :) = [a_CL_all(1,:),a_CL_all(2,:),a_CL_all(3,:),a_CL_all(4,:)];
+        a_for_excel_C_L(idx_attribute, :) = reshape(a_CL_all', 1, []);
         r_values_for_excel_C_L(idx_attribute, :) = r_CL_all';
         rmse_values_for_excel_C_L(idx_attribute, :) = rmse_CL_all';
 
-        a_for_excel_long_axis(idx_attribute, :) =...
-            [a_long_axis_all(1,:),a_long_axis_all(2,:),a_long_axis_all(3,:),a_long_axis_all(4,:)];
+        a_for_excel_long_axis(idx_attribute, :) = reshape(a_long_axis_all', 1, []);
         r_values_for_excel_long_axis(idx_attribute, :) = r_long_axis_all';
         rmse_values_for_excel_long_axis(idx_attribute, :) = rmse_long_axis_all';
 
-        a_for_excel_short_axis(idx_attribute, :) = ...
-            [a_short_axis_all(1,:),a_short_axis_all(2,:),a_short_axis_all(3,:),a_short_axis_all(4,:)];
+        a_for_excel_short_axis(idx_attribute, :) = reshape(a_short_axis_all', 1, []);
         r_values_for_excel_short_axis(idx_attribute, :) = r_short_axis_all';
         rmse_values_for_excel_short_axis(idx_attribute, :) = rmse_short_axis_all';
 
-        a_for_excel_hue_angle(idx_attribute, :) = ...
-            [a_hue_angle_all(1,:),a_hue_angle_all(2,:),a_hue_angle_all(3,:),a_hue_angle_all(4,:)];
+        a_for_excel_hue_angle(idx_attribute, :) = reshape(a_hue_angle_all', 1, []);
         r_values_for_excel_hue_angle(idx_attribute, :) = r_hue_angle_all';
         rmse_values_for_excel_hue_angle(idx_attribute, :) = rmse_hue_angle_all';
 
-        a_for_excel_theta(idx_attribute, :) = ...
-            [a_theta_all(1,:),a_theta_all(2,:),a_theta_all(3,:),a_theta_all(4,:)];
+        a_for_excel_theta(idx_attribute, :) = reshape(a_theta_all', 1, []);
         r_values_for_excel_theta(idx_attribute, :) = r_theta_all';
         rmse_values_for_excel_theta(idx_attribute, :) = rmse_theta_all';
 
-        a_for_excel_alpha(idx_attribute, :) = ...
-            [a_alpha_all(1,:),a_alpha_all(2,:),a_alpha_all(3,:),a_alpha_all(4,:)];
+        a_for_excel_alpha(idx_attribute, :) = reshape(a_alpha_all', 1, []);
         r_values_for_excel_alpha(idx_attribute, :) = r_alpha_all';
         rmse_values_for_excel_alpha(idx_attribute, :) = rmse_alpha_all';
         % 保存拟合参数
@@ -401,46 +398,45 @@ for i_obs = 1:length(obs_types)
     
     % --- 将 r_values_for_excel 和 rmse_values_for_excel 写入单独的 Excel 文件和 sheet ---
     excel_col_names = nations;
-    full_header = ["Attribute", excel_col_names];
+    full_header = [{"Attribute"}, cellstr(excel_col_names)];
     
     % C_L 相关性写入
-    repeated_names = repelem("", size(a_for_excel_C_L,1)-2);  
-    % repeated_names = repelem(excel_col_names, size(a_for_excel_C_L,1));    
-    full_header1 = ["Attribute", repeated_names];
+    % full_header1 列数 = 1(Attribute) + size(a_for_excel_C_L,2)
+    full_header1 = [{"Attribute"}, repmat({""},1,size(a_for_excel_C_L,2))];
     excel_filename_C_L = fullfile(r_excel_output_folder, strcat('correlation_C_L_', iOr, '_', obs_type, '.xlsx'));
-    writematrix([full_header1; [cellstr(attribute_names_new(attributes))', num2cell(a_for_excel_C_L)]], excel_filename_C_L, 'Sheet', 'a');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_C_L)]], excel_filename_C_L, 'Sheet', 'R_values');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_C_L)]], excel_filename_C_L, 'Sheet', 'RMSE_values');
+    writecell([full_header1; [cellstr(attribute_names_new(attributes))', num2cell(a_for_excel_C_L)]], excel_filename_C_L, 'Sheet', 'a');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_C_L)]], excel_filename_C_L, 'Sheet', 'R_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_C_L)]], excel_filename_C_L, 'Sheet', 'RMSE_values');
     fprintf('已将 %s 的 C_L 相关性矩阵和 RMSE 矩阵写入 Excel 文件。\n', obs_type);
 
     % 长轴相关性写入
     excel_filename_long_axis = fullfile(r_excel_output_folder, strcat('correlation_long_axis_', iOr, '_', obs_type, '.xlsx'));
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_long_axis)]], excel_filename_long_axis, 'Sheet', 'R_values');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_long_axis)]], excel_filename_long_axis, 'Sheet', 'RMSE_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_long_axis)]], excel_filename_long_axis, 'Sheet', 'R_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_long_axis)]], excel_filename_long_axis, 'Sheet', 'RMSE_values');
     fprintf('已将 %s 的长轴相关性矩阵和 RMSE 矩阵写入 Excel 文件。\n', obs_type);
     
     % 短轴相关性写入
     excel_filename_short_axis = fullfile(r_excel_output_folder, strcat('correlation_short_axis_', iOr, '_', obs_type, '.xlsx'));
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_short_axis)]], excel_filename_short_axis, 'Sheet', 'R_values');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_short_axis)]], excel_filename_short_axis, 'Sheet', 'RMSE_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_short_axis)]], excel_filename_short_axis, 'Sheet', 'R_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_short_axis)]], excel_filename_short_axis, 'Sheet', 'RMSE_values');
     fprintf('已将 %s 的短轴相关性矩阵和 RMSE 矩阵写入 Excel 文件。\n', obs_type);
 
     % 色调角相关性写入
     excel_filename_hue_angle = fullfile(r_excel_output_folder, strcat('correlation_hue_angle_', iOr, '_', obs_type, '.xlsx'));
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_hue_angle)]], excel_filename_hue_angle, 'Sheet', 'R_values');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_hue_angle)]], excel_filename_hue_angle, 'Sheet', 'RMSE_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_hue_angle)]], excel_filename_hue_angle, 'Sheet', 'R_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_hue_angle)]], excel_filename_hue_angle, 'Sheet', 'RMSE_values');
     fprintf('已将 %s 的色调角相关性矩阵和 RMSE 矩阵写入 Excel 文件。\n', obs_type);
 
     % 椭圆倾角相关性写入
     excel_filename_theta = fullfile(r_excel_output_folder, strcat('correlation_theta_', iOr, '_', obs_type, '.xlsx'));
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_theta)]], excel_filename_theta, 'Sheet', 'R_values');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_theta)]], excel_filename_theta, 'Sheet', 'RMSE_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_theta)]], excel_filename_theta, 'Sheet', 'R_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_theta)]], excel_filename_theta, 'Sheet', 'RMSE_values');
     fprintf('已将 %s 的椭圆倾角相关性矩阵和 RMSE 矩阵写入 Excel 文件。\n', obs_type);
 
     % 新增：alpha 相关性写入
     excel_filename_alpha = fullfile(r_excel_output_folder, strcat('correlation_alpha_', iOr, '_', obs_type, '.xlsx'));
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_alpha)]], excel_filename_alpha, 'Sheet', 'R_values');
-    writematrix([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_alpha)]], excel_filename_alpha, 'Sheet', 'RMSE_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(r_values_for_excel_alpha)]], excel_filename_alpha, 'Sheet', 'R_values');
+    writecell([full_header; [cellstr(attribute_names_new(attributes))', num2cell(rmse_values_for_excel_alpha)]], excel_filename_alpha, 'Sheet', 'RMSE_values');
     fprintf('已将 %s 的 Alpha 相关性矩阵和 RMSE 矩阵写入 Excel 文件。\n', obs_type);
 
     % --- Excel 写入结束 ---

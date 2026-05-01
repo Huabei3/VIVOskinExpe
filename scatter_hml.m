@@ -35,8 +35,8 @@ elseif iOr=='r'
     picnames_groups = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
              "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
 end
-% lightness_type="abs";
-lightness_type="rela";
+lightness_type="abs";
+% lightness_type="rela";
 color_type="lightness";
 load("documents\valid_attr.mat","map");
 
@@ -463,7 +463,7 @@ for i_obs=1:length(obs_types)
     %%
     opts.lim_min=0; 
     opts.lim_max=40;  
-    opts.targetFontSize=12;
+    opts.targetFontSize=10;
     opts.margin=0.17;    
     opts.label_type="hml";
     opts.if_rotate=false;

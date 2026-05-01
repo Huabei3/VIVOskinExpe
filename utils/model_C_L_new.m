@@ -39,42 +39,34 @@ function [r_val, a_val,RMSE] = model_C_L_new(output_folder,L_data, C_data, attri
         r_val = rmax;
         a_val = afinal;
 
-        % 创建新的图形窗口或使用现有图形窗口
-        h = figure(100 + i_nation); % 使用一个唯一的 ID 确保每个 nation 有一个 C-L 图
-        set(h, 'Name', ['C_L - ' char(attribute_serial) ' - ' num2str(i_nation)], 'NumberTitle', 'off');
-        hold on;
-        set(gcf, 'Color', 'white');
+        % 仅在 output_folder 非空时出图
+        if ~isempty(output_folder)
+            h = figure(100 + i_nation);
+            set(h, 'Name', ['C_L - ' char(attribute_serial) ' - ' num2str(i_nation)], 'NumberTitle', 'off');
+            hold on;
+            set(gcf, 'Color', 'white');
 
-        % 绘制拟合曲线
-        if ~any(isnan(afinal))
-            x_plot = min(L_valid):0.1:max(L_valid);
-            y_plot = f(afinal, x_plot);
-            plot(y_plot, x_plot, 'Color', nation_color, 'LineWidth', 1, 'LineStyle', line_style);
+            if ~any(isnan(afinal))
+                x_plot = min(L_valid):0.1:max(L_valid);
+                y_plot = f(afinal, x_plot);
+                plot(y_plot, x_plot, 'Color', nation_color, 'LineWidth', 1, 'LineStyle', line_style);
+            end
+
+            scatter(C_valid,L_valid, 20, nation_color, 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
+            ylabel('L_{ab}^*', 'FontSize', 12, 'FontAngle', 'italic');
+            xlabel('C^*', 'FontSize', 12, 'FontAngle', 'italic');
+            title(['C^* - L^*'], 'FontSize', 14);
+            grid on;
+            axis equal
+            interval = 10;
+            xticks(0:interval:35);
+            yticks(0:interval:80);
+            ylim([0, 80]);
+            xlim([0, 35]);
+
+            exportgraphics(h, fullfile(output_folder, strcat(attribute_serial, '_nation_', num2str(i_nation), '.jpg')), 'Resolution', 300);
+            close(h);
         end
-
-        % 亮度实验曲线 (假设 nation == 1 时绘制，可根据需要调整)
-        % if i_nation == 1
-        %     x2 = 10:0.1:70;
-        %     y2 = 6.7421 * (x2) - 9.9816;
-        %     plot(y2, x2, 'Color', 'k', 'LineWidth', 1, 'LineStyle', ':');
-        % end
-        scatter(C_valid,L_valid, 20, nation_color, 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
-
-        % 设置图表属性
-        ylabel('L_{ab}^*', 'FontSize', 12, 'FontAngle', 'italic');
-        xlabel('C^*', 'FontSize', 12, 'FontAngle', 'italic');
-        title(['C^* - L^*'], 'FontSize', 14);
-        grid on;
-        axis equal
-        interval = 10;
-        xticks(0:interval:35);
-        yticks(0:interval:80);
-        ylim([0, 80]);
-        xlim([0, 35]);
-
-
-        exportgraphics(h, fullfile(output_folder, strcat(attribute_serial, '_nation_', num2str(i_nation), '.jpg')), 'Resolution', 300);
-        close(h); % 关闭图形窗口，避免内存占用过高
     end
 end
 

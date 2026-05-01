@@ -7,7 +7,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 
 
-text_type="ch";
+text_type="eng";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -43,7 +43,7 @@ plot_style = {'^','<','v'};
 
 genders = ["f", "m"]; % 定义性别数组
 targetFontSize=12;
-interpreter_type = "latex"; % "tex" 或 "latex"
+interpreter_type = "tex"; % "tex" 或 "latex"
 % obs_types = ["model_group"];
 obs_types = ["non_model"];
 % obs_types = ["non_model", "model_group", "model"];
@@ -72,7 +72,7 @@ file_missing={};
 Dtype = 'efit_p';
 % Dtype = 'efit_p_free';
 scale_type_origin="unscaled";
-variable_type = "attr";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
+variable_type = "hml";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
 if iOr=='i'
     picnames_groups = ["h3k","h4k","h5k","h6k","hd65","h7k","h8k",...
             "m3k","m4k","m5k","m6k","md65","m7k","m8k",...
@@ -400,11 +400,19 @@ end  % end of for i_idx
     save(fullfile(output_folder, ...
                 strcat( "fitRes.mat")),"parNr_all");
     %%
+    imageNum_type="sing";
 
     opts.lim_min=0; 
     opts.lim_max=40;  
-    opts.targetFontSize=12;
-    opts.margin=0.22;   
+    
+    if strcmp(imageNum_type,"sing")
+        opts.margin=0.10;  
+        opts.targetFontSize=10;
+    else
+        opts.margin=0.15;   
+        opts.targetFontSize=15;
+    end
+    
     opts.refline_extend = 1.5;  % 参考线延长50%
     if strcmp(variable_type,"attr")
     opts.axis_limits=repmat([-5,40,-5,40],10,1);
@@ -437,10 +445,10 @@ end  % end of for i_idx
     s.colors_row1(4,:)=[1 0.5 0];
 
 
-
     %----------------------
     dir_figs=dir(fullfile(output_folder,"*.fig"));   
     clear("figFiles");i_fig1=1;
+
     for i_fig=1:length(dir_figs)
         if ~contains(dir_figs(i_fig).name, 'adjusted')
             continue;
@@ -448,12 +456,17 @@ end  % end of for i_idx
         figFiles{i_fig1}=dir_figs(i_fig).name;
         i_fig1=i_fig1+1;
     end
+
+    if strcmp(imageNum_type,"sing")
+    figFiles=figFiles(1);
+    end
+
     % figFiles = {'all_a_b.fig', 'all_L_C.fig'};
     % concatenate_figs1(outputFolder,figFiles);
     % paper_type="ICDT";
     paper_type="others";
     legend_file="";
-    s.interpreter_type="latex";
+    s.interpreter_type="tex";
     % concatenate_figs_legend(outputFolder, figFiles, 2,legend_file);
     if strcmp(iOr,"i")
         if strcmp(paper_type,"ICDT")
@@ -467,18 +480,32 @@ end  % end of for i_idx
             s.n_col2=2;
             s.colGap1_scale=1.3;
             s.colGap2_scale=1.8;
-            concatenate_figs_legend1(output_folder1, figFiles, 1,legend_file,"draw",s,0.1,0.9);
+            concatenate_figs_legend1(output_folder1, figFiles, 1, ...
+                legend_file,"draw",s,0.1,0.9);
         else
             s.leg_x_shift=-0.06;
             s.fontSizeScale=1.2;
-            if strcmp(variable_type,"attr")
-                s.row_gap = -0.12;
-                s.rowStep = 0.25;  % 控制两行之间的间距
-                concatenate_figs_legend1(output_folder, figFiles, 5, ...
-                    legend_file,"draw",s,0.01,0.5);
+            if strcmp(imageNum_type,"sing")
+                s.fontSizeScale=1.0;
+                s.if_label=0;
+                s.leg_x_shift=-0.23;
+                s.marginL=0.2;
+                s.iconTextGap=0.024;
+                s.colGap1_scale=1.3;
+                s.colGap2_scale=1.8;
+                concatenate_figs_legend1(output_folder, figFiles, 1, ...
+                    legend_file,"draw",s,0.1,0.9);
             else
-                concatenate_figs_legend1(output_folder, figFiles, 3, ...
-                    legend_file,"draw",s,0.1,1.5);
+                if strcmp(variable_type,"attr")
+                    s.row_gap = -0.12;
+                    s.rowStep = 0.25;  % 控制两行之间的间距
+                    concatenate_figs_legend1(output_folder, figFiles, 5, ...
+                        legend_file,"draw",s,0.01,0.5);
+                
+                else
+                    concatenate_figs_legend1(output_folder, figFiles, 3, ...
+                        legend_file,"draw",s,0.1,1.5);
+                end
             end
         end
     elseif strcmp(iOr,"r")

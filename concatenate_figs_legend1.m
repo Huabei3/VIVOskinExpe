@@ -177,10 +177,20 @@
             subAx.PlotBoxAspectRatio = tempAx.PlotBoxAspectRatio;
         end
         if ~isfield(legend_labels, 'preserve_text_fontsize') || ~legend_labels.preserve_text_fontsize        
-            set(subAx, 'FontSize', targetFontSize, 'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
+            if isfield(legend_labels, 'fontSizeScale')
+                set(subAx, 'FontSize', legend_labels.fontSizeScale * targetFontSize, ...
+                    'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
+            else
+                set(subAx, 'FontSize', targetFontSize, ...
+                    'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
+            end
         end
         % set([newXlabel, newYlabel, newTitle], 'FontSize', targetFontSize, 'FontWeight', 'normal');
-        set(newTitle, 'FontSize', targetFontSize, 'FontWeight', 'bold');
+        if isfield(legend_labels, 'fontSizeScale')
+            set(newTitle, 'FontSize', legend_labels.fontSizeScale * targetFontSize, 'FontWeight', 'bold');
+        else
+            set(newTitle, 'FontSize', targetFontSize, 'FontWeight', 'bold');
+        end
 
         if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"attr")
             set(newXlabel, 'FontSize', 1.2*targetFontSize, 'FontWeight', 'normal');
@@ -224,9 +234,15 @@
         % === 插入labels ===
         if isfield(legend_labels,"if_label")&&legend_labels.if_label
             letter_label = ['(', char('a' + i - 1), ')'];
-            text(subAx, 0.95, 0.05, letter_label, 'Units', 'normalized', ...
-                'FontSize', targetFontSize, 'FontWeight', 'bold', ...
-                'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
+            if isfield(legend_labels, 'fontSizeScale')
+                text(subAx, 0.95, 0.05, letter_label, 'Units', 'normalized', ...
+                    'FontSize', legend_labels.fontSizeScale * targetFontSize, 'FontWeight', 'bold', ...
+                    'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
+            else
+                text(subAx, 0.95, 0.05, letter_label, 'Units', 'normalized', ...
+                    'FontSize', targetFontSize, 'FontWeight', 'bold', ...
+                    'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
+            end
         end
 
 
@@ -404,6 +420,12 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
     markers_face_colors = legend_labels.markers_face_colors;
     colors_row1 = legend_labels.colors_row1;
     
+    % 获取缩放后的图例字号
+    if isfield(legend_labels, 'fontSizeScale')
+        legendFontSize = legend_labels.fontSizeScale * targetFontSize;
+    else
+        legendFontSize = targetFontSize;
+    end
     
     % 获取换行配置
     if isfield(legend_labels,"n_col1")
@@ -460,7 +482,7 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
         ty = label_Y - currR * rowStep;
         if isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'attr1')
             text(legAx, tx , ty, num2str(k), ...
-                'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
+                'FontSize', legendFontSize, 'VerticalAlignment', 'middle', ...
                 'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
         elseif isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'compare_nation')
             text_char=char(labels_row1{k});
@@ -501,7 +523,7 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                     'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
             else
                 text(legAx, tx , ty, text_char(1), ...
-                    'FontSize', targetFontSize, 'VerticalAlignment', 'middle', ...
+                    'FontSize', legendFontSize, 'VerticalAlignment', 'middle', ...
                     'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
             end    
         else
@@ -514,7 +536,7 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
             end
         end
         text(legAx, tx + iconTextGap, ty, labels_row1{k}, ...
-            'FontSize', targetFontSize, 'VerticalAlignment', 'middle', 'Interpreter', 'none');
+            'FontSize', legendFontSize, 'VerticalAlignment', 'middle', 'Interpreter', 'none');
     end
     
 
@@ -535,7 +557,7 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                 'MarkerFaceColor', markers_face_colors(k, :), ...
                 'MarkerSize', 10, 'LineWidth', 1.5, 'Clipping', 'off');
             text(legAx, tx + iconTextGap, ty, labels_row2{k}, ...
-                'FontSize', targetFontSize, 'VerticalAlignment', 'middle', 'Interpreter', 'none');
+                'FontSize', legendFontSize, 'VerticalAlignment', 'middle', 'Interpreter', 'none');
         end
     end
     uistack(legAx, 'top');

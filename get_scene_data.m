@@ -23,11 +23,15 @@ function [lab_out, p_out] = get_scene_data(picname, all_scenes, ...
 
 lab_out = [];
 p_out   = [];
-
+if strcmp(attribute,"Fidelity")
+    obs_type_used="model_group";
+else
+    obs_type_used="non_model";
+end
 logic_idx = (endsWith(all_scenes, picname)) & ...
             (all_ethnicities == string(nation)) & ...
             (all_attributes == attribute) & ...
-            (all_observer_types == "non_model");
+            (all_observer_types == obs_type_used);
 
 filtered_rows = VIVO_table(logic_idx, :);
 if size(filtered_rows, 1) == 0

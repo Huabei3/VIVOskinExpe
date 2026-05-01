@@ -35,24 +35,25 @@ function [r_val, a_val,RMSE] = model_short_axis(output_folder,L_data, short_axis
         r_val = rmax;
         a_val = afinal;
 
-        h = figure(300 + i_nation);
-        set(h, 'Name', ['Short Axis - ' char(attribute_serial) ' - ' num2str(i_nation)], 'NumberTitle', 'off');
-        hold on;
-        set(gcf, 'Color', 'white');
+        if ~isempty(output_folder)
+            h = figure(300 + i_nation);
+            set(h, 'Name', ['Short Axis - ' char(attribute_serial) ' - ' num2str(i_nation)], 'NumberTitle', 'off');
+            hold on;
+            set(gcf, 'Color', 'white');
 
-        if ~any(isnan(afinal))
-            x_plot = min(L_valid):0.1:max(L_valid);
-            y_plot = f(afinal, x_plot);
-            plot(x_plot, y_plot, 'Color', nation_color, 'LineWidth', 1, 'LineStyle', line_style);
+            if ~any(isnan(afinal))
+                x_plot = min(L_valid):0.1:max(L_valid);
+                y_plot = f(afinal, x_plot);
+                plot(x_plot, y_plot, 'Color', nation_color, 'LineWidth', 1, 'LineStyle', line_style);
+            end
+            scatter(L_valid, short_axis_valid, 20, nation_color, 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
+            ylabel('Short Axis Length', 'FontSize', 12);
+            xlabel('L^*', 'FontSize', 12, 'FontAngle', 'italic');
+            title(['Short Axis - L^*'], 'FontSize', 14);
+            grid on;
+
+            exportgraphics(h, fullfile(output_folder, strcat(attribute_serial, '_nation_', num2str(i_nation), '.jpg')), 'Resolution', 300);
+            close(h);
         end
-        scatter(L_valid, short_axis_valid, 20, nation_color, 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
-        ylabel('Short Axis Length', 'FontSize', 12);
-        xlabel('L^*', 'FontSize', 12, 'FontAngle', 'italic');
-        title(['Short Axis - L^*'], 'FontSize', 14);
-        grid on;
-
-
-        exportgraphics(h, fullfile(output_folder, strcat(attribute_serial, '_nation_', num2str(i_nation), '.jpg')), 'Resolution', 300);
-        close(h);
     end
 end

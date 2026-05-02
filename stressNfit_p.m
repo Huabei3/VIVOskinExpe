@@ -5,6 +5,7 @@ clear;     % 清除工作区所有变量
 addpath("utils\")
 
 %% 参数设置
+if_fit = "false";         % "true": 进行椭圆拟合, "false": 只更新labNscore不拟合
 if_fit_again = "false";  % "true": 重新拟合, "false": 如果已有结果则跳过
 %% 生成目录
 %
@@ -26,14 +27,14 @@ for i_lastPart = length(lastParts):-1:1
 % for i_lastPart = 1:length(lastParts)
     lastPart = lastParts{i_lastPart};
     %--------non-model-group-------------
-    source_folder = fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
-        lastPart,'non_model');
-    group_type=1;
+    % source_folder = fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
+    %     lastPart,'non_model');
+    % group_type=1;
 
     %--------model-group-------------
-    % source_folder =  fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
-    %     lastPart,'model_group');
-    % group_type=2;
+    source_folder =  fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
+        lastPart,'model_group');
+    group_type=2;
     %--------model-------------
     % source_folder =  fullfile('D:\work\VIVOskinExpe\analyze\expRes\renamed', ...
     %     lastPart,'model');
@@ -135,7 +136,10 @@ for i_lastPart = length(lastParts):-1:1
 
 
 
+
+
         % 拟合椭圆
+        if strcmp(if_fit, "true")
         outputFolder = fullfile(output_folder, 'ellipPara');
         if ~exist(outputFolder, 'dir')
             mkdir(outputFolder);
@@ -285,6 +289,7 @@ for i_lastPart = length(lastParts):-1:1
         
         % 生成 list 并保存为表格文件
         generate_list(output_folder, par_all, r_all, average);
+        end % end of if_fit
     end
     
     currentTime = datetime('now');

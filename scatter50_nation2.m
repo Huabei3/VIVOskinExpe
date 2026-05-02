@@ -17,8 +17,12 @@ elseif strcmp(text_type,"ch")
     attribute_names_new = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
     "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
-
-nations = ["AS", "CA", "DA", "all"];
+nation_type="ACSA";
+if strcmp(nation_type,"ACSA")
+    nations = ["AS", "CA", "SA","AF", "all"];
+elseif strcmp(nation_type,"ACD")
+    nations = ["AS", "CA", "DA", "all"];
+end
 
 lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
@@ -49,30 +53,58 @@ obs_types = ["non_model"];
 % obs_types = ["non_model", "model_group", "model"];
 % 定义人种对应的lastParts索引
 nation_indices = cell(5, 1); % 5个人种（包括"all"）
-% AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
-nation_indices{1} = 1:6;
-% CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
-nation_indices{2} = 7:12;
-% SA (South Asian & African): f07i, f08i, m07i, m08i (索引13-16),f09i, f10i, m09i, m10i (索引17-20)
-% nation_indices{3} = 13:20;
-% % all: 所有索引 (索引1-20)
-% nation_indices{4} = 1:20;
-nation_indices{3} = 13:16;
-% all: 所有索引 (索引1-20)
-nation_indices{4} = 17:20;
+if strcmp(nation_type,"ACSA")
+    % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
+    nation_indices{1} = 1:6;
+    % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
+    nation_indices{2} = 7:12;
+    % SA (South Asian & African): f07i, f08i, m07i, m08i (索引13-16),
+    nation_indices{3} = 13:16;
+    %f09i, f10i, m09i, m10i (索引17-20)
+    nation_indices{4} = 17:20;
+    % all: 所有索引 (索引1-20)
+    nation_indices{5} = 1:20;
+elseif strcmp(nation_type,"ACD")
+    % AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
+    nation_indices{1} = 1:6;
+    % CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
+    nation_indices{2} = 7:12;
+    % SA (South Asian & African): f07i, f08i, m07i, m08i (索引13-16),f09i, f10i, m09i, m10i (索引17-20)
+    nation_indices{3} = 13:20;
+    % all: 所有索引 (索引1-20)
+    nation_indices{4} = 1:20;
+end
 
 % 初始化重塑后的数据结构
-average_reshaped = cell(5, 1); % 5个人种
-labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
-            [64.15	19.56	19.63	27.71	45.10];...
-            [56.01	18.25	18.72	26.14	45.72];...
-            [41.06	17.37	17.94	24.97	45.93]];
-labCh_PMCC(end+1,:)=mean(labCh_PMCC,1);
+average_reshaped = cell(length(nations), 1);
+% labCh_PMCC 根据 nation_type 动态定义
+if strcmp(nation_type,"ACSA")
+    % AS, CA, SA, AF, all — 5行
+    labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
+                [64.15	19.56	19.63	27.71	45.10];...
+                [56.01	18.25	18.72	26.14	45.72];...
+                [41.06	17.37	17.94	24.97	45.93];...
+                mean([62.11	18.96	19.76	27.39	46.18;...
+                    64.15	19.56	19.63	27.71	45.10;...
+                    56.01	18.25	18.72	26.14	45.72;...
+                    41.06	17.37	17.94	24.97	45.93],1)];
+elseif strcmp(nation_type,"ACD")
+    % AS, CA, DA(=SA+AF合并), all — 4行
+    % DA 的 PMCC 中心用 SA+AF 的均值
+    labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
+                [64.15	19.56	19.63	27.71	45.10];...
+                mean([56.01	18.25	18.72	26.14	45.72;...
+                    41.06	17.37	17.94	24.97	45.93],1);...
+                mean([62.11	18.96	19.76	27.39	46.18;...
+                    64.15	19.56	19.63	27.71	45.10;...
+                    56.01	18.25	18.72	26.14	45.72;...
+                    41.06	17.37	17.94	24.97	45.93],1)];
+end
 file_missing={};
 Dtype = 'efit_p';
 % Dtype = 'efit_p_free';
 scale_type_origin="unscaled";
-variable_type = "hml";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
+variable_type = "attr";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
 if iOr=='i'
     picnames_groups = ["h3k","h4k","h5k","h6k","hd65","h7k","h8k",...
             "m3k","m4k","m5k","m6k","md65","m7k","m8k",...
@@ -81,7 +113,7 @@ elseif iOr=='r'
     picnames_groups = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
              "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
 end
-scale_type="scaled";
+scale_type="unscaled";
 if iOr=='i'
     target_indices{1}=5;
     target_indices{2}=12;
@@ -218,7 +250,7 @@ if strcmp(Dtype,"efit_p_free")
 elseif strcmp(Dtype,"efit_p")
     ellip_pic_folder="ellip_pic_p";
 end
-save_folder = fullfile(ellip_pic_folder, Dtype,"50",scale_type,variable_type);
+save_folder = fullfile(ellip_pic_folder, Dtype,"50",scale_type,variable_type,nation_type);
 if ~exist(save_folder, "dir")
     mkdir(save_folder);
 end
@@ -244,7 +276,7 @@ targetFontSize=12;
 
 % outputFolder=fullfile("AnalyseResults_p",Dtype,"50", ...
 %             scale_type_origin,"nation1");
-output_folder = fullfile(save_folder,"nation1",iOr,obs_type,text_type,variable_type);
+output_folder = fullfile(save_folder,"nation1",iOr,obs_type,text_type,variable_type,nation_type);
 if ~exist(output_folder, "dir")
     mkdir(output_folder);
 end
@@ -317,14 +349,15 @@ for i_idx = target_idx_loop
 
                     parNr_all{i_obs, i_nation, attribute} = parNr;
                     hue_all{i_obs, i_nation, attribute}=atan2d(par(5),par(4));
-                    plot(labCh_PMCC(i_nation,2), labCh_PMCC(i_nation,3), 's', 'MarkerSize', 4, ...
-                    'MarkerFaceColor', "none", 'MarkerEdgeColor',colors(i_nation,:),'LineWidth',1);
-
-
-                    Contour50(par, lab_group, MSV_group, "nation1", ...
-                        average_nations{i_indices}, ...  % 调整参数索引
-                        colors(i_nation,:), line_style, ...
-                        plot_style, "");
+                    % i_nation = length(nations) 时为 "all"，只拟合不绘制
+                    if i_nation ~= length(nations)
+                        plot(labCh_PMCC(i_nation,2), labCh_PMCC(i_nation,3), 's', 'MarkerSize', 4, ...
+                            'MarkerFaceColor', "none", 'MarkerEdgeColor',colors(i_nation,:),'LineWidth',1);
+                        Contour50(par, lab_group, MSV_group, "nation1", ...
+                            average_nations{i_indices}, ...  % 调整参数索引
+                            colors(i_nation,:), line_style, ...
+                            plot_style, "");
+                    end
                     % scatter(lab_group(:,2),lab_group(:,3), 10, MSV_group, 'filled'); 
 
                     %保存ellipPara
@@ -421,10 +454,18 @@ end  % end of for i_idx
     adjust_fig(output_folder, opts);
 %%
     if strcmp(text_type,"eng")
-        s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
+        if strcmp(nation_type,"ACSA")
+            s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
+        elseif strcmp(nation_type,"ACD")
+            s.labels_row1 = {'Asian', 'Caucasian', 'DA'};
+        end
         s.labels_row2 = {'preference center', 'PMCC'};
     elseif strcmp(text_type,"ch")
-        s.labels_row1 = {"亚洲人", "高加索人", "南亚人", "非洲人"};
+        if strcmp(nation_type,"ACSA")
+            s.labels_row1 = {"亚洲人", "高加索人", "南亚人", "非洲人"};
+        elseif strcmp(nation_type,"ACD")
+            s.labels_row1 = {"亚洲人", "高加索人", "DA"};
+        end
         s.labels_row2 = {'喜好中心', 'PMCC'};
     end
 
@@ -433,7 +474,7 @@ end  % end of for i_idx
     s.markers_face_colors=[0 0 0; 1 1 1];
     s.sidePad=0.2;
     s.if_label=1;
-    s.n_col1=4;
+    s.n_col1=length(s.labels_row1);
     s.n_col2=2;
     
     num_attributes = numel(s.labels_row1);
@@ -441,8 +482,12 @@ end  % end of for i_idx
     hue_values = hue_values(1:end-1);
     hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
     s.colors_row1 = hsv2rgb(hsv_matrix);
-    s.colors_row1(3,:)=[0 0 0];
-    s.colors_row1(4,:)=[1 0.5 0];
+    if strcmp(nation_type,"ACSA")
+        s.colors_row1(3,:)=[0 0 0];     % South Asian → 黑色
+        s.colors_row1(4,:)=[1 0.5 0];   % African → 橙色
+    elseif strcmp(nation_type,"ACD")
+        s.colors_row1(3,:)=[0 0 0];     % DA → 黑色
+    end
 
 
     %----------------------

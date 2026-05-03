@@ -17,7 +17,8 @@ lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 % 'f07r', 'f08r','m07r', 'm08r',...
 % 'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
 CT_type="d65";
-fit_type="new";
+fit_type="new1";
+% fit_type="new";
 if iOr == 'i'
     if strcmp(CT_type,"3k")
         indices_target = [1, 8, 15];
@@ -84,11 +85,11 @@ Dtype = 'efit_p';
 % Dtype = 'noCAT';
 scale_type_origin="unscaled";
 
-pic_folder = fullfile('ellip_pic_p', Dtype, "fullpara",CT_type,"new");
+pic_folder = fullfile('ellip_pic_p', Dtype, "fullpara",CT_type,fit_type);
 if ~exist(pic_folder, 'dir')
     mkdir(pic_folder);
 end
-
+fullfile(pwd,pic_folder)
 
 
 % 定义一个函数来分离性别索引
@@ -291,14 +292,58 @@ for i_obs = 1:length(obs_types)
             %--------测试-反算椭圆------------------
             % --- 调用建模函数并保存结果 ---
             % C_L 建模
-            if enable_plotting
-                output_folder = fullfile(pic_folder,'C_L', iOr);
-                if ~exist(output_folder, 'dir')
-                    mkdir(output_folder);
+            if strcmp(fit_type, "new1")
+                % new1: 使用对数模型 C = a1*log(L) + a2 (model_C_L_BIC case 4)
+                [a_C_L, RSS_C_L, ~, ~] = model_C_L_BIC(L_all, C_all, 4);
+                if ~any(isnan(a_C_L))
+                    f_log = @(a, x) a(1)*log(x) + a(2);
+                    valid_idx = ~isnan(L_all) & ~isnan(C_all) & L_all > 0;
+                    C_pred = f_log(a_C_L, L_all(valid_idx));
+                    C_true = C_all(valid_idx);
+                    r_C_L = corr(C_pred, C_true);
+                    RMSE_C_L = sqrt(RSS_C_L / sum(valid_idx)) / mean(C_true);
+                else
+                    a_C_L = [NaN, NaN];
+                    r_C_L = NaN;
+                    RMSE_C_L = NaN;
                 end
-                [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new(output_folder,L_all, C_all, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
+                if enable_plotting
+                    output_folder = fullfile(pic_folder,'C_L', iOr);
+                    if ~exist(output_folder, 'dir')
+                        mkdir(output_folder);
+                    end
+                    if ~any(isnan(a_C_L))
+                        valid_idx = ~isnan(L_all) & ~isnan(C_all) & L_all > 0;
+                        L_v = L_all(valid_idx); C_v = C_all(valid_idx);
+                        h = figure(100 + i_nation);
+                        set(h, 'Name', ['C_L - ' char(attribute_serial) ' - ' num2str(i_nation)], 'NumberTitle', 'off');
+                        hold on; set(gcf, 'Color', 'white');
+                        x_plot = min(L_v):0.1:max(L_v);
+                        y_plot = f_log(a_C_L, x_plot);
+                        plot(y_plot, x_plot, 'Color', colors(i_nation,:), 'LineWidth', 1, 'LineStyle', line_styles{line_style_idx});
+                        scatter(C_v, L_v, 20, colors(i_nation,:), 'filled', 'MarkerEdgeColor', 'k', 'LineWidth', 0.5);
+                        ylabel('L_{ab}^*', 'FontSize', 12, 'FontAngle', 'italic');
+                        xlabel('C^*', 'FontSize', 12, 'FontAngle', 'italic');
+                        title('C^* - L^* (log)', 'FontSize', 14);
+                        grid on; axis equal;
+                        interval = 10;
+                        xticks(0:interval:35); yticks(0:interval:80);
+                        ylim([0, 80]); xlim([0, 35]);
+                        exportgraphics(h, fullfile(output_folder, strcat(attribute_serial, '_nation_', num2str(i_nation), '.jpg')), 'Resolution', 300);
+                        close(h);
+                    end
+                end
             else
-                [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new([],L_all, C_all, attribute_serial, [], [], Dtype, iOr, i_nation);
+                % new (默认): 线性模型 C = a1*L + a2
+                if enable_plotting
+                    output_folder = fullfile(pic_folder,'C_L', iOr);
+                    if ~exist(output_folder, 'dir')
+                        mkdir(output_folder);
+                    end
+                    [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new(output_folder,L_all, C_all, attribute_serial, colors(i_nation, :), line_styles{line_style_idx}, Dtype, iOr, i_nation);
+                else
+                    [r_C_L, a_C_L, RMSE_C_L] = model_C_L_new([],L_all, C_all, attribute_serial, [], [], Dtype, iOr, i_nation);
+                end
             end
             r_CL_all(i_nation) = r_C_L;
             rmse_CL_all(i_nation) = RMSE_C_L;
@@ -447,40 +492,4 @@ for i_obs = 1:length(obs_types)
     % output_folder_long_axis_curve_fit = fullfile("ellip_pic_p", Dtype, "long_axis", iOr, "curve_fit");
     % concatenate_images1(output_folder_long_axis_curve_fit, 5);
 end
-%%
-% 主脚本结束
-% 定义基础路径
-source_folder =pic_folder; 
-% source_folder = fullfile('ellip_pic_p',Dtype,'fullpara',CT_type); % 替换为你的实际路径
-
-% 定义一级子文件夹的名称
-subfolders = {'alpha', 'C_L', 'hue_angle', 'long_axis', 'short_axis', 'theta'};
-
-% 循环生成每个 i_nation 的 dir_res
-for i_nation = 1:4
-    % 创建一个元胞数组来存储当前 i_nation 的所有文件路径
-    dir_res=[];
-    
-    % 假设二级子文件夹的名称是 "i"
-    i = 'i'; 
-    
-    % 遍历6个一级子文件夹，生成完整的路径
-    for j = 1:length(subfolders)
-        % 构造完整的路径
-        file_name = sprintf('01Preference_nation_%d.jpg', i_nation);
-        full_path = fullfile(source_folder, subfolders{j}, i, file_name);
-        
-        % 存储到 dir_res 列表中
-        dir_res = [dir_res;dir(full_path)];
-    end
-    
-    % 在这里，dir_res 变量包含了 i_nation 对应的6个文件路径
-    % 你可以打印出来查看，或者在后续代码中使用它
-    fprintf('dir_res for i_nation = %d:\n', i_nation);
-    disp(dir_res);
-    
-    % 假设你需要将这些文件路径用于某个函数，可以像下面这样调用：
-    concatenate_images_dir(dir_res,fullfile( source_folder,sprintf('01Preference_nation_%d.jpg', i_nation)), 2); 
-    % 请注意：你之前的 concatenate_images 函数接受一个包含 .jpg 文件的文件夹路径，
-    % 而不是文件路径列表。如果需要处理此列表，你需要修改函数逻辑。
-end
+fullfile(pwd,r_excel_output_folder)

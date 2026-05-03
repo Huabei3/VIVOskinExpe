@@ -9,33 +9,48 @@
 clc; clear;
 addpath("utils\");
 
-%% ========== 加载 BIC 结果 ==========
+%% ========== 加载 BIC 结果（按 formula 分文件夹读取）==========
 Dtype = 'efit_p';
 scale_type_origin = "unscaled";
 CT_type = "d65";
 iOr = 'i';
 obs_type = "non_model";
 
-mat_file = fullfile('AnalyseResults_p', Dtype, scale_type_origin, ...
-    "model_fullpara", CT_type, "new", iOr, obs_type, 'BIC_results_all.mat');
+base_folder = fullfile('AnalyseResults_p', Dtype, scale_type_origin, ...
+    "model_fullpara", CT_type, "new", iOr, obs_type, "BIC");
 
-if ~exist(mat_file, 'file')
-    error('BIC 结果文件不存在: %s\n请先运行 scatter_L_depend_BIC.m', mat_file);
-end
-
-data = load(mat_file);
-a_BIC = data.a_BIC;
-RSS_BIC = data.RSS_BIC;
-BIC_val = data.BIC_val;
-k_val = data.k_val;
-attributes = data.attributes;
-attribute_names_new = data.attribute_names_new;
-nations = data.nations;
-formula_names = data.formula_names;
-
+formula_names = {"Constant", "Linear", "Quadratic", "Logarithmic", "Piecewise-Lin-Con"};
+n_formulas = length(formula_names);
+attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
+    "Youth", "Healthy", "Fidelity", "Harmony", "Fair", "Ruddy"];
+nations = ["AS", "CA", "SA", "AF", "all"];
 n_attributes = length(attributes);
 n_nations = length(nations);
-n_formulas = length(formula_names);
+
+% 初始化三维数组（与旧格式保持一致）
+a_BIC   = cell(n_attributes, n_nations, n_formulas);
+RSS_BIC = NaN(n_attributes, n_nations, n_formulas);
+BIC_val = NaN(n_attributes, n_nations, n_formulas);
+k_val   = NaN(n_attributes, n_nations, n_formulas);
+
+for j = 1:n_formulas
+    formula_name = char(formula_names{j});
+    formula_folder = fullfile(base_folder, formula_name);
+    mat_file = fullfile(formula_folder, strcat('BIC_', formula_name, '.mat'));
+
+    if ~exist(mat_file, 'file')
+        warning('文件不存在，跳过: %s', mat_file);
+        continue;
+    end
+
+    data = load(mat_file);
+    a_BIC(:, :, j)   = data.a_BIC_one;
+    RSS_BIC(:, :, j)  = data.RSS_BIC_one;
+    BIC_val(:, :, j)  = data.BIC_val_one;
+    k_val(:, :, j)    = data.k_val_one;
+    fprintf('已加载: %s\n', mat_file);
+end
 
 %% ========== 构建 XLSX 数据 (转置结构) ==========
 % 参数行: k, <nation1> RSS, <nation1> BIC, <nation2> RSS, <nation2> BIC, ...

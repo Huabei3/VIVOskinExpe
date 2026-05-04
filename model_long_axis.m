@@ -8,7 +8,7 @@ function [r_val, a_val,RMSE] = model_long_axis(output_folder,L_data, long_axis_d
     L_valid = L_data(valid_indices);
     long_axis_valid = long_axis_data(valid_indices);
 
-    if length(L_valid) > 4 % 三次函数需要至少 4 个点
+    if length(L_valid) >= 4 % 三次函数需要至少 4 个点
         f = @(a, xdata)(a(1).*xdata.^3 + a(2).*xdata.^2 + a(3).*xdata + a(4));
 
         rmax = -inf;

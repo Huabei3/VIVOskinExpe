@@ -1,7 +1,9 @@
-%% XLSX_L_depend.m - 将拟合参数写入Excel（参考草稿5.3.xlsx格式）
-% 读取 *_all_curve_params.mat，每个attribute一个sheet
-% v2: 输出5个nation；theta执行mod(theta+90,360)；数字保留2位小数
-% 用法: 在 MATLAB 命令行运行:  XLSX_L_depend
+%% gen_parameter_tables.m
+% 从 *_all_curve_params.mat 提取参数，按草稿5.3格式生成 xlsx
+% 每个 attribute 一个 sheet
+% v2: θ 值执行 mod(theta+90,360) 调整；数字保留2位小数；
+%     参数块间不空行；用 writecell 写 xlsx（'Sheet' 参数追加 sheet）
+% 用法: 在 MATLAB 命令行运行:  gen_parameter_tables
 
 clear; clc;
 
@@ -20,23 +22,23 @@ N_NATIONS = 5;
 % 参数块定义: {mat_key_prefix, display_name, n_params, has_model, is_angular}
 % is_angular=true 时对该参数执行 mod(theta+90,360)
 PARAM_BLOCKS = {
-    {'CL',         'C*',   2, true,  false};
-    {'long_axis',  '长轴长', 4, true,  false};
-    {'short_axis', '短轴长', 4, true,  false};
-    {'hue_angle',  'hab',   1, false, false};
-    {'theta',      'θ',     1, false, true };
-    {'alpha',      'α',     1, false, false};
+    {'CL',         'C*_ab', 2, true,  false};
+    {'long_axis',  'a_maj', 4, true,  false};
+    {'short_axis', 'b_min', 4, true,  false};
+    {'hue_angle',  'h_ab',  1, false, false};
+    {'theta',      'theta',  1, false, true };
+    {'alpha',      'alpha',  1, false, false};
 };
 
 fprintf('开始生成 %s ...\n', OUT_FILE);
 
-% 删除旧文件（writecell 第一次调用创建文件，后续追加sheet）
+% === 先删除目标文件（writecell 第一次调用会创建文件）===
 if exist(OUT_FILE, 'file')
     delete(OUT_FILE);
     fprintf('已删除旧文件\n');
 end
 
-% 收集 NaN 报告
+% 用于收集 NaN 报告
 nan_report = {};
 
 for i_attr = 1:length(ATTR_NAMES)
@@ -47,10 +49,11 @@ for i_attr = 1:length(ATTR_NAMES)
         continue;
     end
     
+    % 加载数据
     d = load(mat_file);
     
-    % 构建 sheet 数据（预估最多50行）
-    sheet_data = cell(60, N_NATIONS + 1);
+    % 构建当前 sheet 的 cell 数组
+    sheet_data = cell(50, N_NATIONS + 1);
     
     row = 1;
     % 第1行: 空 + nation 名称
@@ -166,7 +169,17 @@ for i_attr = 1:length(ATTR_NAMES)
     % 裁剪
     sheet_data = sheet_data(1:row-1, :);
     
-    % 写入 xlsx（writecell 在文件存在时会追加sheet）
+    % 安全处理：确保 NaN 全部替换为 '--'（防止 cell 数组中残留数值 NaN）
+    for r = 1:size(sheet_data, 1)
+        for c = 1:size(sheet_data, 2)
+            if iscell(sheet_data) && isnumeric(sheet_data{r, c}) && isnan(sheet_data{r, c})
+                sheet_data{r, c} = '--';
+            end
+        end
+    end
+    
+    % 写入 xlsx（用 writecell + 'Sheet' 参数追加 sheet）
+    % writecell 在文件已存在时，指定 'Sheet' 会创建新 sheet 而不覆盖已有 sheet
     writecell(sheet_data, OUT_FILE, 'Sheet', attr_name);
     
     fprintf('Sheet "%s" done (%d rows)\n', attr_name, row-1);

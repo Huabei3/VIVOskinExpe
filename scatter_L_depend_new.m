@@ -211,7 +211,7 @@ for i_obs = 1:length(obs_types)
     plot_style_idx = min(i_obs, length(plot_styles));
     
     % 遍历属性
-    % for idx_attribute = 7:length(attributes) 
+    % for idx_attribute = [3] 
     for idx_attribute = 1:length(attributes) % 使用新的索引来遍历 attributes 数组
         attribute = attributes(idx_attribute);
         attribute_serial = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
@@ -371,6 +371,9 @@ for i_obs = 1:length(obs_types)
             else
                 [r_short_axis, a_short_axis, RMSE_axis] = model_short_axis([],L_all, short_axis, attribute_serial, [], [], Dtype, iOr, i_nation);
             end
+            % if i_nation==4
+            %     disp("d")
+            % end
             r_short_axis_all(i_nation) = r_short_axis;
             rmse_short_axis_all(i_nation) = RMSE_axis;
             a_short_axis_all(i_nation, :) = a_short_axis;

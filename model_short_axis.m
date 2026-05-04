@@ -9,7 +9,7 @@ function [r_val, a_val,RMSE] = model_short_axis(output_folder,L_data, short_axis
     L_valid = L_data(valid_indices);
     short_axis_valid = short_axis_data(valid_indices);
 
-    if length(L_valid) > 4
+    if length(L_valid) >= 4
         f = @(a, xdata)(a(1).*xdata.^3 + a(2).*xdata.^2 + a(3).*xdata + a(4));
 
         rmax = -inf;

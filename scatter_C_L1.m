@@ -478,6 +478,7 @@ for i_obs = 1:length(obs_types_plotting)
         if ~exist(output_folder_curves, 'dir')
             mkdir(output_folder_curves);
         end
+        fullfile(pwd,output_folder_base)
         grid off;box on;
         img_name=fullfile(output_folder_curves, strcat(attribute_serial, '.jpg'));
         savefig(gcf, strrep(img_name,'jpg','fig'));
@@ -600,7 +601,7 @@ opts.margin_type="Position";
 adjust_fig(output_folder, opts);
 %%
 
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
     s.labels_row2 = {};
@@ -640,6 +641,8 @@ for i_fig=1:length(dir_figs)
 end
 
 legend_file="";
-concatenate_figs_legend1(output_folder, figFiles, 2,legend_file,"draw",s,0.25,1.2);
+s.label_x_offset=-2;
+s.label_y_offset=-2;
+concatenate_figs_legend1(output_folder, figFiles, 2,legend_file,"draw",s,0.25,1.1);
 
 fullfile(pwd,output_folder)

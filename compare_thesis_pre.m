@@ -28,7 +28,7 @@ CaoCIC(:,2)=CaoCIC(:,4).*cosd(CaoCIC(:,5));
 CaoCIC(:,3)=CaoCIC(:,4).*sind(CaoCIC(:,5));
 
 Zeng=[[0,18,21];[0,17,16];[0,0,0];[0,21,29]];%这个是肤色统计中心
-interpreter_type="latex";
+interpreter_type="tex";
 %%
 L_my=[[68.9490886950538	16.0083688942274	18.1852700776910];
 [69.8478673702026	18.3728292750543	15.3556270255683];
@@ -130,35 +130,35 @@ prev_cell{curr_row,3}=["Asian","Caucasian","Indian","African-American","Mixed"];
 prev_cell{curr_row,4}=["亚洲人","白人","印度人","非裔美国人","混合人种"];
 curr_row=curr_row+1;
 %-----------Zeng2009
-clear("lab_est");
-lab_est = [    
-    [59,19, 20];  
-    [59,19, 20] ;  
-    [0,0,0];
-    [0,18.5,19.5];  
-];
-
-
-prev_cell{curr_row,1}=lab_est;
-prev_cell{curr_row,2}="Zeng et al. (2009)";
-prev_cell{curr_row,3}=["Oriental","Caucasian","","Dark skin"];
-prev_cell{curr_row,4}=["东方人","白种人","","深色皮肤"];
-curr_row=curr_row+1;
+% clear("lab_est");
+% lab_est = [    
+%     [59,19, 20];  
+%     [59,19, 20] ;  
+%     [0,0,0];
+%     [0,18.5,19.5];  
+% ];
+% 
+% 
+% prev_cell{curr_row,1}=lab_est;
+% prev_cell{curr_row,2}="Zeng et al. (2009)";
+% prev_cell{curr_row,3}=["Oriental","Caucasian","","Dark skin"];
+% prev_cell{curr_row,4}=["东方人","白种人","","深色皮肤"];
+% curr_row=curr_row+1;
 
 %-----------Zeng2010
-clear("lab_est");
-lab_est = [[0,0, 0];
-    [0,0, 0];
-    [0,0, 0];
-    [0,0, 0];
-    [0,21, 24]];
-
-
-prev_cell{curr_row,1}=lab_est;
-prev_cell{curr_row,2}="Zeng et al. (2010)";
-prev_cell{curr_row,3}=["","","","","Mixed"];
-prev_cell{curr_row,4}=["","","","","混合人种"];
-curr_row=curr_row+1;
+% clear("lab_est");
+% lab_est = [[0,0, 0];
+%     [0,0, 0];
+%     [0,0, 0];
+%     [0,0, 0];
+%     [0,21, 24]];
+% 
+% 
+% prev_cell{curr_row,1}=lab_est;
+% prev_cell{curr_row,2}="Zeng et al. (2010)";
+% prev_cell{curr_row,3}=["","","","","Mixed"];
+% prev_cell{curr_row,4}=["","","","","混合人种"];
+% curr_row=curr_row+1;
 %-----------Zeng2011
 clear("lab_est");
 % lab_est = [[0,18,21];[0,17,16];[0,0,0];[0,21,29]];%这个是统计喜好中心
@@ -166,6 +166,17 @@ lab_est = [[0,19.9, 22.8];
     [0,21.4, 24.1];
     [0,0, 0];
     [0,21.2, 24.8]];
+xyz_est=lab2xyz2(lab_est,"d65_64");
+wd65=CCT2xyz(6500,0,10);
+wd50=CCT2xyz(5000,0,10);
+F=0.8;
+omega=2*pi*(1-cos(pi/36));
+S=0.0124; %164.07*75.57*(10^(-6))
+E=120;
+LA=E./S.*omega;
+D = F*(1-(1/3.6)*exp((-LA-42)/92));
+XYZ_aft = CAT16_D(xyz_est,  wd65,wd50, D);
+lab_est = xyz2lab(XYZ_aft, 'd65_64');
 
 prev_cell{curr_row,1}=lab_est;
 prev_cell{curr_row,2}="Zeng et al. (2011)";
@@ -244,8 +255,8 @@ end
 
 % label_type="ACSA";
 % label_type="only_my";
-label_type="include_this";
-% label_type="exclude_this";
+% label_type="include_this";
+label_type="exclude_this";
 output_folder=fullfile(ellip_pic_folder,Dtype,"compare_thesis_pre",label_type);
 
 if ~exist(output_folder,"dir")
@@ -344,19 +355,19 @@ for i_eth=1:size(ethnic_groups,2)
     
                     if lab_pre(1,2)~=0
                     if strcmp(author_str,"Park et al. (2006)")
-                        author_str_used="P1";
+                        author_str_used="Pa";
                     elseif strcmp(author_str,"Peng et al. (2020)")
                         author_str_used="P3";
                     elseif strcmp(author_str,"Peng et al. (2023)")
-                        author_str_used="P2";
+                        author_str_used="P";
                     elseif strcmp(author_str,"Zeng et al. (2010)")
                         author_str_used="Z1";
                     elseif strcmp(author_str,"Zeng et al. (2011)")
                         author_str_used="Z";
                     elseif strcmp(author_str,"Yano et al. (1998)")
-                        author_str_used="Y1";
+                        author_str_used="Yn";
                     elseif strcmp(author_str,"Yamamoto et al. (2002)")
-                        author_str_used="Y2";
+                        author_str_used="Ym";
                     else
                         author_str_used=author_str(1);
                     end
@@ -516,6 +527,9 @@ for s_idx = 1:1
     suffix = view_settings{s_idx, 2};
     
     % 更新坐标轴
+    if strcmp(label_type,"exclude_this")
+        current_lims=[12,26,12,26];
+    end
     xlim([current_lims(1), current_lims(2)]);
     ylim([current_lims(3), current_lims(4)]);
     

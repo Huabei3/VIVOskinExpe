@@ -17,15 +17,15 @@ elseif strcmp(text_type,"ch")
     attribute_names = ["喜好的", "有吸引力的", "女性化的", "友善的", ...
     "年轻的", "健康的", "真实还原的", "与环境适配的", "白皙的", "红润的"];
 end
-% lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
-% 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
-% 'f07i', 'f08i','m07i', 'm08i',...
-% 'f09i', 'f10i','m09i', 'm10i'};n_para = 21;iOr='i';
+lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
+'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
+'f07i', 'f08i','m07i', 'm08i',...
+'f09i', 'f10i','m09i', 'm10i'};n_para = 21;iOr='i';
 
-lastParts = {'f04r', 'f05r', 'f06r', 'm04r', 'm05r', 'm06r',...
-'f01r', 'f02r', 'f03r', 'm01r', 'm02r', 'm03r',...
-'f07r', 'f08r','m07r', 'm08r',...
-'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
+% lastParts = {'f04r', 'f05r', 'f06r', 'm04r', 'm05r', 'm06r',...
+% 'f01r', 'f02r', 'f03r', 'm01r', 'm02r', 'm03r',...
+% 'f07r', 'f08r','m07r', 'm08r',...
+% 'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
 
 if iOr =='i'
     picnames_groups = ["h3k","h4k","h5k","h6k","hd65","h7k","h8k",...
@@ -35,7 +35,8 @@ elseif iOr=='r'
     picnames_groups = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
              "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
 end
-lightness_type="abs";
+lightness_type="force_scaled";
+% lightness_type="abs";
 % lightness_type="rela";
 color_type="lightness";
 load("documents\valid_attr.mat","map");
@@ -189,6 +190,16 @@ for i_obs = 1:length(obs_types)
                             lab_scaled(i_para,:)=xyz2lab(xyz_fit(i_para,:),"user",wd65./wd65(2).*XYZw_white(i_para,2));
                         end
                         lab_fit_current(:, :, i_subject, i_attr) = lab_scaled;
+                    elseif strcmp(lightness_type,"force_scaled")
+                        ave_lab_mean=mean(average_current(:, :, i_subject),1);
+                        ave_XYZ_mean=lab2xyz2(ave_lab_mean,"user",wd65);
+                        xyz_fit=[];lab_scaled=[];
+                        for i_para=1:size(par_all,1)                                
+                            xyz_fit(i_para,:)=lab2xyz2(lab_bf(i_para,:),"user",wd65);
+                            xyz_fit(i_para,:)=xyz_fit(i_para,:)./xyz_fit(i_para,2).*ave_XYZ_mean(2);
+                            lab_scaled(i_para,:)=xyz2lab(xyz_fit(i_para,:),"user",wd65);
+                        end
+                        lab_fit_current(:, :, i_subject, i_attr) = lab_scaled; 
                     else
                         lab_fit_current(:, :, i_subject, i_attr) = lab_bf;
                     end
@@ -502,6 +513,7 @@ for i_obs=1:length(obs_types)
     for i_fig=1:length(dir_figs)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
+    s.label_x_offset=-0.02;s.label_y_offset=-0.02;
     concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.09,0.35);
     %%
 end
@@ -522,5 +534,8 @@ for i_fig=1:length(dir_figs)
 end
 s.fontSizeScale=1.2;
 s.dir_figs=dir_figs;
+if strcmp(lightness_type,"force_scaled")
+s.labels_lower_right=["(a)","(b)","(c)","(d)","(a)","(b)","(c)","(d)"];
+end
 concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.05,0.35);
  

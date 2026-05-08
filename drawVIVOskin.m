@@ -21,17 +21,7 @@ colors = hsv2rgb(hsv_matrix);
 colors(3,:)=[0 0 0];
 colors(4,:)=[1 0.5 0];
 % 定义人种对应的lastParts索引
-nation_indices = cell(5, 1); % 5个人种（包括"all"）
-% AS (Asian): f04i, f05i, f06i, m04i, m05i, m06i (索引1-6)
-nation_indices{1} = 1:6;
-% CA (Caucasian): f01i, f02i, f03i, m01i, m02i, m03i (索引7-12)  
-nation_indices{2} = 7:12;
-% SA (South Asian): f07i, f08i, m07i, m08i (索引13-16)
-nation_indices{3} = 13:16;
-% AF (African): f09i, f10i, m09i, m10i (索引17-20)
-nation_indices{4} = 17:20;
-% all: 所有索引 (索引1-20)
-nation_indices{5} = 1:20;
+
 
 labCh_PMCC=[[62.11	18.96	19.76	27.39	46.18];...
             [64.15	19.56	19.63	27.71	45.10];...
@@ -86,7 +76,7 @@ ab_limits = [min(min(all_a), min(all_b)) - 5, max(max(all_a), max(all_b)) + 5];
 
 %%
 
-if_arrow=1;
+if_arrow=0;
 lastParts1 = {'f01i', 'f02i', 'f03i','f04i', 'f05i', ...
     'f06i', 'f07i', 'f08i','f09i', 'f10i',...
 'm01i', 'm02i', 'm03i','m04i', 'm05i', 'm06i',...
@@ -507,7 +497,7 @@ concatenate_images1(outputFolder, 5);
 
 
 opts.targetFontSize=12;
-opts.margin=0.4;    
+opts.margin=1;    
 opts.label_type="skinVIVO";
 opts.if_rotate=false;
 opts.margin_type="Position";
@@ -524,10 +514,16 @@ end
 adjust_fig(outputFolder, opts);
 %%
 s.rowStep=0.17;
-
-if if_arrow
+text_type="ch";
+if strcmp(text_type,"eng")
     s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
     s.labels_row2 = {'female', 'male'};
+else
+    s.labels_row1 = {'亚洲人', '高加索人', '南亚人', '非洲人'};
+    s.labels_row2 = {'女性', '男性'};
+end
+if if_arrow
+
     s.markers_row2 = {'o', 'x'};
     s.markers_colors = [0 0 0; 0 0 0;];
     s.markers_face_colors = [1 1 1; 1 1 1; ];
@@ -549,8 +545,6 @@ if if_arrow
     concatenate_figs_legend1(outputFolder, figFiles, 2,"","draw",s,0.15,1.2);
 else
 
-    s.labels_row1 = {'Asian', 'Caucasian', 'South Asian', 'African'};
-    s.labels_row2 = {'female', 'male'};
     s.markers_row2 = {'o', 'x'};
     s.markers_colors = [0 0 0; 0 0 0];
     s.markers_face_colors = [1 1 1; 1 1 1];
@@ -567,14 +561,67 @@ else
     s.colors_row1 = hsv2rgb(hsv_matrix);
     s.colors_row1(3,:)=[0 0 0];
     s.colors_row1(4,:)=[1 0.5 0];
-    s.fontSizeScale=1.2;
+    s.fontSizeScale=1.0;
     s.interpreter_type = interpreter_type;
     %----------------------
     dir_figs=dir(fullfile(outputFolder,"*adjusted.fig"));
     for i_fig=1:length(dir_figs)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
+    s.label_x_offset = -0.03;   % xlabel 向上移（正值=靠近x轴，负值=远离）
+    s.label_y_offset = -0.02;   % ylabel 向右移（正值=靠近y轴，负值=远离）
     concatenate_figs_legend1(outputFolder, figFiles, 5,"","draw",s,0.07,1.9);
 end
 
 fullfile(pwd,outputFolder)
+
+%% 按 color 分组计算 lab_mean 的两两 deltaE2000
+% 分组逻辑与绘图一致：根据 i_skin 归属的 color 分组
+% lab_mean_group{i_grp}: n_model_group × 3 矩阵（L, a, b）
+% dE_mat_group{i_grp}: n_model_group × n_model_group 对称矩阵
+% dE_avg_group(i_grp): 排除对角线后的平均 deltaE2000
+
+addpath(fullfile("..", "skin_model", "utils")) % deltaE2000.m 在 skin_model/utils
+
+% 按 color 分组定义 i_skin 索引（与绘图逻辑一致）
+color_group_idx = {[1,2,3,11,12,13], ...   % colors(2,:) CA
+                   [4,5,6,14,15,16], ...     % colors(1,:) AS
+                   [7,8,17,18], ...          % colors(3,:) SA
+                   [9,10,19,20]};            % colors(4,:) AF
+color_group_names = ["CA", "AS", "SA", "AF"];
+
+for i_grp = 1:length(color_group_idx)
+    idx = color_group_idx{i_grp};
+    % 取 L, a, b 三列（lab_mean 第 1-3 列）
+    lab_mean_group{i_grp} = lab_mean(idx, 1:3);
+    n_model = length(idx);
+    
+    % 计算两两 deltaE2000
+    dE_mat = zeros(n_model, n_model);
+    for ii = 1:n_model
+        for jj = ii+1:n_model
+            dE = deltaE2000(lab_mean_group{i_grp}(ii,:), ...
+                            lab_mean_group{i_grp}(jj,:));
+            dE_mat(ii, jj) = dE;
+            dE_mat(jj, ii) = dE;
+        end
+    end
+    dE_mat_group{i_grp} = dE_mat;
+    
+    % 计算排除对角线后的平均
+    n_pairs = n_model * (n_model - 1) / 2;
+    dE_avg_group(i_grp) = sum(dE_mat(triu(true(n_model), 1))) / n_pairs;
+    
+    % 计算 a* 和 b* 维度的方差（lab_mean 第2、3列）
+    ab_data = lab_mean(idx, 2:3);
+    var_ab_group(i_grp, :) = var(ab_data, 0); % [var(a*), var(b*)]
+    
+    fprintf('Group %d (%s): n_model=%d, avg dE00=%.2f, var(a*)=%.2f, var(b*)=%.2f\n', ...
+        i_grp, color_group_names(i_grp), n_model, dE_avg_group(i_grp), ...
+        var_ab_group(i_grp, 1), var_ab_group(i_grp, 2));
+end
+
+% 保存结果
+save(fullfile(save_folder, "VIVOskin_dE2000.mat"), ...
+    "lab_mean_group", "dE_mat_group", "dE_avg_group", "var_ab_group", ...
+    "color_group_idx", "color_group_names");

@@ -63,19 +63,19 @@ function create_custom_legend(output_folder, data_cell, use_chinese, legend_type
         identifier = row_data{4};
 
         if startsWith(row_data{1},"Park et al. (2006)")
-            identifier="P1";
+            identifier="Pa";
         elseif startsWith(row_data{1},"Peng et al. (2020)")
             identifier="P3";
         elseif startsWith(row_data{1},"Peng et al. (2023)")
-            identifier="P2";
+            identifier="P";
         elseif startsWith(row_data{1},"Zeng et al. (2010)")
             identifier="Z1";
         elseif startsWith(row_data{1},"Zeng et al. (2011)")
             identifier="Z";
         elseif startsWith(row_data{1},"Yano et al. (1998)")
-            identifier="Y1";
+            identifier="Yn";
         elseif startsWith(row_data{1},"Yamamoto et al. (2002)")
-            identifier="Y2";
+            identifier="Ym";
         end
 
         
@@ -145,8 +145,8 @@ if ~exist(output_folder, 'dir')
     mkdir(output_folder);
 end
 % label_type="only_my";
-label_type="include_this";
-% label_type="exclude_this";
+% label_type="include_this";
+label_type="exclude_this";
 % label_type="include_VIVO";
 load(fullfile("ellip_pic_p\efit_p\compare_thesis_pre", ...
     "exclude_this","author_colors.mat"));

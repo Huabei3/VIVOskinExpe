@@ -1,4 +1,4 @@
-﻿function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
+function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     legend_file, legen_mode, legend_labels,gapX,label_Y)
     % Concatenate multiple fig files into a main figure, then overlay legend.
     % legen_mode: 'load' (load legend fig) or 'draw' (draw legend by code).
@@ -193,11 +193,11 @@
         end
 
         if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"attr")
-            set(newXlabel, 'FontSize', 1.2*targetFontSize, 'FontWeight', 'normal');
-            set(newYlabel, 'FontSize', 1.2*targetFontSize, 'FontWeight', 'normal');
+            set(newXlabel, 'FontSize', targetFontSize, 'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', targetFontSize, 'FontWeight', 'normal');
         else
-            set(newXlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
-            set(newYlabel, 'FontSize', 1.5*targetFontSize, 'FontWeight', 'normal');
+            set(newXlabel, 'FontSize', targetFontSize, 'FontWeight', 'normal');
+            set(newYlabel, 'FontSize', targetFontSize, 'FontWeight', 'normal');
         end
 
         if isfield(legend_labels,"label_fontSize") && ~isfield(legend_labels,"fontSizeScale")
@@ -208,6 +208,18 @@
                 'FontWeight', 'normal');
             set(newYlabel, 'FontSize', legend_labels.fontSizeScale*targetFontSize, ...
                 'FontWeight', 'normal');
+        end
+
+        % === label 偏移支持（normalized 单位） ===
+        if isfield(legend_labels, 'label_x_offset')
+            % label_x_offset: xlabel 垂直偏移，正值向下（远离x轴）
+            curPos = newXlabel.Position;
+            newXlabel.Position = [curPos(1), curPos(2) + legend_labels.label_x_offset, curPos(3)];
+        end
+        if isfield(legend_labels, 'label_y_offset')
+            % label_y_offset: ylabel 水平偏移，正值向左（远离y轴）
+            curPos = newYlabel.Position;
+            newYlabel.Position = [curPos(1) + legend_labels.label_y_offset, curPos(2), curPos(3)];
         end
         % 设置Interpreter类型
         if isfield(legend_labels, 'interpreter_type')
@@ -233,7 +245,11 @@
         % newXlabel.Position = [mean(subAx.XLim), subAx.YLim(1) - xlabel_offset, 0];
         % === 插入labels ===
         if isfield(legend_labels,"if_label")&&legend_labels.if_label
-            letter_label = ['(', char('a' + i - 1), ')'];
+            if isfield(legend_labels,"labels_lower_right")
+                letter_label=legend_labels.labels_lower_right(i);
+            else
+                letter_label = ['(', char('a' + i - 1), ')'];
+            end
             if isfield(legend_labels, 'fontSizeScale')
                 text(subAx, 0.95, 0.05, letter_label, 'Units', 'normalized', ...
                     'FontSize', legend_labels.fontSizeScale * targetFontSize, 'FontWeight', 'bold', ...

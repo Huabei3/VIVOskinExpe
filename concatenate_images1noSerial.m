@@ -78,7 +78,7 @@ function concatenate_images1noSerial(save_folder, n_col)
 end
 
 %%
-% concatenate_images1noSerial("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\compare_thesis_pre\include_this",4)
+% concatenate_images1noSerial("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\compare_thesis_pre\exclude_this",4)
 
 
 

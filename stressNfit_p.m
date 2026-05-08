@@ -135,9 +135,6 @@ for i_lastPart = length(lastParts):-1:1
         process_data_CAT_p(dir_res, output_folder, strrep(lastPart,"add",""),Dtype,scale_type_origin);
 
 
-
-
-
         % 拟合椭圆
         if strcmp(if_fit, "true")
         outputFolder = fullfile(output_folder, 'ellipPara');

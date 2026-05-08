@@ -104,7 +104,7 @@ file_missing={};
 Dtype = 'efit_p';
 % Dtype = 'efit_p_free';
 scale_type_origin="unscaled";
-variable_type = "attr";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
+variable_type = "hml";  % "hml": i_indices loops, attribute=[1]; "attr": i_indices=1, attribute=1:10
 if iOr=='i'
     picnames_groups = ["h3k","h4k","h5k","h6k","hd65","h7k","h8k",...
             "m3k","m4k","m5k","m6k","md65","m7k","m8k",...
@@ -113,7 +113,7 @@ elseif iOr=='r'
     picnames_groups = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
              "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
 end
-scale_type="unscaled";
+scale_type="scaled";
 if iOr=='i'
     target_indices{1}=5;
     target_indices{2}=12;
@@ -433,7 +433,8 @@ end  % end of for i_idx
     save(fullfile(output_folder, ...
                 strcat( "fitRes.mat")),"parNr_all");
     %%
-    imageNum_type="sing";
+    % imageNum_type="sing";
+    imageNum_type="entire";
 
     opts.lim_min=0; 
     opts.lim_max=40;  
@@ -554,7 +555,9 @@ end  % end of for i_idx
             end
         end
     elseif strcmp(iOr,"r")
-        s.fontSizeScale=1.2;
+        s.fontSizeScale=1.0;
+        s.label_x_offset=-0.03;
+        s.label_y_offset=-0.03;
 
         concatenate_figs_legend1(output_folder, figFiles, 4,legend_file,"draw",s,0.08,2);
     end

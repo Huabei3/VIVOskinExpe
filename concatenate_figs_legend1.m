@@ -76,6 +76,18 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     else
         row_gap = 0;  % 0 means use default baseHeight spacing
     end
+    % col_gap: 同排子图额外间距（normalized，正值增大间距，负值缩小）
+    if isfield(legend_labels, 'col_gap')
+        col_gap_extra = legend_labels.col_gap;
+    else
+        col_gap_extra = 0;
+    end
+    % posY_bottom: 整体绘图区底部基准（normalized），增大可让整体上移
+    if isfield(legend_labels, 'posY_bottom')
+        posY_bottom = legend_labels.posY_bottom;
+    else
+        posY_bottom = legendHeightNorm;
+    end
     % gapX = 0.15;
 
     for i = 1:numFigs
@@ -118,11 +130,11 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         end
 
     
-        posX = marginL + (currCol - 1) * baseWidth - (currCol - 1) * gapX;
+        posX = marginL + (currCol - 1) * baseWidth - (currCol - 1) * gapX + (currCol - 1) * col_gap_extra;
         if row_gap == 0
-            posY = legendHeightNorm + (n_row - currRow) * baseHeight + (baseHeight - h_space) / 2;
+            posY = posY_bottom + (n_row - currRow) * baseHeight + (baseHeight - h_space) / 2;
         else
-            posY = legendHeightNorm + (n_row - currRow) * (baseHeight + row_gap) + (baseHeight - h_space) / 2;
+            posY = posY_bottom + (n_row - currRow) * (baseHeight + row_gap) + (baseHeight - h_space) / 2;
         end
         if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")&&i==5
             posX=posX+0.04;
@@ -185,6 +197,13 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
                     'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
             end
         end
+        % === tickFontScale：独立控制 xticks & yticks 字体大小 ===
+        if isfield(legend_labels, 'tickFontSize')
+            subAx.FontSize = legend_labels.tickFontSize;
+        elseif isfield(legend_labels, 'tickFontScale')
+            subAx.FontSize = legend_labels.tickFontScale * targetFontSize;
+        end
+        %==========
         % set([newXlabel, newYlabel, newTitle], 'FontSize', targetFontSize, 'FontWeight', 'normal');
         if isfield(legend_labels, 'fontSizeScale')
             set(newTitle, 'FontSize', legend_labels.fontSizeScale * targetFontSize, 'FontWeight', 'bold');
@@ -310,7 +329,12 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             cb.Label.Interpreter = 'tex';
             disp('cover_rows colorbar set');
             cb.Label.FontSize = targetFontSize;
-            cb.Label.FontAngle = 'italic';
+            % cbLabelFontAngle: 'normal' or 'italic'
+            if isfield(legend_labels, 'cbLabelFontAngle')
+                cb.Label.FontAngle = legend_labels.cbLabelFontAngle;
+            else
+                cb.Label.FontAngle = 'italic';
+            end
             cb.Units = 'normalized';
         else
             % 默认模式：colorbar 在当前行最后一个子图的右边
@@ -341,7 +365,12 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             
             cb.Label.Interpreter = 'tex';
             cb.Label.FontSize = targetFontSize;
-            cb.Label.FontAngle = 'italic';
+            % cbLabelFontAngle: 'normal' or 'italic'
+            if isfield(legend_labels, 'cbLabelFontAngle')
+                cb.Label.FontAngle = legend_labels.cbLabelFontAngle;
+            else
+                cb.Label.FontAngle = 'italic';
+            end
             
             % 确保 Colorbar 不会因为自动调整而改变主图布局
             cb.Units = 'normalized';
@@ -530,18 +559,20 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                 %     'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
             end
             elseif isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'only_my')
-            text_char=char(labels_row1{k});
             i_last_others=length(labels_row1)-2;
-            colors_last2=[[0 0 0];[0 0 0]];
             if k>i_last_others
+                % 最后两个：用 markers_row1_last2，颜色用 colors_row1(k,:) ①
                 plot(legAx, tx, ty, legend_labels.markers_row1_last2{k-i_last_others}, ...
-                    'MarkerFaceColor', colors_last2(k-i_last_others, :), ...
-                    'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
+                    'MarkerFaceColor', colors_row1(k, :), ...
+                    'MarkerEdgeColor', colors_row1(k, :), ...
+                    'MarkerSize', 10, 'Clipping', 'off');
             else
-                text(legAx, tx , ty, text_char(1), ...
-                    'FontSize', legendFontSize, 'VerticalAlignment', 'middle', ...
-                    'Interpreter', 'none','Color',colors_row1(k, :),'FontWeight','bold');
-            end    
+                % 其余：画 'x' marker，颜色用 colors_row1(k,:) ①②
+                plot(legAx, tx, ty, 'x', ...
+                    'MarkerEdgeColor', colors_row1(k, :), ...
+                    'LineWidth', 1.5, ...
+                    'MarkerSize', 10, 'Clipping', 'off');
+            end
         else
             if isfield(legend_labels, 'plot_style_row1')
                 plot(legAx, tx, ty, legend_labels.plot_style_row1{k}, 'MarkerFaceColor', colors_row1(k, :), ...
@@ -551,8 +582,14 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
                     'MarkerEdgeColor', 'none', 'MarkerSize', 10, 'Clipping', 'off');
             end
         end
+        % === labels_row1 文字渲染 ===
+        if isfield(legend_labels, 'interpreter_type')
+            curr_interpreter = char(legend_labels.interpreter_type);
+        else
+            curr_interpreter = 'none';
+        end
         text(legAx, tx + iconTextGap, ty, labels_row1{k}, ...
-            'FontSize', legendFontSize, 'VerticalAlignment', 'middle', 'Interpreter', 'none');
+            'FontSize', legendFontSize, 'VerticalAlignment', 'middle', 'Interpreter', curr_interpreter);
     end
     
 

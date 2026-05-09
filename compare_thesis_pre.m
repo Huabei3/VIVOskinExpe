@@ -254,9 +254,9 @@ elseif strcmp(Dtype,"efit_p")
 end
 
 % label_type="ACSA";
-% label_type="only_my";
+label_type="only_my";
 % label_type="include_this";
-label_type="exclude_this";
+% label_type="exclude_this";
 output_folder=fullfile(ellip_pic_folder,Dtype,"compare_thesis_pre",label_type);
 
 if ~exist(output_folder,"dir")
@@ -591,11 +591,17 @@ fullfile(pwd,output_folder)
 
 
 if strcmp(label_type,"only_my")
+    if strcmp(interpreter_type,"latex")
     s.labels_row1 = {"$L^*$=10","$L^*$=20","$L^*$=30","$L^*$=40",...
         "$L^*$=50","$L^*$=60","$L^*$=70","$L^*$=80","实验二","实验三"};
+    elseif strcmp(interpreter_type,"tex")
+            s.labels_row1 = {"\itL^*\rm=10","\itL^*\rm=20","\itL^*\rm=30","\itL^*\rm=40",...
+        "\itL^*\rm=50","\itL^*\rm=60","\itL^*\rm=70","\itL^*\rm=80","实验二","实验三"};
+    end
     s.labels_row2 = {};
     s.markers_row2 = {};
-    s.markers_colors = [];
+    % s.markers_colors = [];
+    s.markers_colors = colors;
     s.markers_face_colors = [];
     s.n_col1=3; 
     s.n_col2=3;
@@ -617,7 +623,7 @@ if strcmp(label_type,"only_my")
     for i_fig=1:length(dir_figs)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
-
+    s.interpreter_type=interpreter_type;
     concatenate_figs_legend1(output_folder, figFiles, 1,"none","draw",s,0.09,1.2);
 elseif strcmp(label_type,"compare_thesis_pre")
     opts.targetFontSize=12;

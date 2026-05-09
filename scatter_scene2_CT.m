@@ -389,7 +389,7 @@ draw_line = "none";  % "line" 时画连接线
 %% variable_type开关: "nation" 或 "attr"
 % "nation": for i_nation=[1:length(nations)], for i_attr=[1] (原有逻辑)
 % "attr": for i_nation=[1], for i_attr=[1:length(attributes)]
-variable_type = "attr";
+variable_type = "nation";
 
 %% if_draw_in_lab开关: 0 或 1
 % 当if_draw_in_lab==0时，不绘制iOr=='i'情况下的点
@@ -863,7 +863,7 @@ for i_obs=1:length(obs_types_plot)
         opts.lim_min=0; 
         opts.lim_max=40;  
         opts.targetFontSize=12;
-        opts.margin=0.15;    
+        opts.margin=0.13;    
         opts.label_type="scene";
         opts.if_rotate=false;
         if strcmp(variable_type,"nation")
@@ -876,6 +876,8 @@ for i_obs=1:length(obs_types_plot)
         adjust_fig(save_folder, opts);
         
         %% concatenate_figs_legend1
+        s.tickFontScale = 0.8;          % 刻度字体缩小为 12×0.8=9.6
+        s.fontSizeScale = 1.2;      
         if strcmp(color_mode, "scene")
             % scene模式：与scatter_scene2一致，绘制row2，不绘制colorbar
             if strcmp(text_type,"eng")
@@ -959,7 +961,7 @@ for i_obs=1:length(obs_types_plot)
     end
     s.fontSizeScale=1.2;
     if strcmp(variable_type,"nation")
-        concatenate_figs_legend1(save_folder, figFiles, 2, "none", "draw", s, 0.09, 0.35);
+        concatenate_figs_legend1(save_folder, figFiles, 2, "none", "draw", s, 0.09, 0.3);
     else
         s.row_gap = -0.12;
         s.rowStep = 0.25;  % 控制两行之间的间距

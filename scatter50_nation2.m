@@ -7,7 +7,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 
 
-text_type="eng";
+text_type="ch";
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -24,15 +24,15 @@ elseif strcmp(nation_type,"ACD")
     nations = ["AS", "CA", "DA", "all"];
 end
 
-% lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
-% 'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
-% 'f07i', 'f08i','m07i', 'm08i',...
-% 'f09i', 'f10i','m09i', 'm10i'};n_para = 21;iOr='i';
+lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
+'f01i', 'f02i', 'f03i', 'm01i', 'm02i', 'm03i',...
+'f07i', 'f08i','m07i', 'm08i',...
+'f09i', 'f10i','m09i', 'm10i'};n_para = 21;iOr='i';
 
-lastParts = {'f04r', 'f05r', 'f06r', 'm04r', 'm05r', 'm06r',...
-'f01r', 'f02r', 'f03r', 'm01r', 'm02r', 'm03r',...
-'f07r', 'f08r','m07r', 'm08r',...
-'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
+% lastParts = {'f04r', 'f05r', 'f06r', 'm04r', 'm05r', 'm06r',...
+% 'f01r', 'f02r', 'f03r', 'm01r', 'm02r', 'm03r',...
+% 'f07r', 'f08r','m07r', 'm08r',...
+% 'f09r', 'f10r','m09r', 'm10r'};n_para = 14;iOr='r';
 
 
 load("documents\valid_attr.mat","map");
@@ -477,6 +477,8 @@ end  % end of for i_idx
     s.if_label=1;
     s.n_col1=length(s.labels_row1);
     s.n_col2=2;
+    s.tickFontScale = 0.8;          % 刻度字体缩小为 12×0.8=9.6
+    s.fontSizeScale = 1.2; 
     
     num_attributes = numel(s.labels_row1);
     hue_values = linspace(0, 1, num_attributes + 1);
@@ -561,6 +563,7 @@ end  % end of for i_idx
 
         concatenate_figs_legend1(output_folder, figFiles, 4,legend_file,"draw",s,0.08,2);
     end
+     
 fullfile(pwd,output_folder)
 %-----------------------------------------
     % close all;

@@ -104,6 +104,7 @@ file_missing={};
 % Dtype = 'noCAT';
 % Dtypes=["noCAT","efit_p"];
 Dtypes=["efit_p"];
+% Dtypes=["noCAT"];
 for i_Dtype=1:length(Dtypes)
 
 Dtype=Dtypes(i_Dtype);
@@ -267,7 +268,7 @@ lim_max_y = (lim_min_y + lim_max_y + max_range) / 2;
 
 %% 绘图部分 - 按色温映射颜�?
 iOrs=['i','r'];
-for i_iOr=1:2
+for i_iOr=1:1
     iOr=iOrs(i_iOr);
     output_folder=fullfile("ellip_pic_p", Dtype);
     if ~exist(output_folder,"dir")
@@ -487,10 +488,10 @@ for i_iOr=1:2
             
             % 设置坐标轴范�?
             axis equal;
-            xlim([lim_min_x, lim_max_x]);
-            ylim([lim_min_y, lim_max_y]);
-            % xlim([0, 50]);
-            % ylim([0, 50]);
+            % xlim([lim_min_x, lim_max_x]);
+            % ylim([lim_min_y, lim_max_y]);
+            xlim([0, 50]);
+            ylim([0, 50]);
             
             % 绘制y=x参考线
             x = linspace(0, 50, 100);
@@ -522,7 +523,7 @@ for i_iOr=1:2
         end
         % 合并所有图�?
         save_folder = fullfile("ellip_pic_p", Dtype, "CT",scale_type, obs_type, iOr);
-        concatenate_images1(save_folder, 4);  
+        % concatenate_images1(save_folder, 4);  
         % close all
     
      
@@ -538,51 +539,62 @@ end
 opts.lim_min=0; 
 opts.lim_max=40;  
 opts.targetFontSize=12;
-opts.margin=0.17;    
+opts.margin=0.1;    
 opts.label_type="CT";
 opts.if_rotate=false;
 % opts.axis_limits=[9,19,9,19;9,19,9,19;9,19,9,19;7,11,7,11];
 % opts.axis_ticks=[2,2,2,1];
 % opts.bar_interval=0.4;
 adjust_fig(save_folder, opts);
-    %-----------------
-    s.labels_row1 = {};
-    s.labels_row2 = {};
-    s.markers_row2 = {};
-    s.markers_colors = [];
-    s.markers_face_colors = [];
-    s.n_col1=2; 
-    s.n_col2=2;
-    s.if_label=true;
-    s.color_limits = [2500,8500]; % 传入全局数据极�?   
-    cmap = colormap('jet');
-    cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色�?
-    s.cmap = cmap;
+%%
+%-----------------
+s.labels_row1 = {};
+s.labels_row2 = {};
+s.markers_row2 = {};
+s.markers_colors = [];
+s.markers_face_colors = [];
+s.n_col1=2; 
+s.n_col2=2;
+s.if_label=true;
+s.color_limits = [2500,8500]; % 传入全局数据极�?   
+cmap = colormap('jet');
+cmap = flipud(cmap);  % 翻转颜色映射，使蓝色对应高色温，红色对应低色�?
+s.cmap = cmap;
 
-    if ~isempty(s.labels_row1)
-        num_attributes = numel(s.labels_row1);    
-        hue_values = linspace(0, 1, num_attributes + 1);
-        hue_values = hue_values(1:end-1);
-        hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-        s.colors_row1 = hsv2rgb(hsv_matrix);
-    else
-        s.colors_row1 = [];
-    end
-
-    s.label_type="CT";
-    save_folder1=strrep(save_folder,Dtypes(2),Dtypes(1));
-    dir_figs=dir(fullfile(save_folder,"inon_model01Asian_CTadjusted.fig"));
-    dir_figs=[dir_figs;dir(fullfile(save_folder1, ...
-        "inon_model01Asian_CTadjusted.fig"))];
-    s.dir_figs=dir_figs;
-    clear("figFiles")
-    for i_fig=1:length(dir_figs)
-        figFiles{i_fig}=dir_figs(i_fig).name;
-    end
-    concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
+if ~isempty(s.labels_row1)
+    num_attributes = numel(s.labels_row1);    
+    hue_values = linspace(0, 1, num_attributes + 1);
+    hue_values = hue_values(1:end-1);
+    hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+    s.colors_row1 = hsv2rgb(hsv_matrix);
+else
+    s.colors_row1 = [];
+end
+Dtypes=["noCAT","efit_p"];
+s.label_type="CT";
+save_folder1=strrep(save_folder,Dtypes(2),Dtypes(1));
+adjust_fig(save_folder1, opts);
+fullfile(pwd,save_folder1)
+dir_figs=dir(fullfile(save_folder,"inon_model01Asian_CTadjusted.fig"));
+dir_figs=[dir_figs;dir(fullfile(save_folder1, ...
+    "inon_model01Asian_CTadjusted.fig"))];
+s.dir_figs=dir_figs;
+clear("figFiles")
+for i_fig=1:length(dir_figs)
+    figFiles{i_fig}=dir_figs(i_fig).name;
+end
+s.cbLabelFontAngle = 'normal';   % colorbar 标签用正体
+s.tickFontScale = 0.8;          % 刻度字体缩小为 12×0.8=9.6
+s.fontSizeScale = 1.2;          % 标题/标签放大 1.2 倍
+% s.row_gap = 0.05;              % 行间额外间距
+% s.col_gap = 0.03;              % 同排子图间额外间距
+% s.posY_bottom = 0.15;          % 整体上移
+s.label_x_offset=-0.02;
+s.label_y_offset=-0.02;
+concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
     
 fullfile(pwd,save_folder)
-fullfile(pwd,save_folder1)
+% fullfile(pwd,save_folder1)
 %%
     % 定义一个函数来分离性别索引
 function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)

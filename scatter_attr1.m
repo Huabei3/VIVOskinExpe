@@ -8,7 +8,7 @@ scale_type_origin="unscaled";
 % scale_time="early";
 scale_time="late";
 targetFontSize=12;
-interpreter_type = "latex"; % "tex" 或 "latex"
+interpreter_type = "tex"; % "tex" 或 "latex"
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -427,7 +427,7 @@ for i_obs=1:length(obs_types)
     s.n_col1=5; 
     s.n_col2=5;
     s.if_label=true;
-    s.interpreter_type ='latex';
+    s.interpreter_type ='tex';
     
 
     s.colors_row1 = colors;
@@ -438,6 +438,8 @@ for i_obs=1:length(obs_types)
     for i_fig=1:length(dir_figs)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
+    s.tickFontScale = 0.8;          % 刻度字体缩小为 12×0.8=9.6
+    s.fontSizeScale = 1.2;          % 标题/标签放大 1.2 倍
     concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.09,2);
     %--------------------------------
     

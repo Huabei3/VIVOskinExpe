@@ -214,8 +214,9 @@ for i = 1:length(MCDM_scene)
 end
 
 set(gca, 'XTick', 1:length(labels), 'XTickLabel', labels);
-xlabel('场景');
-ylabel('MCDM');
+% xlabel('场景');
+% ylabel('MCDM');
+box on;
 
 ylim([1,1.8]);
 
@@ -223,7 +224,11 @@ MCDM_folder=fullfile(save_folder,"MCDM");
 if ~exist(MCDM_folder,"dir")
     mkdir(MCDM_folder)
 end
-saveas(gcf,fullfile(MCDM_folder,"MCDM.jpg"));
+img_name=fullfile(MCDM_folder,"MCDM.jpg");    
+savefig(gcf, strrep(img_name,'jpg','fig'));
+saveas(gcf,img_name);
+
+fullfile(pwd,save_folder)
 
 %%
 %atan2d_360

@@ -1,7 +1,9 @@
 close all; % 关闭所有图窗
 clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
+addpath("utils\")
 
+interpreter_type="tex";  % 可选 "tex" 或 "latex"
 %% 初始化参数
 % Dtype = "OPPO_CAT16";
 Dtype = "efit_p";
@@ -148,22 +150,74 @@ end
 min_lim=0;max_lim=40;
 x = [min_lim, max_lim]; 
 y = x;      
-plot(x, y,  'LineWidth', 0.5); 
-xlabel('\textit{$a^*$}', 'Interpreter', 'latex','FontSize', 12*2);
-ylabel('\textit{$b^*$}', 'Interpreter', 'latex','FontSize', 12*2);
+plot(x, y,  'LineWidth', 1,'LineStyle','--','Color','k'); 
+if strcmp(interpreter_type,"tex")
+    xlabel('a*','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12*2);
+    ylabel('b*','Interpreter','tex','FontName','Arial','FontAngle','italic','FontSize',12*2);
+elseif strcmp(interpreter_type,"latex")
+    xlabel('\textit{$a^*$}', 'Interpreter', 'latex','FontSize', 12*2);
+    ylabel('\textit{$b^*$}', 'Interpreter', 'latex','FontSize', 12*2);
+end
 
 axis equal;
-xticks([min_lim:5: max_lim]);
-yticks([min_lim:5: max_lim]);
+xticks([min_lim:10: max_lim]);
+yticks([min_lim:10: max_lim]);
 xlim([min_lim, max_lim]);
 ylim([min_lim, max_lim]);
-grid on;
+% grid on;
+box on;
 
-% 保存图像
-exportgraphics(gcf, fullfile(output_folder, "self_other2d.jpg"), "Resolution", 150); 
+ax = gca;
+img_name=fullfile(output_folder, "self_other2d.jpg");
+savefig(gcf, strrep(img_name,'jpg','fig'));
+exportgraphics(gcf, img_name, "Resolution", 150); 
 
 
 % concatenate_images2(output_folder,1);
+%%
+opts.lim_min=0; 
+opts.lim_max=40;  
+opts.targetFontSize=12;
+opts.margin=0.1;    
+adjust_fig(output_folder, opts);
+%%
+text_type="ch";
+if strcmp(text_type,"eng")
+    s.labels_row1 = {'original', 'self', 'others'};
+elseif strcmp(text_type,"ch")
+    s.labels_row1 = {"原图肤色", "模特本人", "陌生人"};    
+end
+
+s.labels_row2 = {};
+s.markers_row2 = {};
+s.markers_colors = [];
+s.markers_face_colors=[];
+s.sidePad=0.2;
+s.if_label=0;
+s.colors_row1 = [0 0 0; 1 0 0; 0 0 1];
+s.marginL=0.2;
+s.leg_x_shift=-0.12;
+s.interpreter_type=interpreter_type;  % 传递给concatenate_figs_legend1
+
+%----------------------
+dir_figs=dir(fullfile(output_folder,"*.fig"));   
+clear("figFiles");i_fig1=1;
+for i_fig=1:length(dir_figs)
+    if ~contains(dir_figs(i_fig).name, 'adjusted')
+        continue;
+    end
+    figFiles{i_fig1}=dir_figs(i_fig).name;
+    i_fig1=i_fig1+1;
+end
+
+legend_file="";
+s.iconTextGap=0.04;
+s.tickFontScale = 1;
+s.fontSizeScale=1.2;
+s.row_gap = 0.05;
+s.col_gap = 0.03;
+s.posY_bottom = 0.15;
+concatenate_figs_legend1(output_folder, figFiles, 1,legend_file,"draw",s,0.08,0.9);
 
 
-
+fullfile(pwd,output_folder)

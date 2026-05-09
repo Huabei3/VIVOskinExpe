@@ -1,4 +1,6 @@
-clear;close all;
+clear;clc;close all;
+addpath("utils\")
+interpreter_type="tex";  % 可选 "tex" 或 "latex"
 %%
 dir_oppoSkin = dir("OPPOskin\OPPOskinColor\*.csv");
 output_folder = 'AnalyseResults';
@@ -8,6 +10,22 @@ model=["1","1","2","2","3","3",...
 color={'r','g','r','g','r',...
     'g','r','g','r','g',...
     'b','b','b','b'};
+num_attributes=3;
+hue_values = linspace(0, 1, num_attributes + 1);
+hue_values = hue_values(1:end-1);
+hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+colors_gender = hsv2rgb(hsv_matrix);
+colors_gender(3,:)=[0 0 1];
+for i_row=1:length(color)
+    if ismember(i_row,[1,3,5,7,9])
+        color{i_row}=colors_gender(1,:);
+    elseif ismember(i_row,[2,4,6,8,10])
+        color{i_row}=colors_gender(2,:);
+    else
+        color{i_row}=colors_gender(3,:);
+    end
+end
+
 % Initialize storage for coordinates
 all_L = [];all_a = [];all_b = [];
 makeup=[1,3,5,7,9];
@@ -78,7 +96,7 @@ save(fullfile(save_folder,"OPPOskin.mat"),"all_LabCh_with_ITA","picname","lab_OP
 %%
 % 设置坐标轴范围
 
-L_limits = [min(all_L) - 1, max(all_L) + 1];
+L_limits = [min(all_L) - 3, max(all_L) + 1];
 a_limits = [min(all_a) - 1, max(all_a) + 1];
 b_limits = [min(all_b) - 1, max(all_b) + 1];
 C_limits = [min(C)- 1, max(C) + 1];
@@ -115,11 +133,16 @@ end
 % 添加45°线
 x = linspace(ab_limits(1), ab_limits(2), 1000);
 y = x; % 45°线的方程是 y = x
-plot(x, y, 'k-', 'LineWidth', 0.5);
+plot(x, y, 'LineWidth', 1,'LineStyle','--','Color','k');
 
-title(['\textit{a*-b*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
-xlabel(['\textit{a*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
-ylabel(['\textit{b*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
+% title(['\textit{a*-b*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
+if strcmp(interpreter_type,"tex")
+    xlabel('a*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    ylabel('b*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+elseif strcmp(interpreter_type,"latex")
+    xlabel(['\textit{a*}'], 'Interpreter', 'latex', 'FontSize', 12*2);
+    ylabel(['\textit{b*}'], 'Interpreter', 'latex', 'FontSize', 12*2);
+end
 axis equal;
 xlim(ab_limits);
 ylim(ab_limits);
@@ -127,7 +150,18 @@ outputFolder = fullfile(output_folder, 'OPPOskin');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
-exportgraphics(gcf, fullfile(outputFolder, 'a_b.jpg'),'Resolution',150);
+
+
+ax = gca;
+targetFontSize=12;
+set(ax, 'FontSize', targetFontSize);
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(allchild(ax), 'Clipping', 'on');
+img_name=fullfile(outputFolder, 'a_b.jpg');    
+savefig(gcf, strrep(img_name,'jpg','fig'));
+
+exportgraphics(gcf, img_name,'Resolution',150);
 
 % % L-a 图
 % figure;
@@ -158,6 +192,8 @@ exportgraphics(gcf, fullfile(outputFolder, 'a_b.jpg'),'Resolution',150);
 % L-b 图
 figure;
 hold on;
+b_limits1=[10,30];
+L_limits1=[50,80];
 for i_skin = 1:length(dir_oppoSkin)    
 
     plot(lab_mean(i_skin,3), lab_mean(i_skin,1), 'ro', ...
@@ -172,24 +208,46 @@ for i_skin = 1:length(dir_oppoSkin)
                 lab_mean(i_skin, 1) - lab_mean(i_skin + 1, 1), ...
                 0, 'Color', 'k', 'AutoScale', false, 'MaxHeadSize', 0.5);
     end
-    title(['\textit{L*-b*}'], 'Interpreter', 'latex','FontSize',12*2); % 放大3倍
-    xlabel('\textit{b*}', 'Interpreter', 'latex','FontSize', 12*2); % 放大3倍
-    ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize',12*2); % 放大3倍
+    % title(['\textit{L*-b*}'], 'Interpreter', 'latex','FontSize',12*2); % 放大3倍
+    if strcmp(interpreter_type,"tex")
+        xlabel('b*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('L*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('\textit{b*}', 'Interpreter', 'latex','FontSize', 12*2);
+        ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize',12*2);
+    end
     axis equal;
 end
 ITA_boundaries = [55, 41, 28, 10, -30];
-% b_range = linspace(b_limits(1), b_limits(2), 200);
-b_range = linspace(10, 30, 200);
+b_range = linspace(b_limits1(1), b_limits1(2), 200);
+
 for ITA = ITA_boundaries
     L_line = 50 + b_range * tand(ITA);
     plot(b_range, L_line, 'k--', 'LineWidth', 1);
-    text(b_range(end), L_line(end), sprintf('%d°', ITA), 'FontSize', 8, 'Color','k');
+    if 50 + b_limits1(2) * tand(ITA) > L_limits1(2)
+        b_intersect = (L_limits1(2) - 50) / tand(ITA);
+        text(b_intersect, L_limits1(2), sprintf(' %d°', ITA), ...
+            'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 9);
+    else
+        % 否则正常放在右边界
+        text(b_limits1(2), L_line(end), sprintf(' %d°', ITA), ...
+            'VerticalAlignment', 'middle', 'FontSize', 9);
+    end
 end
-% xlim(b_limits);
-% ylim(L_limits);
-xlim([10,30]);
-ylim([50,80]);
-exportgraphics(gcf, fullfile(outputFolder, 'all_L_b.jpg'),'Resolution',150);
+xlim(b_limits1);
+ylim(L_limits1);
+
+
+
+ax = gca;
+targetFontSize=12;
+set(ax, 'FontSize', targetFontSize);
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(allchild(ax), 'Clipping', 'on');
+img_name=fullfile(outputFolder, 'all_L_b.jpg');    
+savefig(gcf, strrep(img_name,'jpg','fig'));
+exportgraphics(gcf, img_name,'Resolution',150);
 
 % L-C 图
 figure;
@@ -208,23 +266,38 @@ for i_skin = 1:length(dir_oppoSkin)
                 lab_mean(i_skin, 1) - lab_mean(i_skin + 1, 1), ...
                 0, 'Color', 'k', 'AutoScale', false, 'MaxHeadSize', 0.5);
     end
-    title(['\textit{L*-C*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
-    xlabel(['\textit{C*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
-    ylabel(['\textit{L*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
+    % title(['\textit{L*-C*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
+    if strcmp(interpreter_type,"tex")
+        xlabel('C*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('L*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel(['\textit{C*}'], 'Interpreter', 'latex', 'FontSize', 12*2);
+        ylabel(['\textit{L*}'], 'Interpreter', 'latex', 'FontSize', 12*2);
+    end
     axis equal;
 end
 xlim(C_limits);
 ylim(L_limits);
-exportgraphics(gcf, fullfile(outputFolder, 'L_C.jpg'),'Resolution',150);
+
+ax = gca;
+targetFontSize=12;
+set(ax, 'FontSize', targetFontSize);
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(allchild(ax), 'Clipping', 'on');
+img_name=fullfile(outputFolder, 'L_C.jpg');    
+savefig(gcf, strrep(img_name,'jpg','fig'));
+exportgraphics(gcf, img_name,'Resolution',150);
 
 % L-h 图
 figure;
 hold on;
 % 绘制水平方向竖线和标注
-h_lines = 48:4:64;
+
+h_lines = h_limits(1):4:h_limits(2);
 labels_h = {'B', 'C', 'D', 'E', 'F'};
 for i = 1:length(h_lines)
-    plot([h_lines(i), h_lines(i)], [55, 70], 'k--', 'LineWidth', 1);
+    plot([h_lines(i), h_lines(i)], [L_limits(1), L_limits(2)], 'k--', 'LineWidth', 1);
     if i <= length(labels_h)
         text(h_lines(i)+2, 57, labels_h{i}, 'HorizontalAlignment', 'center', 'FontSize', 12,'color','g');
     end
@@ -254,16 +327,75 @@ for i_skin = 1:length(dir_oppoSkin)
                 lab_mean(i_skin, 1) - lab_mean(i_skin + 1, 1), ...
                 0, 'Color', 'k', 'AutoScale', false, 'MaxHeadSize', 0.5);
     end
-    title(['\textit{L*-h }'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
-    xlabel(['\textit{h}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
-    ylabel(['\textit{L*}'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
+    % title(['\textit{L*-h }'], 'Interpreter', 'latex', 'FontSize', 12*2); % 放大3倍
+    if strcmp(interpreter_type,"tex")
+        xlabel('h','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('L*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel(['\textit{h}'], 'Interpreter', 'latex', 'FontSize', 12*2);
+        ylabel(['\textit{L*}'], 'Interpreter', 'latex', 'FontSize', 12*2);
+    end
     axis equal;
 end
 xlim(h_limits);
 ylim(L_limits);
 % xlim([h_limits(1)-5,h_limits(2)]);
 % ylim([L_limits(1)-5,L_limits(2)]);
-exportgraphics(gcf, fullfile(outputFolder, 'L_h.jpg'),'Resolution',150);
+
+
+ax = gca;
+targetFontSize=15;
+set(ax, 'FontSize', targetFontSize);
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); % 针对 LaTeX 标签
+set(allchild(ax), 'Clipping', 'on');
+img_name=fullfile(outputFolder, 'L_h.jpg');    
+savefig(gcf, strrep(img_name,'jpg','fig'));
+
+exportgraphics(gcf, img_name,'Resolution',150);
 
 % concatenate_images1_23(outputFolder)
 concatenate_images3(outputFolder,2)
+
+
+%%
+opts.targetFontSize=12;
+opts.margin=0.6;    
+opts.label_type="skinOPPO";
+opts.if_rotate=false;
+opts.margin_type="Position";
+% opts.bar_interval=0.4;
+adjust_fig(outputFolder, opts);
+%%
+
+
+s.labels_row1 = {'女性带妆', '女性素颜', '男性'};
+s.labels_row2 = {};
+s.markers_row2 = {};
+s.markers_colors = [];
+s.markers_face_colors = [];
+s.label_type="skinOPPO";
+s.marginL=0;
+s.fig_wh_base=[1000 900];
+s.label_fontSize=12;
+s.if_label=1;
+
+num_attributes = numel(s.labels_row1);
+hue_values = linspace(0, 1, num_attributes + 1);
+hue_values = hue_values(1:end-1);
+hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
+s.colors_row1 = hsv2rgb(hsv_matrix);
+s.colors_row1(3,:)=[0 0 1];
+s.interpreter_type=interpreter_type;  
+%----------------------
+dir_figs=dir(fullfile(outputFolder,"*adjusted.fig"));
+for i_fig=1:length(dir_figs)
+    figFiles{i_fig}=dir_figs(i_fig).name;
+end
+s.label_x_offset=-0.06;
+s.label_y_offset=-0.06;
+s.fontSizeScale=1;
+concatenate_figs_legend1(outputFolder, figFiles, 2,"","draw",s,0.25,0.08);
+
+
+fullfile(pwd,outputFolder)

@@ -10,7 +10,7 @@ D_equation_str   = "D=0.9193.*(1-500.1675./CCT);";
 db_source        = "Peggy_OPPO";
 
 wd65=[94.811 100.00 107.304];
-lightness_type="rela";
+lightness_type="abs";
 rgb2xyz_type="display";
 Dtype = "efit_p";
 

@@ -1,18 +1,15 @@
-function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
+function contour50ellip(par, color, output_folder, variable, ori_lab_mean, interpreter_type)
     % 参数说明：
     % par: 参数向量
     % color: 颜色
     % output_folder: 输出文件夹路径
     % variable: 变量类型标识
     % ori_lab_mean: 原始Lab数据均值
+    % interpreter_type: "tex" 或 "latex"，控制坐标轴标签解释器
     
     lab_PMCC = [62.11, 18.96, 19.76];
     lab_PMCC(4) = sqrt(lab_PMCC(2).^2 + lab_PMCC(3).^2);
     
-    % 注意：原始脚本中的lab_group未定义，这里假设您会在调用函数前定义
-    % 如果需要在函数内部使用，请添加lab_group作为输入参数
-    % 目前使用空值作为占位符
-
     
     % 计算中心点
     center = [par(5), par(6), par(7)]; % 假设par(5)=L*, par(6)=a*, par(7)=b*
@@ -49,8 +46,13 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
         'MarkerFaceColor', [1, 0.4, 0.8], 'MarkerEdgeColor', 'm');
     
     % 设置坐标轴标签和标题
-    xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-    ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    if strcmp(interpreter_type,"tex")
+        xlabel('a*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('b*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+        ylabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    end
     % title('\textit{$a^*-b^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
     
     % 设置坐标轴范围
@@ -71,16 +73,18 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
     
     x = linspace(min_lim, max_lim, 1000);
     y_line = x;
-    plot(x, y_line, 'k-', 'LineWidth', 0.5);
+    plot(x, y_line,  'LineWidth', 1,'LineStyle','--','Color','k');
     
-    interval = 5;
+    interval = 10;
     xticks(min_lim:interval:max_lim);
     yticks(min_lim:interval:max_lim);
     xlim([min_lim, max_lim]);
     ylim([min_lim, max_lim]);
     
     % 保存图像
-    exportgraphics(gcf, fullfile(output_folder, 'a_b_50.jpg'), 'Resolution', 300);
+    img_name=fullfile(output_folder, 'a_b_50.jpg');    
+    savefig(gcf, strrep(img_name,'jpg','fig'));
+    exportgraphics(gcf, img_name, 'Resolution', 300);
     
     % L-a 平面
     h2 = figure(2);
@@ -111,8 +115,13 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
         'MarkerFaceColor', [1, 0.4, 0.8], 'MarkerEdgeColor', 'm');
     
     % 设置坐标轴标签和标题
-    xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-    ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    if strcmp(interpreter_type,"tex")
+        xlabel('a*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('L*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('\textit{a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+        ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    end
     % title('\textit{L*-a*}', 'Interpreter', 'latex', 'FontSize', 12*2);
     
     % 设置坐标轴范围
@@ -144,12 +153,14 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
     
     xlim([x_min_lim, x_max_lim]);
     ylim([y_min_lim, y_max_lim]);
-    interval = 5;
+    interval = 10;
     xticks(x_min_lim:interval:x_max_lim);
     yticks(y_min_lim:interval:y_max_lim);
     
     % 保存图像
-    exportgraphics(gcf, fullfile(output_folder, 'L_a_50.jpg'), 'Resolution', 300);
+    img_name=fullfile(output_folder, 'L_a_50.jpg');    
+    savefig(gcf, strrep(img_name,'jpg','fig'));
+    exportgraphics(gcf, img_name, 'Resolution', 300);
     
     % L-b 平面
     h3 = figure(3);
@@ -180,8 +191,13 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
         'MarkerFaceColor', [1, 0.4, 0.8], 'MarkerEdgeColor', 'm');
     
     % 设置坐标轴标签和标题
-    xlabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-    ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    if strcmp(interpreter_type,"tex")
+        xlabel('b*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('L*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('\textit{b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+        ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    end
     % title('\textit{L*-b*}', 'Interpreter', 'latex', 'FontSize', 12*2);
     
     % 设置坐标轴范围
@@ -215,7 +231,9 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
     yticks(y_min_lim:interval:y_max_lim);
     
     % 保存图像
-    exportgraphics(gcf, fullfile(output_folder, 'L_b_50.jpg'), 'Resolution', 300);
+    img_name=fullfile(output_folder, 'L_b_50.jpg');    
+    savefig(gcf, strrep(img_name,'jpg','fig'));
+    exportgraphics(gcf, img_name, 'Resolution', 300);
     
     % L-C 平面
     h4 = figure(4);
@@ -235,8 +253,13 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
         'MarkerFaceColor', [1, 0.4, 0.8], 'MarkerEdgeColor', 'm');
     
     % 设置坐标轴标签和标题
-    xlabel('\textit{C*}', 'Interpreter', 'latex', 'FontSize', 12*2);
-    ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    if strcmp(interpreter_type,"tex")
+        xlabel('C*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+        ylabel('L*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('\textit{C*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+        ylabel('\textit{L*}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    end
     % title('\textit{L*-C*}', 'Interpreter', 'latex', 'FontSize', 12*2);
     
     % 设置坐标轴范围
@@ -269,7 +292,9 @@ function contour50ellip(par, color, output_folder, variable, ori_lab_mean)
     yticks(y_min_lim:interval:y_max_lim);
     
     % 保存图像
-    exportgraphics(gcf, fullfile(output_folder, 'L_C_50.jpg'), 'Resolution', 300);
+    img_name=fullfile(output_folder, 'L_C_50.jpg');    
+    savefig(gcf, strrep(img_name,'jpg','fig'));
+    exportgraphics(gcf, img_name, 'Resolution', 300);
     
 end
 

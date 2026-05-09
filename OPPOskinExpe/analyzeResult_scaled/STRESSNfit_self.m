@@ -2,6 +2,8 @@ close all; % 关闭所有图窗
 clc;       % 清空命令窗口
 clear;     % 清除工作区所有变量
 
+interpreter_type="tex";  % 可选 "tex" 或 "latex"
+
 %%
 
 directory = 'ExperimentResult1\selfAssRes';
@@ -169,13 +171,73 @@ for i_file = 1:n_file
     end
    
 end
-
+fullfile(pwd,outputFolder)
 save(fullfile(output_folder, "fitRes_self.mat"), ...
     "SV_group_all","lab_group_all","mean_center_all");
 
 
 disp("d");
-
+%%
+% pic_folder=pre_draw_folder;
+% opts.targetFontSize=12;
+% opts.margin=0.12;    
+% opts.label_type="gender50";
+% opts.if_rotate=false;
+% 
+% opts.dir_figs=dir(fullfile(pic_folder,"a_b_50.fig"));
+% opts.dir_figs=[opts.dir_figs;dir(fullfile(pic_folder,"L_C_50.fig"))];
+% opts.dir_figs=[opts.dir_figs;dir(fullfile(pic_folder,"L_a_50.fig"))];
+% opts.dir_figs=[opts.dir_figs;dir(fullfile(pic_folder,"L_b_50.fig"))];
+% 
+% opts.axis_limits=[[5,40,5,40];[5,40,45,75];[10,30,45,75];[5,40,45,75]];
+% opts.axis_ticks=[10,10,10,10];
+% 
+% adjust_fig(pic_folder, opts);
+% %%
+% text_type="ch";
+% if strcmp(text_type,"eng")
+%     s.labels_row1 = {'female','male'};
+%     s.labels_row2 = {'preference center','original','PMCC'};
+% elseif strcmp(text_type,"ch")
+%     s.labels_row1 = {"女性","男性"};
+%     s.labels_row2 = {'喜好中心', '原图肤色','PMCC'};
+% end
+% 
+% s.markers_row2 = {'o', '+','s'};
+% s.markers_colors = [0 0 0; 0 0 0; 1 0 1];
+% s.markers_face_colors=[0 0 0; 0 0 0; 1 0 1];
+% 
+% s.sidePad=0.2;
+% s.if_label=1;
+% s.colors_row1 = colors;
+% s.marginL=0.25;
+% s.leg_x_shift=-0.1;
+% s.h_space_scale=0.7;
+% s.posY_shift=0.2;
+% s.rowStep=0.2;
+% %----------------------
+% dir_figs=dir(fullfile(pic_folder,"*adjusted.fig"));   
+% clear("figFiles");i_fig1=1;
+% for i_fig=1:length(dir_figs)
+%     figFiles{i_fig1}=dir_figs(i_fig).name;
+%     i_fig1=i_fig1+1;
+% end
+% s.dir_figs=dir(fullfile(pic_folder,"a_b_50adjusted.fig"));
+% s.dir_figs=[s.dir_figs;dir(fullfile(pic_folder,"L_C_50adjusted.fig"))];
+% s.dir_figs=[s.dir_figs;dir(fullfile(pic_folder,"L_a_50adjusted.fig"))];
+% s.dir_figs=[s.dir_figs;dir(fullfile(pic_folder,"L_b_50adjusted.fig"))];
+% 
+% s.interpreter_type=interpreter_type;  % 传递给concatenate_figs_legend1
+% legend_file="";
+% s.tickFontScale = 1;
+% s.fontSizeScale=1.2;
+% s.row_gap = 0.05;
+% s.col_gap = 0.03;
+% s.posY_bottom = 0.15;
+% concatenate_figs_legend1(pic_folder, figFiles, 2,legend_file,"draw",s,0,0.4);
+% 
+% 
+% fullfile(pwd,pic_folder)
 %%
 %atan2d_360
 function degree = atan2d_360(y, x)

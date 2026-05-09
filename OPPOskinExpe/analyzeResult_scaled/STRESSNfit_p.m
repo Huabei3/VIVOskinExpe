@@ -18,8 +18,8 @@ lightness_type="rela";
 rgb2xyz_type="display";
 picname_zrecen=["male3","indoor06","night06","outdoor07","sunset03"];
 % rgb2xyz_type="srgb";
-for i_lastPart=1:5
-% for i_lastPart=1:length(lastParts)
+% for i_lastPart=1:5
+for i_lastPart=1:length(lastParts)
     clear("picname_check")
     lastPart=lastParts(i_lastPart);
     directory = fullfile('ExperimentResult1',lastPart);
@@ -214,19 +214,24 @@ for i_lastPart=1:5
             'lab_group', 'p_group');
     end
     disp("finish STRESS calculating");
-    %%
-    % 拟合椭球并保存结果
-    
+
+% end
+% 
+% % 
+% for i_lastPart=1:length(lastParts)
+%     clear("picname_check")
+%     lastPart=lastParts(i_lastPart);
+
     pre_draw_folder = fullfile(output_folder, lastPart,'pre_draw');
     if ~exist(pre_draw_folder, 'dir')
         mkdir(pre_draw_folder);
     end
-    
+
     lab_group_all=[];p_group_all=[];ave_all=[];par_ind=[];r_ind=[]; 
 
 
     for i_nog = 1:length(picname_check)
-        
+
         if ismember(picname_check{i_nog,1},picname_zrecen)
             outputFolder_used=strrep(outputFolder,lastPart,"recen");
             picname_used=strcat("zrecen",picname_check{i_nog,1});
@@ -249,7 +254,7 @@ for i_lastPart=1:5
         my_ellipsoidfit_fixed(lab_group, p_group,mean_cen);
 
         ave_all(i_nog,:)=lab_group(end,:);
-    
+
         if i_nog==5
             disp("d")
         end
@@ -269,12 +274,12 @@ for i_lastPart=1:5
     plot_contour_with_scatter(par, lab_group_all, p_group_all);
     exportgraphics(gcf, fullfile(pre_draw_folder, 'all.jpg'),'Resolution',150);
     parNr=[par, r];
-    
+
     list_table = create_list_table(ave_all(:,1), par_ind,r_ind);
-    
+
     %%
     XYZ_bf=lab2xyz2([mean(lab_group_all(:,1)),par(:,4:5)],'d65_64');
-    
+
     outputFolder=fullfile(output_folder, lastPart,'ellipPara_scaled');
     if ~exist(outputFolder, 'dir')
         mkdir(outputFolder);

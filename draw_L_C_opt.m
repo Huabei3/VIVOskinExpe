@@ -7,6 +7,7 @@ addpath("utils\")
 data_type="likeVIVO";
 % Dtype="noCAT";
 Dtype="efit_p";
+interpreter_type="tex";  % 可选 "tex" 或 "latex"
 if strcmp(data_type,"old")
     save_folder="AnalyseResults_p\old\fitRes";
     load("fitRes\fitRes_level_m.mat");
@@ -64,8 +65,13 @@ scatter(C_all(:),L(:), 40, 'filled',"MarkerFaceColor",'r');
 % scatter(lab_scaled(:,4),lab_scaled(:,1), 30, 'filled',"MarkerFaceColor",'b');
 ax = gca; ax.XLim = [0 max(C_all)+25];
 ay = gca; ay.YLim = [0 max(L)+5];
-xlabel('\textit{$C_{ab}^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
-ylabel('\textit{$L^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+if strcmp(interpreter_type,"tex")
+    xlabel('C_{ab}^*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    ylabel('L^*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+elseif strcmp(interpreter_type,"latex")
+    xlabel('\textit{$C_{ab}^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    ylabel('\textit{$L^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+end
 % title('\textit{$C_{ab}^*-L^*$}','Interpreter', 'latex','FontSize', 12*2);
 
 % saveas(4,fullfile('ellip_pic\linear\m\C_L_curve.jpg'));
@@ -134,8 +140,13 @@ plot(y1,x,"Color","r","LineStyle","--");
 %设置坐标
 ax = gca; ax.XLim = [0 max(C_all)+25];
 ay = gca; ay.YLim = [0 max(L)+5];
-xlabel('\textit{$C_{ab}^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
-ylabel('\textit{$L^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+if strcmp(interpreter_type,"tex")
+    xlabel('C_{ab}^*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    ylabel('L^*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+elseif strcmp(interpreter_type,"latex")
+    xlabel('\textit{$C_{ab}^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    ylabel('\textit{$L^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+end
 % title('\textit{$C_{ab}^*-L^*$}','Interpreter', 'latex','FontSize', 12*2);
 
 % saveas(4,fullfile('ellip_pic\linear\m\C_L_curve.jpg'));
@@ -188,13 +199,15 @@ plot(x,x,"Color","k","LineStyle","--");
 
 ax = gca; ax.XLim = [0 max_lim];
 ay = gca; ay.YLim = [0 max_lim];
-xlabel('a*','FontAngle', 'italic');
-ylabel('b*','FontAngle','italic');
-% title('a*-b*','FontAngle', 'italic');
-
-xlabel('\textit{$a^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
-ylabel('\textit{$b^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
-% title('\textit{$a^*-b^*$}','Interpreter', 'latex','FontSize', 12*2);
+if strcmp(interpreter_type,"tex")
+    xlabel('a*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    ylabel('b*','Interpreter','tex','FontName','Arial','FontAngle','italic', 'FontSize',12*2);
+    % title('a*-b*','FontAngle', 'italic');
+elseif strcmp(interpreter_type,"latex")
+    xlabel('\textit{$a^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    ylabel('\textit{$b^*$}', 'Interpreter', 'latex', 'FontSize', 12*2);
+    % title('\textit{$a^*-b^*$}','Interpreter', 'latex','FontSize', 12*2);
+end
 
 % saveas(4,fullfile('ellip_pic\linear\m\C_L_curve.jpg'));
 img_name=fullfile(pic_folder,'ab_curve.jpg');    
@@ -245,6 +258,7 @@ s.leg_x_shift=0.04;
 s.h_space_scale=0.7;
 s.posY_shift=0.2;
 s.rowStep=0.2;
+s.interpreter_type=interpreter_type;  % 传递给concatenate_figs_legend1
 %----------------------
 dir_figs=dir(fullfile(pic_folder,"*adjusted.fig"));   
 clear("figFiles");i_fig1=1;
@@ -254,7 +268,9 @@ for i_fig=1:length(dir_figs)
 end
 
 legend_file="";
-concatenate_figs_legend1(pic_folder, figFiles, 2,legend_file,"draw",s,0.15,0.7);
+s.label_x_offset=-0.025;
+s.label_y_offset=-0.025;
+concatenate_figs_legend1(pic_folder, figFiles, 2,legend_file,"draw",s,0.15,0.8);
 
 
 fullfile(pwd,pic_folder)

@@ -129,36 +129,40 @@ prev_cell{curr_row,2}="Park et al. (2006)";
 prev_cell{curr_row,3}=["Asian","Caucasian","Indian","African-American","Mixed"];
 prev_cell{curr_row,4}=["亚洲人","白人","印度人","非裔美国人","混合人种"];
 curr_row=curr_row+1;
+
+entire="false";
 %-----------Zeng2009
-% clear("lab_est");
-% lab_est = [    
-%     [59,19, 20];  
-%     [59,19, 20] ;  
-%     [0,0,0];
-%     [0,18.5,19.5];  
-% ];
-% 
-% 
-% prev_cell{curr_row,1}=lab_est;
-% prev_cell{curr_row,2}="Zeng et al. (2009)";
-% prev_cell{curr_row,3}=["Oriental","Caucasian","","Dark skin"];
-% prev_cell{curr_row,4}=["东方人","白种人","","深色皮肤"];
-% curr_row=curr_row+1;
+if strcmp(entire,"true")
+clear("lab_est");
+lab_est = [    
+    [59,19, 20];  
+    [59,19, 20] ;  
+    [0,0,0];
+    [0,18.5,19.5];  
+];
+
+
+prev_cell{curr_row,1}=lab_est;
+prev_cell{curr_row,2}="Zeng et al. (2009)";
+prev_cell{curr_row,3}=["Oriental","Caucasian","","Dark skin"];
+prev_cell{curr_row,4}=["东方人","白种人","","深色皮肤"];
+curr_row=curr_row+1;
 
 %-----------Zeng2010
-% clear("lab_est");
-% lab_est = [[0,0, 0];
-%     [0,0, 0];
-%     [0,0, 0];
-%     [0,0, 0];
-%     [0,21, 24]];
-% 
-% 
-% prev_cell{curr_row,1}=lab_est;
-% prev_cell{curr_row,2}="Zeng et al. (2010)";
-% prev_cell{curr_row,3}=["","","","","Mixed"];
-% prev_cell{curr_row,4}=["","","","","混合人种"];
-% curr_row=curr_row+1;
+clear("lab_est");
+lab_est = [[0,0, 0];
+    [0,0, 0];
+    [0,0, 0];
+    [0,0, 0];
+    [0,21, 24]];
+
+
+prev_cell{curr_row,1}=lab_est;
+prev_cell{curr_row,2}="Zeng et al. (2010)";
+prev_cell{curr_row,3}=["","","","","Mixed"];
+prev_cell{curr_row,4}=["","","","","混合人种"];
+curr_row=curr_row+1;
+end
 %-----------Zeng2011
 clear("lab_est");
 % lab_est = [[0,18,21];[0,17,16];[0,0,0];[0,21,29]];%这个是统计喜好中心
@@ -254,9 +258,9 @@ elseif strcmp(Dtype,"efit_p")
 end
 
 % label_type="ACSA";
-label_type="only_my";
+% label_type="only_my";
 % label_type="include_this";
-% label_type="exclude_this";
+label_type="exclude_this";
 output_folder=fullfile(ellip_pic_folder,Dtype,"compare_thesis_pre",label_type);
 
 if ~exist(output_folder,"dir")
@@ -336,7 +340,11 @@ for i_eth=1:size(ethnic_groups,2)
 
     xlim([min_lim,max_lim])
     ylim([min_lim,max_lim])
-    interval = 5;
+    if strcmp(label_type,"exclude_this")
+        interval = 2;
+    else
+        interval = 5;
+    end
     xticks(0:interval:max_lim);
     yticks(0:interval:max_lim);
     x = linspace(min_lim, max_lim, 1000);
@@ -533,8 +541,13 @@ for s_idx = 1:1
     xlim([current_lims(1), current_lims(2)]);
     ylim([current_lims(3), current_lims(4)]);
     
-    % 更新刻度（如果是 18-21，建议刻度加密，例如 0.5 间隔
-    interval=round((view_settings{s_idx,1}(2)-view_settings{s_idx,1}(1))/4);
+    % 更新刻度（如果是 18-21，建议刻度加密，例如 0.5 间隔    
+    if strcmp(label_type,"exclude_this")
+        interval = 2;
+    else
+        interval=round((view_settings{s_idx,1}(2)-view_settings{s_idx,1}(1))/4);
+    end
+    
     xticks(view_settings{s_idx,1}(1):interval:view_settings{s_idx,1}(2));
     yticks(view_settings{s_idx,1}(3):interval:view_settings{s_idx,1}(4));
     % --- 3. 针对不同图片的特殊处理 ---
@@ -580,7 +593,11 @@ end
 
 
 % 保持后续的数据保存逻辑
-save(fullfile(output_folder,"author_colors.mat"),"author_all","prev_cell");
+if strcmp(entire,"true")
+    save(fullfile(output_folder,"author_colors_true.mat"),"author_all","prev_cell");
+else
+    save(fullfile(output_folder,"author_colors.mat"),"author_all","prev_cell");
+end
 
 
 fullfile(pwd,output_folder)
@@ -600,22 +617,17 @@ if strcmp(label_type,"only_my")
     end
     s.labels_row2 = {};
     s.markers_row2 = {};
-    % s.markers_colors = [];
-    s.markers_colors = colors;
+    s.markers_colors = [];
+    s.colors_row1 = colors;
+    s.colors_row1(9:10,:)=[[0,0,0];[0,0,0]];
     s.markers_face_colors = [];
-    s.n_col1=3; 
+    s.n_col1=5; 
     s.n_col2=3;
     s.if_label=false;
     s.markers_row1_last2={"p","o"};
-    s.leg_x_shift=-0.09;
-    s.marginL=0.3;
-
-    num_attributes = numel(s.labels_row1);
-    hue_values = linspace(0, 1, num_attributes + 1);
-    hue_values = hue_values(1:end-1);
-    hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attributes, 1)];
-    s.colors_row1 = hsv2rgb(hsv_matrix);
-
+    s.leg_x_shift=-0.25;
+    s.marginL=0.25;
+    s.colGap1_scale = 1.5;  
 
     s.label_type="only_my";
     dir_figs=dir(fullfile(output_folder,"only_mycompare_thesis_pre.fig"));
@@ -624,7 +636,11 @@ if strcmp(label_type,"only_my")
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
     s.interpreter_type=interpreter_type;
+    s.iconTextGap=0.04;
+    s.fontSizeScale=1.2;
+    s.tickFontScale=0.9;
     concatenate_figs_legend1(output_folder, figFiles, 1,"none","draw",s,0.09,1.2);
+    fullfile(pwd,output_folder)
 elseif strcmp(label_type,"compare_thesis_pre")
     opts.targetFontSize=12;
     opts.margin=0.2;    

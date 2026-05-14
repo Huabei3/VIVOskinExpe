@@ -9,8 +9,8 @@ clear;     % 清除工作区所有变量
 Dtype="efit_p";
 targetFontSize=12;
 
-% text_type= "ch";if_ref=0;
-text_type= "eng";if_ref=1;
+text_type= "ch";if_ref=0;
+% text_type= "eng";if_ref=1;
 interpreter_type="tex";
 if strcmp(text_type,"ch")
     nation_names=["亚洲人","高加索人","南亚人","非洲人"];
@@ -19,7 +19,7 @@ elseif strcmp(text_type,"eng")
 end
 
 prev_folder=fullfile("ellip_pic_p",Dtype,"compare_thesis_pre\include_this");
-load(fullfile(prev_folder,"author_colors.mat"),"author_all","prev_cell");
+load(fullfile(prev_folder,"author_colors_true.mat"),"author_all","prev_cell");
 i_del=[];
 
 for i_row=1:size(prev_cell)
@@ -327,6 +327,9 @@ clear("figFiles")
 for i_fig=1:length(dir_figs)
     figFiles{i_fig}=dir_figs(i_fig).name;
 end
+s.iconTextGap=0.02;
+s.fontSizeScale=1.2;
+s.tickFontScale=0.9;
 concatenate_figs_legend1(output_folder, figFiles, 4,"none","draw",s,0.09,2);
 
 

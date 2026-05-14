@@ -588,7 +588,8 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
         else
             curr_interpreter = 'none';
         end
-        text(legAx, tx + iconTextGap, ty, labels_row1{k}, ...
+        label_str = char(labels_row1{k});  % 确保 char 类型
+        text(legAx, tx + iconTextGap, ty, label_str, ...
             'FontSize', legendFontSize, 'VerticalAlignment', 'middle', 'Interpreter', curr_interpreter);
     end
     

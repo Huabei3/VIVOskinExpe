@@ -10,6 +10,7 @@ colors = hsv2rgb(hsv_matrix);
 scale_type_origin="unscaled";
 scale_type="scaled";
 Dtype="efit_p";
+interpreter_type="tex";
 lab_cherry=[65.50 	17.21 	17.72];
 ab_summer=[0 17.9 18.7];
 % ab_zeng=[0 19.9 23.0];
@@ -153,15 +154,22 @@ for i_eth=[1]
     scatter(labCh_PMCC(1,2), labCh_PMCC(1,3), 20, 's', 'LineWidth', 1, ...
     'MarkerEdgeColor','m','MarkerFaceColor','m');
     % title(ethnic_names(i_eth))
-    xlabel('\it a* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
-    ylabel('\it b* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
+    % xlabel('\it a* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
+    % ylabel('\it b* \rm\fontsize{16}（无量纲）', 'Interpreter', 'tex', 'FontSize', 20);
 
     ax = gca;
     targetFontSize=12;
     set(ax, 'FontSize', targetFontSize);
-    xlabel('$a^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
-    ylabel('$b^*$', 'Interpreter', 'latex', 'FontSize', 1.5*targetFontSize);
-    set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize); 
+    if strcmp(interpreter_type,"tex")
+        xlabel('a^*', 'Interpreter','tex','FontName','Arial', ...
+            'FontAngle','italic', 'FontSize', 1.5*targetFontSize);
+        ylabel('b^*', 'Interpreter','tex','FontName','Arial', ...
+            'FontAngle','italic', 'FontSize', 1.5*targetFontSize);
+    elseif strcmp(interpreter_type,"latex")
+        xlabel('$a^*$', 'Interpreter','latex', 'FontSize', 1.5*targetFontSize);
+        ylabel('$b^*$', 'Interpreter','latex','FontSize', 1.5*targetFontSize);
+    end
+    set(findobj(gcf, 'Type', 'Text'), 'FontSize', targetFontSize);
     img_name=fullfile(output_folder, ...
         strcat(ethnic_groups(i_eth),'.jpg'));    
     savefig(gcf, strrep(img_name,'jpg','fig'));
@@ -207,7 +215,10 @@ for i_fig=1:length(dir_figs)
 end
 
 legend_file="";
-concatenate_figs_legend1(output_folder, figFiles, 1,legend_file,"draw",s,0,1);
+s.iconTextGap=0.04;
+s.fontSizeScale=1.2;
+s.tickFontScale=0.9;
+concatenate_figs_legend1(output_folder, figFiles, 1,legend_file,"draw",s,0,0.9);
 
 
 fullfile(pwd,output_folder)

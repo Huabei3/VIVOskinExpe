@@ -83,11 +83,13 @@ hold on;
 axis equal;
 xlim([lim_min, lim_max]);
 ylim([lim_min, lim_max]);
+
 plot(labCh_PMCC(1,2), labCh_PMCC(1,3), 's', 'MarkerSize', 5, ...
     'MarkerFaceColor', 'm', 'MarkerEdgeColor','m');
 x = lim_min:0.1:lim_max;
 plot(x,x,"Color","k",'LineStyle','--','LineWidth',1);
-
+xticks(lim_min:10:lim_max);
+yticks(lim_min:10:lim_max);
 img_name=fullfile(pic_folder,"contour_levels.jpg");    
 savefig(gcf, strrep(img_name,'jpg','fig'));
 exportgraphics(gcf,img_name);
@@ -126,6 +128,11 @@ s.posY_shift=0.2;
 s.rowStep=0.3;
 s.n_col1=4;
 s.n_col2=2;
+% 自定义x轴和y轴刻度（解决concatenate后刻度丢失的问题）
+s.x_ticks = 0:10:40;
+s.y_ticks = 0:10:40;
+
+
 
 
 %----------------------
@@ -141,6 +148,7 @@ end
 legend_file="";
 s.interpreter_type="tex";
 s.if_label=1;
+s.row1_italic=true;   % L* 中 L 显示为斜体
 concatenate_figs_legend1(cmp_folder, figFiles, 2,legend_file,"draw",s,0.0,1.3);
 
 

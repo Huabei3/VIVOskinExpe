@@ -168,6 +168,15 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         % === 新增：同步刻度标签内容（解决数字变成文字的问题） ===
         subAx.XTickLabel = tempAx.XTickLabel;
         subAx.YTickLabel = tempAx.YTickLabel;
+        % === 自定义刻度支持（覆盖自动刻度）===
+        if isfield(legend_labels, 'x_ticks')
+            subAx.XTick = legend_labels.x_ticks;
+            subAx.XTickLabel = arrayfun(@num2str, legend_labels.x_ticks, 'UniformOutput', false);
+        end
+        if isfield(legend_labels, 'y_ticks')
+            subAx.YTick = legend_labels.y_ticks;
+            subAx.YTickLabel = arrayfun(@num2str, legend_labels.y_ticks, 'UniformOutput', false);
+        end
         % 如果原图使用了刻度旋转，也一并同步
         subAx.XTickLabelRotation = tempAx.XTickLabelRotation;
         %==========
@@ -175,6 +184,10 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         if ~(isfield(legend_labels, 'label_type') && strcmp(legend_labels.label_type, 'MCDM'))
             subAx.DataAspectRatio = tempAx.DataAspectRatio;
             subAx.PlotBoxAspectRatio = tempAx.PlotBoxAspectRatio;
+            % 同步 ActivePositionProperty（解决 axis equal 失效的问题）
+            if isprop(subAx, 'ActivePositionProperty')
+                subAx.ActivePositionProperty = tempAx.ActivePositionProperty;
+            end
         end
         if ~isfield(legend_labels, 'preserve_text_fontsize') || ~legend_labels.preserve_text_fontsize        
             if isfield(legend_labels, 'fontSizeScale')
@@ -568,10 +581,10 @@ function draw_legend_overlay(mainFig, legendPos, targetFontSize, legend_labels, 
             row1_angle = 'normal';
         end
         % 解析 tex 标签，提取 italic 部分（首字母到 ^ 之前）和 normal 部分（^* 之后）
-        caret_pos = strfind(label_str, '*');
+        caret_pos = strfind(label_str, '^');
         if ~isempty(caret_pos)
-            italic_part = label_str(1:caret_pos(1));   % e.g. "L"
-            normal_part = label_str(caret_pos(1)+1:end);    % e.g. "^*=10"
+            italic_part = label_str(1:caret_pos(1)-1);   % e.g. "L"
+            normal_part = label_str(caret_pos(1):end);    % e.g. "^*=10"
             h_it = text(legAx, tx + iconTextGap, ty, italic_part, ...
                 'FontSize', legendFontSize, 'VerticalAlignment', 'middle', ...
                 'Interpreter', legend_interpreter, 'FontAngle', row1_angle, ...

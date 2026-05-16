@@ -48,6 +48,7 @@ plot_style = {'^','<','v'};
 genders = ["f", "m"]; % 定义性别数组
 targetFontSize=12;
 interpreter_type = "tex"; % "tex" 或 "latex"
+one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
 % obs_types = ["model_group"];
 obs_types = ["non_model"];
 % obs_types = ["non_model", "model_group", "model"];
@@ -501,8 +502,14 @@ end  % end of for i_idx
         if ~contains(dir_figs(i_fig).name, 'adjusted')
             continue;
         end
+        if strcmp(one_image_mode, "true") && i_fig1 > 1
+            break;  % one_image_mode只取第一个
+        end
         figFiles{i_fig1}=dir_figs(i_fig).name;
         i_fig1=i_fig1+1;
+    end
+    if strcmp(one_image_mode, "true")
+        s.if_label = false;
     end
 
     if strcmp(imageNum_type,"sing")

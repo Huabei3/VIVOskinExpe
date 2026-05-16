@@ -21,6 +21,7 @@ elseif strcmp(text_type,"ch")
 end
 targetFontSize=12;
 interpreter_type = "tex"; % "tex" 或 "latex"
+one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
 
 %% 定义i和r两组lastParts
 lastParts_i = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -956,8 +957,16 @@ for i_obs=1:length(obs_types_plot)
     
     dir_figs = dir(fullfile(save_folder, "*adjusted.fig"));
     clear("figFiles")
+    i_fig1 = 1;
     for i_fig = 1:length(dir_figs)
-        figFiles{i_fig} = dir_figs(i_fig).name;
+        if strcmp(one_image_mode, "true") && i_fig1 > 1
+            break;  % one_image_mode只取第一个
+        end
+        figFiles{i_fig1} = dir_figs(i_fig).name;
+        i_fig1 = i_fig1 + 1;
+    end
+    if strcmp(one_image_mode, "true")
+        s.if_label = false;
     end
     s.fontSizeScale=1.2;
     if strcmp(variable_type,"nation")

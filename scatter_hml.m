@@ -35,8 +35,8 @@ elseif iOr=='r'
     picnames_groups = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
              "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
 end
-lightness_type="force_scaled";
-% lightness_type="abs";
+% lightness_type="force_scaled";
+lightness_type="abs";
 % lightness_type="rela";
 color_type="lightness";
 load("documents\valid_attr.mat","map");
@@ -514,28 +514,50 @@ for i_obs=1:length(obs_types)
         figFiles{i_fig}=dir_figs(i_fig).name;
     end
     s.label_x_offset=-0.02;s.label_y_offset=-0.02;
+    s.tickFontScale = 0.9;
     concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.09,0.35);
     %%
 end
 %%
 
-
+images_mode="defense";
 fullfile(pwd,save_folder)
+if strcmp(images_mode,"defense")
+    clear("figFiles");
+    save_folder_temp=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+        "rela","non_model\i",text_type);
+    dir_figs=dir(fullfile(save_folder_temp,"*01AS_Ladjusted.fig"));
+    save_folder_temp=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+        "rela","non_model\r",text_type);
+    dir_figs=[dir_figs;dir(fullfile(save_folder_temp,"*01AS_Ladjusted.fig"))];
+    save_folder_temp=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+        "abs","non_model\i",text_type);
+   dir_figs=[dir_figs;dir(fullfile(save_folder_temp,"*01AS_Ladjusted.fig"))];
+    save_folder_temp=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+        "abs","non_model\r",text_type);
+    dir_figs=[dir_figs;dir(fullfile(save_folder_temp,"*01AS_Ladjusted.fig"))];
 
-save_folder_i=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
-    lightness_type,"non_model\i",text_type);
-save_folder_r=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
-    lightness_type,"non_model\r",text_type);
-clear("figFiles")
-dir_figs=dir(fullfile(save_folder_i,"*adjusted.fig"));
-dir_figs=[dir_figs;dir(fullfile(save_folder_r,"*adjusted.fig"))];
-for i_fig=1:length(dir_figs)
-    figFiles{i_fig}=dir_figs(i_fig).name;
+    for i_fig=1:length(dir_figs)
+        figFiles{i_fig}=dir_figs(i_fig).name;
+    end
+else
+    save_folder_i=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+        lightness_type,"non_model\i",text_type);
+    save_folder_r=fullfile("D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\hml", ...
+        lightness_type,"non_model\r",text_type);
+    clear("figFiles")
+    dir_figs=dir(fullfile(save_folder_i,"*adjusted.fig"));
+    dir_figs=[dir_figs;dir(fullfile(save_folder_r,"*adjusted.fig"))];
+    for i_fig=1:length(dir_figs)
+        figFiles{i_fig}=dir_figs(i_fig).name;
+    end
 end
 s.fontSizeScale=1.2;
 s.dir_figs=dir_figs;
 if strcmp(lightness_type,"force_scaled")
 s.labels_lower_right=["(a)","(b)","(c)","(d)","(a)","(b)","(c)","(d)"];
 end
+s.row_gap = 0.05;
+s.col_gap =- 0.03;
 concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.05,0.35);
  

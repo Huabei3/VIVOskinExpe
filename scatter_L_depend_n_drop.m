@@ -1,7 +1,9 @@
 % scatter_L_depend_n_drop.m
 % Leave-One-Subject-Out N-Drop 交叉验证版本
 % 每次留 n_drop 个 subject 作为验证集，其余作为训练集
-% 拟合 + 验证结果输出到 xlsx
+% 验证指标：参考 predict_fullpara_ablation.m
+%   average(i_par,1) + 拟合参数 → calculate_par_from_ellipse → calculate_y → corr(y, p_group)
+% 每组参数拟合完立即打印并追加写 xlsx
 close all; clc; clear;
 addpath("utils\")
 
@@ -47,7 +49,6 @@ plot_styles = {'o', '+', 'd', '^'};
 genders = ["f", "m"];
 
 obs_types = ["non_model", "model_group", "model"];
-enable_plotting_orig = enable_plotting;  % 保存原始绘图开关
 
 max_classify = 0;
 if max_classify == 1
@@ -92,19 +93,6 @@ if ~exist(pic_folder, 'dir')
     mkdir(pic_folder);
 end
 
-function gender_indices = separate_genders(n_subjects, curr_nation_indices, lastParts)
-    gender_indices = cell(2, 1);
-    for i_subject = 1:n_subjects
-        subject_idx = curr_nation_indices(i_subject);
-        lastPart = lastParts{subject_idx};
-        if lastPart(1) == 'f'
-            gender_indices{1} = [gender_indices{1}, i_subject];
-        elseif lastPart(1) == 'm'
-            gender_indices{2} = [gender_indices{2}, i_subject];
-        end
-    end
-end
-
 %% 直接按重塑后的结构加载和存储数据（与原脚本相同）
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
@@ -119,7 +107,6 @@ for i_obs = 1:length(obs_types)
         for i_subject = 1:n_subjects
             subject_idx = curr_nation_indices(i_subject);
             lastPart = lastParts{subject_idx};
-            iOr_sub = lastPart(end);
 
             average_file = fullfile("aveSkin", lastPart, "autoNhand_scaleoverLUT.mat");
             if exist(average_file, 'file')
@@ -128,9 +115,6 @@ for i_obs = 1:length(obs_types)
             else
                 average_current(:, :, i_subject) = NaN(n_para, 3);
             end
-
-            white_file = fullfile("optimizedD\whiteSquare\XYZw_white", strcat(lastPart, ".mat"));
-            load(white_file, "XYZw_white");
 
             for i_attr = 1:length(attributes)
                 attribute = attributes(i_attr);
@@ -163,32 +147,43 @@ for i_obs = 1:length(obs_types)
     end
 end
 
-%% 保存重塑数据
-output_folder_data = fullfile("ellip_pic_p", Dtype, CT_type);
-if ~exist(output_folder_data, "dir")
-    mkdir(output_folder_data);
-end
-save(fullfile(output_folder_data, strcat("data_unscaled_reshaped_", iOr, ".mat")), ...
-    "lab_fit_reshaped", "par_reshaped", "average_reshaped", "file_missing");
-
-%% ===== N-Drop 交叉验证核心循环 =====
-obs_types_use = ["non_model"];  % 可改为支持多 obs_type
-
-% 存储所有验证结果
-% result_n_drop{obs_idx}{nation_idx}{subject_idx}{attribute_idx} = struct(...)
-result_n_drop = cell(length(obs_types_use), length(nations));
-% 也存储训练集整体拟合结果（汇总用）
-result_train_all = cell(length(obs_types_use), length(nations));
+%% ===== N-Drop 交叉验证核心循环（每组参数立即打印+写 xlsx）=====
+% 验证指标（参考 predict_fullpara_ablation.m）：
+%   1. 训练集拟合曲线参数
+%   2. 用 dropped subject 的 average(i_par,1) + 拟合参数计算模型椭圆
+%   3. calculate_par_from_ellipse → calculate_y → corr(y, p_group)
+obs_types_use = ["non_model"];
 
 for i_obs = 1:length(obs_types_use)
     obs_type = obs_types_use(i_obs);
+    % 注意：文件夹名不能以 \n 开头（MATLAB 把 \n 当换行符处理）
+    obs_folder_name = strrep(obs_type, '\n', '_');   % "non_model" → "non_model"（无\n则不变）
+    drop_folder_name = sprintf('drop_%d', n_drop);   % 不用 "n_drop_%d"，避免 \n 变换行符
     r_excel_output_folder = fullfile("AnalyseResults_p", Dtype, scale_type_origin, ...
-        "model_fullpara_n_drop", CT_type, "new", iOr, obs_type, ...
-        sprintf("n_drop_%d", n_drop));
+        "model_fullpara_n_drop", CT_type, "new", iOr, obs_folder_name, drop_folder_name);
     if ~exist(r_excel_output_folder, 'dir')
         mkdir(r_excel_output_folder);
     end
+    excel_filename = fullfile(r_excel_output_folder, sprintf('n_drop_cv_results_n%d.xlsx', n_drop));
 
+    % ---- xlsx 只建一次（写到 nation 循环外面）----
+    if exist(excel_filename, 'file')
+        try delete(excel_filename); end
+    end
+    % 先为每个 nation 写好 header（每个 sheet 建立一次）
+    for i_nation = 1:length(nations)
+        nation = nations(i_nation);
+        sheet_name = strrep(nation, ' ', '_');
+        col_header = {'Attr', 'Drop_subj', 'Drop_LP', ...
+            'r_model_y', 'rmse_y', 'r_C_mod', 'r_C_exp', ...
+            'a_C1', 'a_C2', ...
+            'a_la1', 'a_la2', 'a_la3', 'a_la4', ...
+            'a_sa1', 'a_sa2', 'a_sa3', 'a_sa4', ...
+            'hue_angle', 'theta', 'alpha'};
+        writecell(col_header, excel_filename, 'Sheet', sheet_name, 'WriteMode', 'overwritesheet');
+    end
+
+    % ---- 正式计算循环：追加写 xlsx ----
     for i_nation = 1:length(nations)
         nation = nations(i_nation);
         curr_nation_indices = nation_indices{i_nation};
@@ -200,510 +195,287 @@ for i_obs = 1:length(obs_types_use)
             continue;
         end
 
-        % 遍历每个 held-out subject（验证集）
-        % 生成所有 n_drop 组合（简化：按顺序每次留连续的 n_drop 个，
-        % 也可改为 random 组合）
-        n_val_combinations = n_subjects_nation;  % 每个人轮流当验证集
+        sheet_name = strrep(nation, ' ', '_');
 
-        for val_combo_idx = 1:n_val_combinations
-            % 确定验证集 indices（按顺序取 n_drop 个）
-            val_start = val_combo_idx;
-            val_indices = [];
-            cnt = 0;
-            while cnt < n_drop
-                idx = mod(val_start - 1 + cnt, n_subjects_nation) + 1;
-                val_indices = [val_indices, idx];
-                cnt = cnt + 1;
-            end
-            % 训练集 indices
+        % ---- 每人轮流当验证集 ----
+        for val_combo_idx = 1:n_subjects_nation
+            val_indices = val_combo_idx;   % n_drop=1 时为标量
             train_indices = setdiff(1:n_subjects_nation, val_indices);
 
-            % 为训练集和验证集分别准备数据
+            % dropped subject 信息
+            dropped_subject_idx = curr_nation_indices(val_indices);
+            dropped_lastPart = lastParts{dropped_subject_idx};
+
+            % 加载 dropped subject 的 average_lab_all（用于模型预测 L* 输入）
+            avg_drop_file = fullfile("aveSkin", dropped_lastPart, "autoNhand_scaleoverLUT.mat");
+            if exist(avg_drop_file, 'file')
+                avg_drop_data = load(avg_drop_file);
+                avg_drop_all = avg_drop_data.average_lab_all(:, 1:3);  % (21,3): L*,a*,b*
+            else
+                avg_drop_all = NaN(21, 3);
+            end
+
             for idx_attribute = 1:length(attributes)
                 attribute = attributes(idx_attribute);
-                attribute_serial_orig = strcat(sprintf("%02d", attribute), attribute_names_new(attribute));
+                attr_name = attribute_names_new(attribute);
 
-                % 特殊处理 attribute==7（使用 model_group）
+                % attribute==7 用 model_group
                 if attribute == 7
                     i_obs_used = 2;
                 else
                     i_obs_used = i_obs;
                 end
 
-                % 加载完整数据
+                % ===== 训练集数据 =====
                 lab_data_full = lab_fit_reshaped{i_obs_used, i_nation}(indices_target, :, :, attribute);
                 par_data_full = par_reshaped{i_obs_used, i_nation}(indices_target, :, :, attribute);
 
                 [n_targets, n_channels_lab, ~] = size(lab_data_full);
                 [~, n_channels_par, ~] = size(par_data_full);
 
-                % ===== 提取训练集数据 =====
                 lab_train_raw = lab_data_full(:, :, train_indices);
                 par_train_raw = par_data_full(:, :, train_indices);
                 lab_train_g = reshape(permute(lab_train_raw, [1 3 2]), n_targets * length(train_indices), n_channels_lab);
                 par_train_g = reshape(permute(par_train_raw, [1 3 2]), n_targets * length(train_indices), n_channels_par);
 
-                valid_rows_lab_tr = ~any(isnan(lab_train_g), 2);
-                valid_rows_par_tr = ~any(isnan(par_train_g), 2);
-                valid_overall_tr = valid_rows_lab_tr & valid_rows_par_tr;
-                L_train = lab_train_g(valid_overall_tr, 1);
-                par_train_valid = par_train_g(valid_overall_tr, :);
+                valid_tr_mask = ~any(isnan(lab_train_g), 2) & ~any(isnan(par_train_g), 2);
+                L_train = lab_train_g(valid_tr_mask, 1);
+                par_train_valid = par_train_g(valid_tr_mask, :);
 
-                % ===== 提取验证集数据 =====
-                lab_val_raw = lab_data_full(:, :, val_indices);
-                par_val_raw = par_data_full(:, :, val_indices);
-                lab_val_g = reshape(permute(lab_val_raw, [1 3 2]), n_targets * length(val_indices), n_channels_lab);
-                par_val_g = reshape(permute(par_val_raw, [1 3 2]), n_targets * length(val_indices), n_channels_par);
-
-                valid_rows_lab_va = ~any(isnan(lab_val_g), 2);
-                valid_rows_par_va = ~any(isnan(par_val_g), 2);
-                valid_overall_va = valid_rows_lab_va & valid_rows_par_va;
-                L_val = lab_val_g(valid_overall_va, 1);
-                par_val_valid = par_val_g(valid_overall_va, :);
-
-                % === 计算派生量 ===
-                % 训练集
+                % ===== 训练集派生量 =====
                 C_train = sqrt(par_train_valid(:,4).^2 + par_train_valid(:,5).^2);
-                alpha_train = -log(par_train_valid(:,6));
-                alpha_train(isinf(alpha_train) | isnan(alpha_train)) = NaN;
-                lambda00_tr = par_train_valid(:,1) ./ alpha_train.^2;
-                lambda01_tr = par_train_valid(:,3) ./ alpha_train.^2 ./ 2;
-                lambda11_tr = par_train_valid(:,2) ./ alpha_train.^2;
+                alpha_tr = -log(par_train_valid(:,6));
+                alpha_tr(isinf(alpha_tr) | isnan(alpha_tr)) = NaN;
+                lambda00_tr = par_train_valid(:,1) ./ alpha_tr.^2;
+                lambda01_tr = par_train_valid(:,3) ./ alpha_tr.^2 ./ 2;
+                lambda11_tr = par_train_valid(:,2) ./ alpha_tr.^2;
                 theta_tr = 0.5 * atan2d(2 * lambda01_tr, (lambda00_tr - lambda11_tr));
                 theta_tr = mod(theta_tr, 360);
                 A_tr = lambda00_tr .* cosd(theta_tr).^2 - lambda01_tr .* sind(2*theta_tr) + lambda11_tr .* sind(theta_tr).^2;
                 B_tr = lambda00_tr .* sind(theta_tr).^2 + lambda01_tr .* sind(2*theta_tr) + lambda11_tr .* cosd(theta_tr).^2;
-                A_tr(A_tr <= 0) = NaN;
-                B_tr(B_tr <= 0) = NaN;
-                long_axis_train = sqrt(1 ./ A_tr);
-                short_axis_train = sqrt(1 ./ B_tr);
-                hue_angle_train = atan2d(par_train_valid(:,5), par_train_valid(:,4));
-                hue_angle_train = mod(hue_angle_train, 360);
+                A_tr(A_tr <= 0) = NaN;  B_tr(B_tr <= 0) = NaN;
+                long_axis_tr = sqrt(1 ./ A_tr);
+                short_axis_tr = sqrt(1 ./ B_tr);
 
-                % 验证集
-                C_val = sqrt(par_val_valid(:,4).^2 + par_val_valid(:,5).^2);
-                alpha_val = -log(par_val_valid(:,6));
-                alpha_val(isinf(alpha_val) | isnan(alpha_val)) = NaN;
-                lambda00_va = par_val_valid(:,1) ./ alpha_val.^2;
-                lambda01_va = par_val_valid(:,3) ./ alpha_val.^2 ./ 2;
-                lambda11_va = par_val_valid(:,2) ./ alpha_val.^2;
-                theta_va = 0.5 * atan2d(2 * lambda01_va, (lambda00_va - lambda11_va));
-                theta_va = mod(theta_va, 360);
-                A_va = lambda00_va .* cosd(theta_va).^2 - lambda01_va .* sind(2*theta_va) + lambda11_va .* sind(theta_va).^2;
-                B_va = lambda00_va .* sind(theta_va).^2 + lambda01_va .* sind(2*theta_va) + lambda11_va .* cosd(theta_va).^2;
-                A_va(A_va <= 0) = NaN;
-                B_va(B_va <= 0) = NaN;
-                long_axis_val = sqrt(1 ./ A_va);
-                short_axis_val = sqrt(1 ./ B_va);
-                hue_angle_val = atan2d(par_val_valid(:,5), par_val_valid(:,4));
-                hue_angle_val = mod(hue_angle_val, 360);
-
-                % === 训练集拟合 ===
+                % ===== 拟合：a_C_L（对数模型）=====
                 f_log = @(a, x) a(1)*log(x) + a(2);
-
-                % C_L 拟合
                 [a_C_L, RSS_C_L_tr, ~, ~] = model_C_L_BIC(L_train, C_train, 4);
                 if ~any(isnan(a_C_L))
-                    valid_tr = ~isnan(L_train) & ~isnan(C_train) & L_train > 0;
-                    C_pred_tr = f_log(a_C_L, L_train(valid_tr));
-                    C_true_tr = C_train(valid_tr);
-                    r_C_L_train = corr(C_pred_tr, C_true_tr);
-                    rmse_C_L_train = sqrt(RSS_C_L_tr / sum(valid_tr)) / mean(C_true_tr);
-                    % 在验证集上预测
-                    valid_va = ~isnan(L_val) & ~isnan(C_val) & L_val > 0;
-                    C_pred_va = f_log(a_C_L, L_val(valid_va));
-                    C_true_va = C_val(valid_va);
-                    if sum(valid_va) > 2 && std(C_pred_va) > 0 && std(C_true_va) > 0
-                        r_C_L_val = corr(C_pred_va, C_true_va);
-                    else
-                        r_C_L_val = NaN;
-                    end
-                    rmse_C_L_val = sqrt(mean((C_pred_va - C_true_va).^2)) / mean(C_true_va);
+                    valid_train_C = ~isnan(L_train) & ~isnan(C_train) & L_train > 0;
+                    C_pred_train = f_log(a_C_L, L_train(valid_train_C));
+                    C_true_train = C_train(valid_train_C);
+                    r_C_L_train = corr(C_pred_train, C_true_train);
                 else
-                    a_C_L = [NaN, NaN];
-                    r_C_L_train = NaN; rmse_C_L_train = NaN;
-                    r_C_L_val = NaN;  rmse_C_L_val = NaN;
+                    a_C_L = [NaN, NaN];  r_C_L_train = NaN;
                 end
 
-                % 长轴拟合 (三次函数)
-                valid_tr_la = ~isnan(L_train) & ~isnan(long_axis_train);
-                if sum(valid_tr_la) >= 4
-                    f_cubic = @(a, x) a(1).*x.^3 + a(2).*x.^2 + a(3).*x + a(4);
-                    options = optimset('MaxFunEvals', 200000, 'Display', 'off');
-                    rmax = -inf; a_la_best = [NaN, NaN, NaN, NaN];
+                % ===== 拟合：a_long_axis（三次函数）=====
+                f_cubic = @(a, x) a(1).*x.^3 + a(2).*x.^2 + a(3).*x + a(4);
+                options = optimset('MaxFunEvals', 200000, 'Display', 'off');
+                valid_la = ~isnan(L_train) & ~isnan(long_axis_tr);
+                if sum(valid_la) >= 4
+                    rmax = -inf;  a_la_best = [NaN, NaN, NaN, NaN];
                     for t = 1:200
-                        a0 = rand(1, 4);
                         try
-                            a_la = lsqcurvefit(f_cubic, a0, L_train(valid_tr_la), long_axis_train(valid_tr_la), ...
+                            a_la = lsqcurvefit(f_cubic, rand(1,4), L_train(valid_la), long_axis_tr(valid_la), ...
                                 [-inf,-inf,-inf,-inf], [inf,inf,inf,inf], options);
-                            y = f_cubic(a_la, L_train(valid_tr_la));
-                            r = corr(y, long_axis_train(valid_tr_la));
-                            if r > rmax
-                                rmax = r; a_la_best = a_la;
-                            end
-                        catch, continue; end
+                            r = corr(f_cubic(a_la, L_train(valid_la)), long_axis_tr(valid_la));
+                            if r > rmax,  rmax = r;  a_la_best = a_la;  end
+                        catch,  continue;  end
                     end
                     a_long_axis = a_la_best;
-                    r_long_axis_train = rmax;
-                    rmse_long_axis_train = sqrt(mean((f_cubic(a_la_best, L_train(valid_tr_la)) - long_axis_train(valid_tr_la)).^2)) ...
-                        / mean(long_axis_train(valid_tr_la));
-                    % 验证集
-                    valid_va_la = ~isnan(L_val) & ~isnan(long_axis_val);
-                    if sum(valid_va_la) > 2 && ~any(isnan(a_la_best))
-                        la_pred_va = f_cubic(a_la_best, L_val(valid_va_la));
-                        la_true_va = long_axis_val(valid_va_la);
-                        if std(la_pred_va) > 0 && std(la_true_va) > 0
-                            r_long_axis_val = corr(la_pred_va, la_true_va);
-                        else
-                            r_long_axis_val = NaN;
-                        end
-                        rmse_long_axis_val = sqrt(mean((la_pred_va - la_true_va).^2)) / mean(la_true_va);
-                    else
-                        r_long_axis_val = NaN; rmse_long_axis_val = NaN;
-                    end
                 else
                     a_long_axis = [NaN, NaN, NaN, NaN];
-                    r_long_axis_train = NaN; rmse_long_axis_train = NaN;
-                    r_long_axis_val = NaN;   rmse_long_axis_val = NaN;
                 end
 
-                % 短轴拟合
-                valid_tr_sa = ~isnan(L_train) & ~isnan(short_axis_train);
-                if sum(valid_tr_sa) >= 4
-                    rmax = -inf; a_sa_best = [NaN, NaN, NaN, NaN];
+                % ===== 拟合：a_short_axis（三次函数）=====
+                valid_sa = ~isnan(L_train) & ~isnan(short_axis_tr);
+                if sum(valid_sa) >= 4
+                    rmax = -inf;  a_sa_best = [NaN, NaN, NaN, NaN];
                     for t = 1:200
-                        a0 = rand(1, 4);
                         try
-                            a_sa = lsqcurvefit(f_cubic, a0, L_train(valid_tr_sa), short_axis_train(valid_tr_sa), ...
+                            a_sa = lsqcurvefit(f_cubic, rand(1,4), L_train(valid_sa), short_axis_tr(valid_sa), ...
                                 [-inf,-inf,-inf,-inf], [inf,inf,inf,inf], options);
-                            y = f_cubic(a_sa, L_train(valid_tr_sa));
-                            r = corr(y, short_axis_train(valid_tr_sa));
-                            if r > rmax
-                                rmax = r; a_sa_best = a_sa;
-                            end
-                        catch, continue; end
+                            r = corr(f_cubic(a_sa, L_train(valid_sa)), short_axis_tr(valid_sa));
+                            if r > rmax,  rmax = r;  a_sa_best = a_sa;  end
+                        catch,  continue;  end
                     end
                     a_short_axis = a_sa_best;
-                    r_short_axis_train = rmax;
-                    rmse_short_axis_train = sqrt(mean((f_cubic(a_sa_best, L_train(valid_tr_sa)) - short_axis_train(valid_tr_sa)).^2)) ...
-                        / mean(short_axis_train(valid_tr_sa));
-                    valid_va_sa = ~isnan(L_val) & ~isnan(short_axis_val);
-                    if sum(valid_va_sa) > 2 && ~any(isnan(a_sa_best))
-                        sa_pred_va = f_cubic(a_sa_best, L_val(valid_va_sa));
-                        sa_true_va = short_axis_val(valid_va_sa);
-                        if std(sa_pred_va) > 0 && std(sa_true_va) > 0
-                            r_short_axis_val = corr(sa_pred_va, sa_true_va);
-                        else
-                            r_short_axis_val = NaN;
-                        end
-                        rmse_short_axis_val = sqrt(mean((sa_pred_va - sa_true_va).^2)) / mean(sa_true_va);
-                    else
-                        r_short_axis_val = NaN; rmse_short_axis_val = NaN;
-                    end
                 else
                     a_short_axis = [NaN, NaN, NaN, NaN];
-                    r_short_axis_train = NaN; rmse_short_axis_train = NaN;
-                    r_short_axis_val = NaN;   rmse_short_axis_val = NaN;
                 end
 
-                % 色调角（常数）
-                a_hue_angle_train = mean(hue_angle_train);
-                r_hue_angle_train = NaN; rmse_hue_angle_train = NaN;
-                a_hue_angle_val   = mean(hue_angle_val);
-                r_hue_angle_val   = NaN; rmse_hue_angle_val   = NaN;
+                % ===== 常数参数 =====
+                a_hue_angle = mean(theta_tr);
+                a_theta = mean(theta_tr);
+                a_alpha = mean(alpha_tr);
 
-                % 椭圆倾角 theta（常数）
-                a_theta_train = mean(theta_tr);
-                r_theta_train = NaN; rmse_theta_train = NaN;
-                a_theta_val   = mean(theta_va);
-                r_theta_val   = NaN; rmse_theta_val   = NaN;
+                % ===== 验证 r（用 dropped subject 的 labNscore）=====
+                r_model_y = NaN;  rmse_model_y = NaN;
+                r_C_model = NaN;   r_C_exp = NaN;
 
-                % alpha（常数）
-                a_alpha_train = mean(alpha_train);
-                r_alpha_train = NaN; rmse_alpha_train = NaN;
-                a_alpha_val   = mean(alpha_val);
-                r_alpha_val   = NaN; rmse_alpha_val   = NaN;
+                obs_type_used = obs_type;
+                if attribute == 7,  obs_type_used = "model_group";  end
 
-                % ===== 存储结果 =====
-                result_n_drop{i_obs}{i_nation}{val_combo_idx}{idx_attribute} = struct( ...
-                    'val_indices', val_indices, ...
-                    'train_indices', train_indices, ...
-                    'a_C_L', a_C_L, ...
-                    'r_C_L_train', r_C_L_train, 'rmse_C_L_train', rmse_C_L_train, ...
-                    'r_C_L_val', r_C_L_val, 'rmse_C_L_val', rmse_C_L_val, ...
-                    'a_long_axis', a_long_axis, ...
-                    'r_long_axis_train', r_long_axis_train, 'rmse_long_axis_train', rmse_long_axis_train, ...
-                    'r_long_axis_val', r_long_axis_val, 'rmse_long_axis_val', rmse_long_axis_val, ...
-                    'a_short_axis', a_short_axis, ...
-                    'r_short_axis_train', r_short_axis_train, 'rmse_short_axis_train', rmse_short_axis_train, ...
-                    'r_short_axis_val', r_short_axis_val, 'rmse_short_axis_val', rmse_short_axis_val, ...
-                    'a_hue_angle_train', a_hue_angle_train, 'r_hue_angle_train', r_hue_angle_train, ...
-                    'a_hue_angle_val', a_hue_angle_val, 'r_hue_angle_val', r_hue_angle_val, ...
-                    'a_theta_train', a_theta_train, 'r_theta_train', r_theta_train, ...
-                    'a_theta_val', a_theta_val, 'r_theta_val', r_theta_val, ...
-                    'a_alpha_train', a_alpha_train, 'r_alpha_train', r_alpha_train, ...
-                    'a_alpha_val', a_alpha_val, 'r_alpha_val', r_alpha_val ...
-                );
-
-                % ===== 训练集整体拟合（用于汇总对比）=====
-                % 这里把当前 val_combo_idx 的结果也存到 result_train_all，
-                % 最终取平均
-                result_train_all{i_obs}{i_nation}{val_combo_idx}{idx_attribute} = struct( ...
-                    'a_C_L', a_C_L, ...
-                    'r_C_L_train', r_C_L_train, 'rmse_C_L_train', rmse_C_L_train, ...
-                    'a_long_axis', a_long_axis, ...
-                    'r_long_axis_train', r_long_axis_train, 'rmse_long_axis_train', rmse_long_axis_train, ...
-                    'a_short_axis', a_short_axis, ...
-                    'r_short_axis_train', r_short_axis_train, 'rmse_short_axis_train', rmse_short_axis_train ...
-                );
-            end  % end attribute
-        end  % end val_combo_idx
-    end  % end nation
-end  % end obs_type
-
-%% ===== 输出 xlsx =====
-% 按 nation × attribute 组织，汇总 n_drop 次验证的 r/rmse
-for i_obs = 1:length(obs_types_use)
-    obs_type = obs_types_use(i_obs);
-    r_excel_output_folder = fullfile("AnalyseResults_p", Dtype, scale_type_origin, ...
-        "model_fullpara_n_drop", CT_type, "new", iOr, obs_type, ...
-        sprintf("n_drop_%d", n_drop));
-    if ~exist(r_excel_output_folder, 'dir')
-        mkdir(r_excel_output_folder);
-    end
-
-    excel_filename = fullfile(r_excel_output_folder, ...
-        sprintf('n_drop_cv_results_n%d.xlsx', n_drop));
-
-    % 为每种指标类型建一个 sheet
-    metric_names = {'C_L', 'long_axis', 'short_axis', 'hue_angle', 'theta', 'alpha'};
-    metric_fields_train = {'r_C_L_train', 'rmse_C_L_train'; ...
-                           'r_long_axis_train', 'rmse_long_axis_train'; ...
-                           'r_short_axis_train', 'rmse_short_axis_train'; ...
-                           'r_hue_angle_train', []; ...
-                           'r_theta_train', []; ...
-                           'r_alpha_train', []};
-    metric_fields_val = {'r_C_L_val', 'rmse_C_L_val'; ...
-                         'r_long_axis_val', 'rmse_long_axis_val'; ...
-                         'r_short_axis_val', 'rmse_short_axis_val'; ...
-                         'r_hue_angle_val', []; ...
-                         'r_theta_val', []; ...
-                         'r_alpha_val', []};
-    param_fields = {'a_C_L', []; ...
-                    'a_long_axis', []; ...
-                    'a_short_axis', []; ...
-                    'a_hue_angle_train', []; ...
-                    'a_theta_train', []; ...
-                    'a_alpha_train', []};
-
-    for i_nation = 1:length(nations)
-        nation = nations(i_nation);
-        n_subjects_nation = length(nation_indices{i_nation});
-        n_val_combinations = n_subjects_nation;
-        if n_subjects_nation <= n_drop, continue; end
-
-        sheet_name = strrep(nation, ' ', '_');
-
-        % 准备 sheet 数据
-        % 列: Attribute | val_subject1_r | val_subject1_rmse | ... | val_mean_r | val_mean_rmse | train_mean_r | train_mean_rmse
-        n_attr = length(attributes);
-        col_header = [{'Attribute'}, cellfun(@(x) sprintf('Val_S%02d_r', x), num2cell(1:n_val_combinations), 'UniformOutput', false), ...
-                      {'Val_mean_r'}, {'Val_mean_rmse'}, {'Train_mean_r'}, {'Train_mean_rmse'}];
-        col_header = reshape(col_header, 1, []);
-
-        data_table = cell(n_attr + 1, length(col_header));
-        data_table{1, 1} = 'Attribute';
-        data_table{1, 2:end-5} = cellfun(@(x) sprintf('Val_S%02d_r', x), num2cell(1:n_val_combinations), 'UniformOutput', false);
-        data_table{1, end-4} = 'Val_mean_r';
-        data_table{1, end-3} = 'Val_mean_rmse';
-        data_table{1, end-2} = 'Train_mean_r';
-        data_table{1, end-1} = 'Train_mean_rmse';
-
-        % 参数列标题
-        param_header_start = length(col_header) + 1;
-        % a_C_L 有 2 个参数，long_axis 4 个，short_axis 4 个，其余 1 个
-        param_headers = [{'a_C_L_1'}, {'a_C_L_2'}, ...
-                         {'a_long_axis_1'}, {'a_long_axis_2'}, {'a_long_axis_3'}, {'a_long_axis_4'}, ...
-                         {'a_short_axis_1'}, {'a_short_axis_2'}, {'a_short_axis_3'}, {'a_short_axis_4'}, ...
-                         {'a_hue_angle'}, {'a_theta'}, {'a_alpha'}];
-        % 对应 n_val_combinations 列（每次验证对应一套参数）
-        param_cols_per_run = length(param_headers);
-        total_cols = length(col_header) + n_val_combinations * param_cols_per_run;
-
-        % 扩展 header
-        param_col_headers = {};
-        for vi = 1:n_val_combinations
-            for pi = 1:length(param_headers)
-                param_col_headers{end+1} = sprintf('S%02d_%s', vi, param_headers{pi});
-            end
-        end
-        new_header = [col_header, param_col_headers];
-
-        for ia = 1:n_attr
-            data_table{ia+1, 1} = attribute_names_new(attributes(ia));
-
-            val_r_all = zeros(n_val_combinations, 1) * NaN;
-            val_rmse_all = zeros(n_val_combinations, 1) * NaN;
-            train_r_all = zeros(n_val_combinations, 1) * NaN;
-            train_rmse_all = zeros(n_val_combinations, 1) * NaN;
-
-            % 参数存储
-            param_vals_all = cell(n_val_combinations, 1);
-
-            for vi = 1:n_val_combinations
-                if isempty(result_n_drop{i_obs}{i_nation}{vi}) || ...
-                   numel(fieldnames(result_n_drop{i_obs}{i_nation}{vi})) == 0
-                    continue;
+                % pcn 列表（与 iOr 对应）
+                if iOr == 'i'
+                    pcn = ["H3K", "H4K", "H5K", "H6K", "HD65", "H7K", "H8K", ...
+                           "M3K", "M4K", "M5K", "M6K", "MD65", "M7K", "M8K", ...
+                           "L3K", "L4K", "L5K", "L6K", "LD65", "L7K", "L8K"];
+                else
+                    pcn = ["rs01","rs02","rs03","rs04","rs05","rs06","rs07", ...
+                                 "rs08","rs09","rs10","rs11","rs12","rs13","rs14"];
                 end
-                r_struct = result_n_drop{i_obs}{i_nation}{vi}{ia};
-                if isempty(r_struct), continue; end
 
-                % C_L
-                val_r_all(vi) = r_struct.r_C_L_val;
-                val_rmse_all(vi) = r_struct.rmse_C_L_val;
-                train_r_all(vi) = r_struct.r_C_L_train;
-                train_rmse_all(vi) = r_struct.rmse_C_L_train;
-                param_vals_all{vi} = [r_struct.a_C_L, ...
-                                      r_struct.a_long_axis, ...
-                                      r_struct.a_short_axis, ...
-                                      r_struct.a_hue_angle_train, ...
-                                      r_struct.a_theta_train, ...
-                                      r_struct.a_alpha_train];
-            end
+                model_C_list = [];  exp_C_list = [];
+                y_all = [];  p_all = [];
 
-            % 填入 r 列
-            for vi = 1:n_val_combinations
-                data_table{ia+1, vi+1} = val_r_all(vi);
-            end
-            data_table{ia+1, end-4} = nanmean(val_r_all);
-            data_table{ia+1, end-3} = nanmean(val_rmse_all);
-            data_table{ia+1, end-2} = nanmean(train_r_all);
-            data_table{ia+1, end-1} = nanmean(train_rmse_all);
+                for i_tgt = 1:length(indices_target)
+                    i_par = indices_target(i_tgt);  % average_lab_all 中的行索引
 
-            % 填入参数
-            base_col = length(col_header) + 1;
-            for vi = 1:n_val_combinations
-                if ~isempty(param_vals_all{vi})
-                    pv = param_vals_all{vi};
-                    for pi = 1:length(pv)
-                        data_table{ia+1, base_col + (vi-1)*param_cols_per_run + pi - 1} = pv(pi);
+                    % 对应 pcn 的 labNscore
+                    pcn_lower = lower(pcn(i_par));
+                    labNscore_file = fullfile("AnalyseResults_p", Dtype, scale_type_origin, ...
+                        dropped_lastPart, obs_type_used, sprintf("%02d%s", attribute, attr_name), "labNscore", ...
+                        strcat("labNscore_group", lower(dropped_lastPart), pcn_lower, ".mat"));
+
+                    % dropped subject 在该 target 的 L*
+                    if size(avg_drop_all, 1) >= i_par && ~any(isnan(avg_drop_all(i_par, :)))
+                        L_val_model = avg_drop_all(i_par, 1);
+                    else
+                        L_val_model = NaN;
                     end
-                end
-            end
-        end
 
-        % 写 xlsx（数值格式保留两位小数，数字格式）
-        try
-            % 先写 header
-            writecell(new_header, excel_filename, 'Sheet', sheet_name, 'WriteMode', 'overwritesheet');
-            % 再写数据
-            [~, ~, rawData] = xlsread(excel_filename, sheet_name);
-            nRows = size(rawData, 1);
-            nCols = length(new_header);
-            for rr = 2:(n_attr + 1)
-                for cc = 2:nCols
-                    val = data_table{rr-1, cc};
-                    if isnumeric(val) && ~isnan(val)
-                        rawData{rr, cc} = val;
-                    end
-                end
-            end
-            % 用 writematrix / writecell 写回，带数值格式
-            % 先把数据表扩展完整
-            full_table = cell(n_attr + 1, length(new_header));
-            full_table(1, :) = new_header;
-            full_table(2:end, :) = data_table(2:end, :);
-            writecell(full_table, excel_filename, 'Sheet', sheet_name, 'WriteMode', 'overwritesheet');
+                    if isnan(L_val_model) || L_val_model <= 0,  continue;  end
 
-            % 格式化数值列（两位小数）
-            % 读取刚写入的文件并转数值
-            [numData, txtData, raw] = xlsread(excel_filename, sheet_name);
-            [nR, nC] = size(numData);
-            if nR > 0 && nC > 0
-                % 将数值格式化为两位小数（字符串形式，写回 xlsx 时用 writecell）
-                for rr = 2:(n_attr+1)
-                    for cc = 1:nC
-                        v = raw{rr, cc+1};  % +1 因为第一列是文本
-                        if isnumeric(v) && ~isnan(v)
-                            raw{rr, cc+1} = round(v, 4);
+                    % === 加载该 target 对应 pcn 的 lab_group / p_group ===
+                    loaded_this = false;
+                    if exist(labNscore_file, 'file')
+                        ld_tgt = load(labNscore_file, 'lab_group', 'p_group');
+                        if isfield(ld_tgt,'lab_group') && isfield(ld_tgt,'p_group') ...
+                                && ~isempty(ld_tgt.lab_group) && ~isempty(ld_tgt.p_group)
+                            lab_group_tgt = ld_tgt.lab_group;
+                            p_group_tgt   = ld_tgt.p_group;
+                            loaded_this = true;
                         end
                     end
+
+                    % === 用拟合参数计算模型椭圆参数 ===
+                    chroma_m = a_C_L(1) * log(L_val_model) + a_C_L(2);
+                    long_m   = a_long_axis(1)*L_val_model^3 + a_long_axis(2)*L_val_model^2 ...
+                             + a_long_axis(3)*L_val_model + a_long_axis(4);
+                    short_m  = a_short_axis(1)*L_val_model^3 + a_short_axis(2)*L_val_model^2 ...
+                             + a_short_axis(3)*L_val_model + a_short_axis(4);
+                    hue_m = a_hue_angle;  theta_m = a_theta;  alpha_m = a_alpha;
+                    hue_m=hue_m+90-360;
+
+                    % NaN 过滤
+                    if ~isnan(chroma_m) && ~isinf(chroma_m)
+                        model_C_list = [model_C_list; chroma_m];
+                    end
+                    if ~isnan(chroma_m) && ~isnan(long_m) && ~isnan(short_m) ...
+                            && ~isnan(alpha_m) && loaded_this && long_m > 0 && short_m > 0
+                        [par_ell] = calculate_par_from_ellipse(hue_m, chroma_m, long_m, short_m, theta_m, alpha_m);
+                        vp = ~any(isnan(lab_group_tgt(:,2:3)), 2);
+                        if sum(vp) > 2
+                            y_pred = calculate_y(lab_group_tgt(vp, 2), lab_group_tgt(vp, 3), par_ell);
+                            y_all = [y_all; y_pred];
+                            p_all = [p_all; p_group_tgt(vp)];
+                        end
+                    end
+
+                    % === 实验 C*（从 dropped subject 的 par_data 中取）===
+                    par_exp = squeeze(par_data_full(i_tgt, :, val_indices, 1));
+                    if ~any(isnan(par_exp)) && ~any(isinf(par_exp))
+                        C_exp = sqrt(par_exp(4)^2 + par_exp(5)^2);
+                        exp_C_list = [exp_C_list; C_exp];
+                    end
+                end  % end i_tgt
+
+                % === 汇总验证 r ===
+                % r(C_model, C_exp)
+                if length(model_C_list) >= 3 && length(exp_C_list) >= 3 ...
+                        && std(model_C_list) > 0 && std(exp_C_list) > 0
+                    r_C_model = corr(model_C_list, exp_C_list);
                 end
-                xlswrite(excel_filename, raw(2:end, :), sheet_name, 'A2');
-            end
-        catch ME
-            warning('写入 xlsx 出错: %s', ME.message);
-            % 备用：直接写
-            writecell(data_table, excel_filename, 'Sheet', sheet_name, 'WriteMode', 'overwritesheet');
-        end
-    end  % end nations
+                % r(C_exp) vs L*
+                if length(exp_C_list) >= 3 && std(exp_C_list) > 0
+                    L_exp_v = avg_drop_all(indices_target, 1);
+                    L_exp_v = L_exp_v(~isnan(exp_C_list));
+                    exp_C_v = exp_C_list(~isnan(exp_C_list));
+                    if length(L_exp_v) >= 3 && std(L_exp_v) > 0
+                        r_C_exp = corr(L_exp_v, exp_C_v);
+                    end
+                end
+                % r(y_model, p_group) — 核心验证指标
+                if length(y_all) >= 3 && std(y_all) > 0 && std(p_all) > 0
+                    r_model_y = corr(y_all, p_all, 'Type', 'Pearson');
+                    rmse_model_y = sqrt(mean((y_all - p_all).^2));
+                end
 
-    % 也写一份汇总 sheet
-    summary_header = [{'Nation', 'Attribute', 'Val_mean_r', 'Val_mean_rmse', ...
-                       'Train_mean_r', 'Train_mean_rmse', 'N_val', 'N_train'}];
-    summary_data = {};
-    for i_nation = 1:length(nations)
-        nation = nations(i_nation);
-        n_subjects_nation = length(nation_indices{i_nation});
-        if n_subjects_nation <= n_drop, continue; end
-        for ia = 1:n_attr
-            val_r_list = []; val_rmse_list = [];
-            train_r_list = []; train_rmse_list = [];
-            for vi = 1:n_subjects_nation
-                if isempty(result_n_drop{i_obs}{i_nation}{vi}), continue; end
-                r_struct = result_n_drop{i_obs}{i_nation}{vi}{ia};
-                if isempty(r_struct), continue; end
-                val_r_list = [val_r_list; r_struct.r_C_L_val];
-                val_rmse_list = [val_rmse_list; r_struct.rmse_C_L_val];
-                train_r_list = [train_r_list; r_struct.r_C_L_train];
-                train_rmse_list = [train_rmse_list; r_struct.rmse_C_L_train];
-            end
-            summary_data{end+1, 1} = nation;
-            summary_data{end, 2} = attribute_names_new(attributes(ia));
-            summary_data{end, 3} = nanmean(val_r_list);
-            summary_data{end, 4} = nanmean(val_rmse_list);
-            summary_data{end, 5} = nanmean(train_r_list);
-            summary_data{end, 6} = nanmean(train_rmse_list);
-            summary_data{end, 7} = sum(~isnan(val_r_list));
-            summary_data{end, 8} = sum(~isnan(train_r_list));
-        end
-    end
+                % ===== 打印（每组参数立即输出）=====
+                fprintf('[%s|%s] drop=%s attr=%s | r(y)=%.4f rmse=%.4f | r(Cm)=%.4f | r(Ce)=%.4f\n', ...
+                    nation, obs_type, dropped_lastPart, attr_name, ...
+                    r_model_y, rmse_model_y, r_C_model, r_C_exp);
 
-    try
-        writecell(summary_header, excel_filename, 'Sheet', 'Summary_C_L', 'WriteMode', 'overwritesheet');
-        writecell(summary_data, excel_filename, 'Sheet', 'Summary_C_L', 'WriteMode', 'append');
-    catch ME
-        warning('写入 Summary sheet 出错: %s', ME.message);
-    end
+                % ===== 追加写 xlsx（当前行）=====
+                row_data = {attr_name, dropped_lastPart, sprintf('%d', dropped_subject_idx), ...
+                    r_model_y, rmse_model_y, r_C_model, r_C_exp, ...
+                    a_C_L(1), a_C_L(2), ...
+                    a_long_axis(1), a_long_axis(2), a_long_axis(3), a_long_axis(4), ...
+                    a_short_axis(1), a_short_axis(2), a_short_axis(3), a_short_axis(4), ...
+                    a_hue_angle, a_theta, a_alpha};
+                writecell(row_data, excel_filename, 'Sheet', sheet_name, 'WriteMode', 'append');
+            end  % end attribute
+        end  % end val_combo_idx
 
-    fprintf('N-Drop CV 结果已写入: %s\n', excel_filename);
-end
+        fprintf('--- [%s] N-Drop 完成: %d subject x %d attr = %d 行已写入 ---\n', ...
+            nation, n_subjects_nation, length(attributes), n_subjects_nation * length(attributes));
+    end  % end nation
 
-%% 打印简要统计
-fprintf('\n========== N-Drop CV 摘要 (n_drop=%d) ==========\n', n_drop);
+    fprintf('\n文件已写入: %s\n', excel_filename);
+end  % end obs_type
+
+%% ===== 汇总统计（从已写 xlsx 中读回计算均值）=====
+fprintf('\n========== N-Drop CV 汇总 (n_drop=%d) ==========\n', n_drop);
 for i_nation = 1:length(nations)
     nation = nations(i_nation);
     n_subj = length(nation_indices{i_nation});
     if n_subj <= n_drop, continue; end
-    fprintf('\n[%s] (n_subj=%d, n_val_runs=%d)\n', nation, n_subj, n_subj);
-    fprintf('  Attribute     | Val_r(C_L) | Train_r(C_L) | Val_rmse | Train_rmse\n');
-    fprintf('  --------------------------------------------------\n');
-    for ia = 1:length(attributes)
-        vr = []; tr = []; vrmse = []; trmse = [];
-        for vi = 1:n_subj
-            if isempty(result_n_drop{1}{i_nation}{vi}), continue; end
-            s = result_n_drop{1}{i_nation}{vi}{ia};
-            if isempty(s), continue; end
-            vr = [vr; s.r_C_L_val];
-            tr = [tr; s.r_C_L_train];
-            vrmse = [vrmse; s.rmse_C_L_val];
-            trmse = [trmse; s.rmse_C_L_train];
+
+    sheet_name = strrep(nation, ' ', '_');
+    sheet_data = [];
+    try
+        [~, ~, sheet_data] = xlsread(excel_filename, sheet_name);
+    catch,  end
+
+    if ~isempty(sheet_data)
+        n_rows = size(sheet_data, 1);
+        if n_rows >= 2
+            fprintf('\n[%s] (n_subj=%d)\n', nation, n_subj);
+            fprintf('  Attribute    | r(y_model) | rmse(y) | r(C_mod) | r(C_exp) | N\n');
+            fprintf('  ------------------------------------------------------\n');
+            for ia = 1:length(attributes)
+                attr_name = attribute_names_new(attributes(ia));
+                r_y_list = []; rmse_y_list = []; r_Cmod_list = []; r_Cexp_list = [];
+                for rr = 2:n_rows
+                    if ischar(sheet_data{rr,1}) && strcmp(strtrim(sheet_data{rr,1}), attr_name)
+                        v = sheet_data{rr,4};
+                        if isnumeric(v) && ~isnan(v), r_y_list = [r_y_list; v]; end
+                        v2 = sheet_data{rr,5};
+                        if isnumeric(v2) && ~isnan(v2), rmse_y_list = [rmse_y_list; v2]; end
+                        v3 = sheet_data{rr,6};
+                        if isnumeric(v3) && ~isnan(v3), r_Cmod_list = [r_Cmod_list; v3]; end
+                        v4 = sheet_data{rr,7};
+                        if isnumeric(v4) && ~isnan(v4), r_Cexp_list = [r_Cexp_list; v4]; end
+                    end
+                end
+                fprintf('  %-12s | %10.4f | %8.4f | %8.4f | %8.4f | %d\n', ...
+                    attr_name, nanmean(r_y_list), nanmean(rmse_y_list), ...
+                    nanmean(r_Cmod_list), nanmean(r_Cexp_list), length(r_y_list));
+            end
         end
-        fprintf('  %-12s | %9.4f | %12.4f | %8.4f | %9.4f\n', ...
-            attribute_names_new(attributes(ia)), ...
-            nanmean(vr), nanmean(tr), nanmean(vrmse), nanmean(trmse));
     end
 end
-
 fprintf('\n保存路径: %s\n', r_excel_output_folder);
 fprintf('Done!\n');

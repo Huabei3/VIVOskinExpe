@@ -9,6 +9,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 nations = ["AS", "CA", "SA", "AF"];
 interpreter_type="tex";
 text_type="ch";
+one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -587,8 +588,16 @@ end
 s.label_type="obs";
 dir_figs=dir(fullfile(save_folder,"*adjusted.fig"));
 clear("figFiles")
+i_fig1=1;
 for i_fig=1:length(dir_figs)
-    figFiles{i_fig}=dir_figs(i_fig).name;
+    if strcmp(one_image_mode, "true") && i_fig1 > 1
+        break;  % one_image_mode只取第一个
+    end
+    figFiles{i_fig1}=dir_figs(i_fig).name;
+    i_fig1=i_fig1+1;
+end
+if strcmp(one_image_mode, "true")
+    s.if_label = false;
 end
 s.fontSizeScale=1.2;
 concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);

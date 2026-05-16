@@ -9,6 +9,7 @@ scale_type_origin="unscaled";
 scale_time="late";
 targetFontSize=12;
 interpreter_type = "tex"; % "tex" 或 "latex"
+one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -435,8 +436,16 @@ for i_obs=1:length(obs_types)
     s.label_type="attr";
     dir_figs=dir(fullfile(save_folder,"*adjusted.fig"));
     clear("figFiles")
+    i_fig1=1;
     for i_fig=1:length(dir_figs)
-        figFiles{i_fig}=dir_figs(i_fig).name;
+        if strcmp(one_image_mode, "true") && i_fig > 1
+            break;  % one_image_mode只取第一个
+        end
+        figFiles{i_fig1}=dir_figs(i_fig).name;
+        i_fig1=i_fig1+1;
+    end
+    if strcmp(one_image_mode, "true")
+        s.if_label = false;
     end
     s.tickFontScale = 0.8;          % 刻度字体缩小为 12×0.8=9.6
     s.fontSizeScale = 1.2;          % 标题/标签放大 1.2 倍

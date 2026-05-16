@@ -530,7 +530,7 @@ save(fullfile(save_folder, sprintf('cluster_results_L%d_K%d.mat', level, K)), ..
     'best_K_silhouette', 'best_K_bic', ...
     'co_membership', 'consensus_matrix', ...
     'cluster_stability', 'diagonal_consensus', 'off_diagonal_separation', ...
-    'valid_count');
+    'valid_count', 'Z');
 
 fprintf('\n========== 分析完成 ==========\n');
 fprintf('结果保存至: %s\n', fullfile(save_folder, sprintf('cluster_results_L%d_K%d.mat', level, K)));
@@ -563,3 +563,464 @@ function result = ternary(condition, true_val, false_val)
         result = false_val;
     end
 end
+
+%% =========================================================================
+% Strategy B: 剔除离群被试后重新聚类
+% =========================================================================
+function results = strategy_B_outlier_removal(X, idx, K, n_bootstrap, save_folder, level, consensus_matrix)
+    fprintf('\n');
+    fprintf('============================================================\n');
+    fprintf('策略B: 剔除离群被试后重新聚类\n');
+    fprintf('============================================================\n');
+
+    n_subjects = size(X, 1);
+
+    % ---------- B1: 识别离群被试 ----------
+    fprintf('\n[B1] 识别离群被试...\n');
+
+    % 方法1: 轮廓系数极低的被试
+    s_all = silhouette(X, idx, 'correlation');
+    outlier_silhouette = find(s_all < 0);  % 轮廓系数 < 0 = 在错误簇中
+
+    % 方法2: 单人被试簇的成员
+    singleton_clusters = find(histcounts(idx, 1:K) == 1);
+    singleton_subjects = find(ismember(idx, singleton_clusters));
+
+    % 方法3: 被分到孤立小簇（人数<=2）的被试
+    small_clusters = find(histcounts(idx, 1:K) <= 2);
+    small_subjects = find(ismember(idx, small_clusters));
+
+    % 合并前两种方法（凝聚力方法较慢，跳过）
+    outlier_union = union(outlier_silhouette, singleton_subjects);
+    % 也把人数<=2的簇加入考虑
+    outlier_union = union(outlier_union, small_subjects);
+
+    fprintf('\n  离群被试识别结果:\n');
+    fprintf('    方法1 (轮廓系数<0):  被试 %s\n', mat2str(outlier_silhouette'));
+    fprintf('    方法2 (单人被试簇):  被试 %s\n', mat2str(singleton_subjects'));
+    fprintf('    方法3 (小簇<=2人):  被试 %s\n', mat2str(small_subjects'));
+    fprintf('    合并后离群被试:       %s\n', mat2str(outlier_union'));
+
+    % 默认只剔除单人被试簇成员，人数<=2的小簇保留（让聚类决定）
+    outliers_to_remove = singleton_subjects;
+    fprintf('\n  默认剔除被试(单人被试簇): %s (共%d人)\n', mat2str(outliers_to_remove), length(outliers_to_remove));
+    if ~isempty(small_subjects)
+        fprintf('  人数<=2的小簇成员(保留参与聚类): %s\n', mat2str(setdiff(small_subjects, singleton_subjects)));
+    end
+
+    % ---------- B2: 剔除离群后重新聚类 ----------
+    fprintf('\n[B2] 剔除离群被试后重新聚类...\n');
+    keep_mask = ~ismember(1:n_subjects, outliers_to_remove);
+    X_clean = X(keep_mask, :);
+    n_clean = size(X_clean, 1);
+    kept_subjects = find(keep_mask);
+    fprintf('  剔除前: %d人 | 剔除后: %d人\n', n_subjects, n_clean);
+
+    % 如果剩余人数不足4人，无法做有意义的聚类
+    if n_clean < 4
+        fprintf('  ⚠ 剔除后剩余人数不足(%d人<4)，跳过策略B。\n', n_clean);
+        results = struct();
+        results.skipped = true;
+        results.reason = '剩余人数不足4人';
+        save(fullfile(save_folder, sprintf('strategyB_L%d.mat', level)), 'results');
+        fprintf('策略B已跳过\n');
+        return;
+    end
+
+    % 重新计算距离和聚类
+    D_clean = pdist(X_clean, 'correlation');
+    Z_clean = linkage(D_clean, 'ward');
+
+    % 尝试多个K，选择最优
+    best_K_clean = 2;
+    best_silhouette_clean = -1;
+    for test_K = 2:min(6, floor(n_clean / 2))
+        idx_test = kmeans(X_clean, test_K, 'Distance', 'correlation', 'Replicates', 50, 'Display', 'off');
+        s_test = silhouette(X_clean, idx_test, 'correlation');
+        if mean(s_test) > best_silhouette_clean
+            best_silhouette_clean = mean(s_test);
+            best_K_clean = test_K;
+        end
+    end
+    K_clean = best_K_clean;
+    fprintf('  最优K: %d (轮廓系数=%.4f)\n', K_clean, best_silhouette_clean);
+
+    % 执行聚类
+    opts = statset('Display', 'off', 'MaxIter', 1000);
+    [idx_clean, ~] = kmeans(X_clean, K_clean, ...
+        'Distance', 'correlation', 'Replicates', 50, 'Options', opts);
+
+    % ---------- B3: Bootstrap 检验剔除后的聚类 ----------
+    fprintf('\n[B3] Bootstrap 稳定性检验 (剔除后, n=%d次重采样)...\n', n_bootstrap);
+    co_membership_clean = cell(n_bootstrap, 1);
+    valid_clean = 0;
+    for b = 1:n_bootstrap
+        bootstrap_idx = randsample(n_clean, n_clean, true);
+        X_boot = X_clean(bootstrap_idx, :);
+        try
+            boot_clust = kmeans(X_boot, K_clean, 'Distance', 'correlation', 'Replicates', 20, 'Options', opts);
+            co_membership_clean{b} = boot_clust;
+            valid_clean = valid_clean + 1;
+        catch
+            co_membership_clean{b} = [];
+        end
+    end
+
+    % 汇总共识矩阵
+    co_mat_clean = zeros(n_clean, n_clean);
+    for b = 1:n_bootstrap
+        bc = co_membership_clean{b};
+        if ~isempty(bc)
+            for i = 1:n_clean
+                for j = (i+1):n_clean
+                    if bc(i) == bc(j)
+                        co_mat_clean(i, j) = co_mat_clean(i, j) + 1;
+                        co_mat_clean(j, i) = co_mat_clean(j, i) + 1;
+                    end
+                end
+            end
+        end
+    end
+    consensus_clean = co_mat_clean / valid_clean;
+
+    % 计算稳定性
+    diag_cons_clean = zeros(K_clean, 1);
+    for k = 1:K_clean
+        members = find(idx_clean == k);
+        if length(members) > 1
+            sum_c = 0; cnt = 0;
+            for i = 1:length(members)
+                for j = (i+1):length(members)
+                    sum_c = sum_c + consensus_clean(members(i), members(j));
+                    cnt = cnt + 1;
+                end
+            end
+            diag_cons_clean(k) = sum_c / cnt;
+        else
+            diag_cons_clean(k) = NaN;
+        end
+    end
+    diag_mean_clean = nanmean(diag_cons_clean);
+
+    off_diag_sum = 0; off_diag_cnt = 0;
+    for i = 1:n_clean
+        for j = (i+1):n_clean
+            if idx_clean(i) ~= idx_clean(j)
+                off_diag_sum = off_diag_sum + (1 - consensus_clean(i, j));
+                off_diag_cnt = off_diag_cnt + 1;
+            end
+        end
+    end
+    off_diag_clean = off_diag_sum / off_diag_cnt;
+
+    % 计算STRESS
+    score_clean = (X_clean - (-3)) / 6;
+    mean_clean = mean(score_clean, 1);
+    stress_clean = zeros(n_clean, 1);
+    for i = 1:n_clean
+        stress_clean(i) = STRESS(score_clean(i, :)', mean_clean');
+    end
+    stress_overall_clean = mean(stress_clean);
+
+    % 簇内STRESS
+    stress_cluster_clean = zeros(K_clean, 1);
+    n_per_clean = zeros(K_clean, 1);
+    for k = 1:K_clean
+        mask = (idx_clean == k);
+        X_k = X_clean(mask, :);
+        n_k = sum(mask);
+        n_per_clean(k) = n_k;
+        if n_k < 2
+            % 单人被试簇：与整体均值比较，无簇内变异
+            stress_cluster_clean(k) = NaN;
+        else
+            mean_k = mean(X_k, 1);
+            mean_k_s = (mean_k - (-3)) / 6;
+            stress_k = zeros(n_k, 1);
+            for i = 1:n_k
+                stress_k(i) = STRESS((X_k(i,:)-(-3))/6', mean_k_s');
+            end
+            stress_cluster_clean(k) = mean(stress_k);
+        end
+    end
+    weighted_stress_clean = nansum(stress_cluster_clean .* n_per_clean) / n_clean;
+
+    % ---------- B4: 输出汇总 ----------
+    fprintf('\n========== 策略B 结果汇总 ==========\n');
+    fprintf('剔除离群被试: %s\n', mat2str(outliers_to_remove));
+    fprintf('最优K: %d\n', K_clean);
+    fprintf('\n各簇人数:\n');
+    for k = 1:K_clean
+        if isnan(stress_cluster_clean(k))
+            fprintf('  簇%d: %d人 | STRESS=N/A | 簇内共识=%.3f (单人被试)\n', ...
+                k, n_per_clean(k), diag_cons_clean(k));
+        else
+            fprintf('  簇%d: %d人 | STRESS=%.4f | 簇内共识=%.3f\n', ...
+                k, n_per_clean(k), stress_cluster_clean(k), diag_cons_clean(k));
+        end
+    end
+    fprintf('\n聚类前整体STRESS: %.4f\n', stress_overall_clean);
+    fprintf('聚类后加权STRESS: %.4f\n', weighted_stress_clean);
+    fprintf('STRESS降低: %.1f%%\n', (1 - weighted_stress_clean/stress_overall_clean)*100);
+    fprintf('\nBootstrap稳定性:\n');
+    fprintf('  簇内共识: %.3f (%s)\n', diag_mean_clean, ternary(diag_mean_clean>=0.8,'✓稳定','偏弱'));
+    fprintf('  簇间分离: %.3f (%s)\n', off_diag_clean, ternary(off_diag_clean>=0.9,'分离良好','一般'));
+
+    % 绘图
+    figure('Position', [100,100,900,400]);
+    subplot(1,3,1);
+    bar(1:K_clean, stress_cluster_clean);
+    ylabel('Inter-STRESS'); xlabel('簇'); title('各簇STRESS'); grid on;
+    subplot(1,3,2);
+    bar(1:K_clean, diag_cons_clean); ylim([0 1]);
+    ylabel('簇内共识'); xlabel('簇'); title('Bootstrap稳定性'); grid on;
+    subplot(1,3,3);
+    bar(1:K_clean, n_per_clean); ylabel('人数'); xlabel('簇'); title('各簇人数'); grid on;
+    sgtitle(sprintf('策略B: 剔除%d个离群后K=%d', length(outliers_to_remove), K_clean));
+    saveas(gcf, fullfile(save_folder, sprintf('strategyB_L%d.png', level)));
+    close(gcf);
+
+    % 保存
+    results = struct();
+    results.outliers_removed = outliers_to_remove;
+    results.kept_subjects = kept_subjects;
+    results.K_clean = K_clean;
+    results.idx_clean = idx_clean;
+    results.stress_cluster = stress_cluster_clean;
+    results.weighted_stress = weighted_stress_clean;
+    results.diagonal_consensus = diag_mean_clean;
+    results.off_diagonal_separation = off_diag_clean;
+    results.diag_per_cluster = diag_cons_clean;
+    results.n_per_cluster = n_per_clean;
+
+    save(fullfile(save_folder, sprintf('strategyB_L%d.mat', level)), 'results');
+    fprintf('\n策略B结果已保存\n');
+end
+
+%% =========================================================================
+% Strategy C: 层次聚类树状图自然断点（一致性聚类）
+% =========================================================================
+function results = strategy_C_dendrogram_cut(X, D, Z, n_bootstrap, save_folder, level)
+    fprintf('\n');
+    fprintf('============================================================\n');
+    fprintf('策略C: 层次聚类树状图自然断点（一致性聚类）\n');
+    fprintf('============================================================\n');
+
+    n_subjects = size(X, 1);
+
+    % ---------- C1: 从树状图提取所有可能的cut高度 ----------
+    fprintf('\n[C1] 分析层次聚类树状图，寻找自然断点...\n');
+
+    % 获取linkage的高度（即每次合并的距离）
+    Z_heights = Z(:, 3);
+    unique_heights = sort(unique(Z_heights), 'descend');  % 从高到低
+
+    % 测试不同的K值对应的轮廓系数（模拟不同cut高度的效果）
+    test_K_range = 2:min(8, floor(n_subjects / 2));
+    stability_by_K = zeros(length(test_K_range), 1);
+    mean_sil_by_K = zeros(length(test_K_range), 1);
+
+    for ci = 1:length(test_K_range)
+        test_K = test_K_range(ci);
+        opts = statset('Display', 'off', 'MaxIter', 1000);
+        idx_test = kmeans(X, test_K, 'Distance', 'correlation', 'Replicates', 30, 'Options', opts);
+        s_test = silhouette(X, idx_test, 'correlation');
+        mean_sil_by_K(ci) = mean(s_test);
+
+        % 非单簇比例（每个簇至少2人）
+        cluster_sizes_test = histcounts(idx_test, 1:test_K);
+        stability_by_K(ci) = sum(cluster_sizes_test > 1) / test_K;
+    end
+
+    % 找轮廓系数最高的K
+    [~, best_ci] = max(mean_sil_by_K);
+    best_K_dendro = test_K_range(best_ci);
+
+    fprintf('  扫描K从%d到%d，最优K=%d (轮廓系数=%.4f)\n', ...
+        test_K_range(1), test_K_range(end), best_K_dendro, max(mean_sil_by_K));
+
+    % 绘制cut高度分析图
+    figure('Position', [100,100,1000,400]);
+    subplot(1,3,1);
+    plot(test_K_range, mean_sil_by_K, 'bo-', 'LineWidth', 2, 'MarkerSize', 8);
+    xlabel('K值'); ylabel('平均轮廓系数'); title('轮廓系数法确定K');
+    hold on;
+    [~, best_marker_idx] = max(mean_sil_by_K);
+    plot(test_K_range(best_marker_idx), max(mean_sil_by_K), 'ro', 'MarkerSize', 14, 'MarkerFaceColor', 'r');
+    grid on;
+
+    subplot(1,3,2);
+    dendrogram(Z, 0);
+    title(sprintf('层次聚类树状图\n(查看自然断点，最优K=%d)', best_K_dendro));
+
+    subplot(1,3,3);
+    plot(test_K_range, stability_by_K, 'go-', 'LineWidth', 2, 'MarkerSize', 8);
+    xlabel('K值'); ylabel('非单簇比例'); title('各簇非单成员比例'); grid on;
+    saveas(gcf, fullfile(save_folder, sprintf('strategyC_K_selection_L%d.png', level)));
+    close(gcf);
+
+    % ---------- C2: 在最优cut处执行聚类 ----------
+    fprintf('\n[C2] 在最优Cut处执行聚类 (K=%d)...\n', best_K_dendro);
+    opts = statset('Display', 'off', 'MaxIter', 1000);
+    [idx_dendro, ~] = kmeans(X, best_K_dendro, 'Distance', 'correlation', 'Replicates', 50, 'Options', opts);
+
+    cluster_sizes_dendro = histcounts(idx_dendro, 1:best_K_dendro);
+    fprintf('  各簇人数: ');
+    fprintf('%d ', cluster_sizes_dendro);
+    fprintf('\n');
+
+    % ---------- C3: Bootstrap 稳定性检验 ----------
+    fprintf('\n[C3] Bootstrap 稳定性检验 (n=%d次重采样)...\n', n_bootstrap);
+    co_membership_d = cell(n_bootstrap, 1);
+    valid_d = 0;
+    for b = 1:n_bootstrap
+        bootstrap_idx = randsample(n_subjects, n_subjects, true);
+        X_boot = X(bootstrap_idx, :);
+        try
+            boot_clust = kmeans(X_boot, best_K_dendro, 'Distance', 'correlation', 'Replicates', 20, 'Options', opts);
+            co_membership_d{b} = boot_clust;
+            valid_d = valid_d + 1;
+        catch
+            co_membership_d{b} = [];
+        end
+    end
+
+    co_mat_d = zeros(n_subjects, n_subjects);
+    for b = 1:n_bootstrap
+        bc = co_membership_d{b};
+        if ~isempty(bc)
+            for i = 1:n_subjects
+                for j = (i+1):n_subjects
+                    if bc(i) == bc(j)
+                        co_mat_d(i,j) = co_mat_d(i,j) + 1;
+                        co_mat_d(j,i) = co_mat_d(j,i) + 1;
+                    end
+                end
+            end
+        end
+    end
+    consensus_d = co_mat_d / valid_d;
+
+    % 计算各簇共识
+    diag_cons_d = zeros(best_K_dendro, 1);
+    for k = 1:best_K_dendro
+        members = find(idx_dendro == k);
+        if length(members) > 1
+            sum_c = 0; cnt = 0;
+            for i = 1:length(members)
+                for j = (i+1):length(members)
+                    sum_c = sum_c + consensus_d(members(i), members(j));
+                    cnt = cnt + 1;
+                end
+            end
+            diag_cons_d(k) = sum_c / cnt;
+        else
+            diag_cons_d(k) = NaN;
+        end
+    end
+    diag_mean_d = nanmean(diag_cons_d);
+
+    off_d_sum = 0; off_d_cnt = 0;
+    for i = 1:n_subjects
+        for j = (i+1):n_subjects
+            if idx_dendro(i) ~= idx_dendro(j)
+                off_d_sum = off_d_sum + (1 - consensus_d(i,j));
+                off_d_cnt = off_d_cnt + 1;
+            end
+        end
+    end
+    off_diag_d = off_d_sum / off_d_cnt;
+
+    % 计算STRESS
+    score_d = (X - (-3)) / 6;
+    mean_d = mean(score_d, 1);
+    stress_d = zeros(n_subjects, 1);
+    for i = 1:n_subjects
+        stress_d(i) = STRESS(score_d(i,:)', mean_d');
+    end
+    stress_overall_d = mean(stress_d);
+
+    stress_cluster_d = zeros(best_K_dendro, 1);
+    n_per_d = zeros(best_K_dendro, 1);
+    for k = 1:best_K_dendro
+        mask = (idx_dendro == k);
+        X_k = X(mask, :);
+        n_k = sum(mask);
+        n_per_d(k) = n_k;
+        mean_k_s = (mean(X_k,1) - (-3)) / 6;
+        sk = zeros(n_k,1);
+        for i = 1:n_k
+            sk(i) = STRESS((X_k(i,:)-(-3))/6', mean_k_s');
+        end
+        stress_cluster_d(k) = mean(sk);
+    end
+    weighted_stress_d = sum(stress_cluster_d .* n_per_d) / n_subjects;
+
+    % ---------- C4: 绘制共识矩阵热力图 ----------
+    [sorted_d, order_d] = sort(idx_dendro);
+    consensus_sorted_d = consensus_d(order_d, order_d);
+    cumsum_d = cumsum(cluster_sizes_dendro);
+
+    figure('Position', [100,100,700,600]);
+    imagesc(consensus_sorted_d, [0 1]);
+    colormap(flipud(hot)); colorbar;
+    for c = 1:best_K_dendro-1
+        line([0.5, n_subjects+0.5], [cumsum_d(c)+0.5, cumsum_d(c)+0.5], 'Color', 'cyan', 'LineWidth', 1.5);
+        line([cumsum_d(c)+0.5, cumsum_d(c)+0.5], [0.5, n_subjects+0.5], 'Color', 'cyan', 'LineWidth', 1.5);
+    end
+    title(sprintf('策略C共识矩阵 (K=%d)\n对角块=簇内共识, 块外=簇间分离', best_K_dendro));
+    xticks(1:n_subjects); yticks(1:n_subjects);
+    xticklabels(arrayfun(@(x)sprintf('%d',x), order_d, 'UniformOutput', false));
+    yticklabels(arrayfun(@(x)sprintf('%d',x), order_d, 'UniformOutput', false));
+    saveas(gcf, fullfile(save_folder, sprintf('strategyC_consensus_L%d_K%d.png', level, best_K_dendro)));
+    close(gcf);
+
+    % ---------- C5: 汇总 ----------
+    fprintf('\n========== 策略C 结果汇总 ==========\n');
+    fprintf('Cut高度: %.4f | K: %d\n', best_cut, best_K_dendro);
+    fprintf('\n各簇详情:\n');
+    for k = 1:best_K_dendro
+        fprintf('  簇%d (n=%d): STRESS=%.4f, 簇内共识=%.3f, 被试: %s\n', ...
+            k, n_per_d(k), stress_cluster_d(k), diag_cons_d(k), mat2str(find(idx_dendro==k)'));
+    end
+    fprintf('\n聚类前整体STRESS: %.4f\n', stress_overall_d);
+    fprintf('聚类后加权STRESS: %.4f\n', weighted_stress_d);
+    fprintf('STRESS降低: %.1f%%\n', (1 - weighted_stress_d/stress_overall_d)*100);
+    fprintf('\nBootstrap稳定性:\n');
+    fprintf('  簇内共识: %.3f (%s)\n', diag_mean_d, ternary(diag_mean_d>=0.8,'✓稳定','偏弱'));
+    fprintf('  簇间分离: %.3f (%s)\n', off_diag_d, ternary(off_diag_d>=0.9,'分离良好','一般'));
+
+    results = struct();
+    results.best_cut = best_cut;
+    results.K = best_K_dendro;
+    results.idx = idx_dendro;
+    results.stress_cluster = stress_cluster_d;
+    results.weighted_stress = weighted_stress_d;
+    results.diagonal_consensus = diag_mean_d;
+    results.off_diagonal_separation = off_diag_d;
+    results.diag_per_cluster = diag_cons_d;
+    results.n_per_cluster = n_per_d;
+
+    save(fullfile(save_folder, sprintf('strategyC_L%d.mat', level)), 'results');
+    fprintf('\n策略C结果已保存\n');
+end
+
+%% =========================================================================
+% 主程序结束 — 运行策略B和C
+% =========================================================================
+fprintf('\n');
+fprintf('============================================================\n');
+fprintf('是否运行进阶策略分析？\n');
+fprintf('============================================================\n');
+fprintf('策略B: 剔除离群被试后重新聚类\n');
+fprintf('策略C: 层次聚类树状图自然断点\n');
+fprintf('\n取消注释下面的行来运行对应策略:\n');
+fprintf('  results_B = strategy_B_outlier_removal(X, idx, K, n_bootstrap, save_folder, level, consensus_matrix);\n');
+fprintf('  results_C = strategy_C_dendrogram_cut(X, D, Z, n_bootstrap, save_folder, level);\n');
+%%
+% 取消下面注释可同时运行两个策略:
+% {
+results_B = strategy_B_outlier_removal(X, idx, K, n_bootstrap, save_folder, level, consensus_matrix);
+results_C = strategy_C_dendrogram_cut(X, D, Z, n_bootstrap, save_folder, level);
+% }
+

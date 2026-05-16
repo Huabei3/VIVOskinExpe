@@ -76,6 +76,18 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
     else
         row_gap = 0;  % 0 means use default baseHeight spacing
     end
+    % col_gap: 同排子图额外间距（normalized，正值增大间距，负值缩小）
+    if isfield(legend_labels, 'col_gap')
+        col_gap_extra = legend_labels.col_gap;
+    else
+        col_gap_extra = 0;
+    end
+    % posY_bottom: 整体绘图区底部基准（normalized），增大可让整体上移
+    if isfield(legend_labels, 'posY_bottom')
+        posY_bottom = legend_labels.posY_bottom;
+    else
+        posY_bottom = legendHeightNorm;
+    end
     % gapX = 0.15;
 
     for i = 1:numFigs
@@ -118,11 +130,11 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
         end
 
     
-        posX = marginL + (currCol - 1) * baseWidth - (currCol - 1) * gapX;
+        posX = marginL + (currCol - 1) * baseWidth - (currCol - 1) * gapX + (currCol - 1) * col_gap_extra;
         if row_gap == 0
-            posY = legendHeightNorm + (n_row - currRow) * baseHeight + (baseHeight - h_space) / 2;
+            posY = posY_bottom + (n_row - currRow) * baseHeight + (baseHeight - h_space) / 2;
         else
-            posY = legendHeightNorm + (n_row - currRow) * (baseHeight + row_gap) + (baseHeight - h_space) / 2;
+            posY = posY_bottom + (n_row - currRow) * (baseHeight + row_gap) + (baseHeight - h_space) / 2;
         end
         if isfield(legend_labels,"label_type")&&strcmp(legend_labels.label_type,"skinVIVO")&&i==5
             posX=posX+0.04;
@@ -198,6 +210,13 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
                     'LabelFontSizeMultiplier', 1.0, 'TitleFontSizeMultiplier', 1.0);
             end
         end
+        % === tickFontScale：独立控制 xticks & yticks 字体大小 ===
+        if isfield(legend_labels, 'tickFontSize')
+            subAx.FontSize = legend_labels.tickFontSize;
+        elseif isfield(legend_labels, 'tickFontScale')
+            subAx.FontSize = legend_labels.tickFontScale * targetFontSize;
+        end
+        %==========
         % set([newXlabel, newYlabel, newTitle], 'FontSize', targetFontSize, 'FontWeight', 'normal');
         if isfield(legend_labels, 'fontSizeScale')
             set(newTitle, 'FontSize', legend_labels.fontSizeScale * targetFontSize, 'FontWeight', 'bold');
@@ -323,7 +342,12 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             cb.Label.Interpreter = 'tex';
             disp('cover_rows colorbar set');
             cb.Label.FontSize = targetFontSize;
-            cb.Label.FontAngle = 'italic';
+            % cbLabelFontAngle: 'normal' or 'italic'
+            if isfield(legend_labels, 'cbLabelFontAngle')
+                cb.Label.FontAngle = legend_labels.cbLabelFontAngle;
+            else
+                cb.Label.FontAngle = 'italic';
+            end
             cb.Units = 'normalized';
         else
             % 默认模式：colorbar 在当前行最后一个子图的右边
@@ -354,7 +378,12 @@ function concatenate_figs_legend1(save_folder, figFiles, n_col, ...
             
             cb.Label.Interpreter = 'tex';
             cb.Label.FontSize = targetFontSize;
-            cb.Label.FontAngle = 'italic';
+            % cbLabelFontAngle: 'normal' or 'italic'
+            if isfield(legend_labels, 'cbLabelFontAngle')
+                cb.Label.FontAngle = legend_labels.cbLabelFontAngle;
+            else
+                cb.Label.FontAngle = 'italic';
+            end
             
             % 确保 Colorbar 不会因为自动调整而改变主图布局
             cb.Units = 'normalized';

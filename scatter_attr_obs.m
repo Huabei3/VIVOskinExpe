@@ -9,7 +9,7 @@ attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 nations = ["AS", "CA", "SA", "AF"];
 interpreter_type="tex";
 text_type="ch";
-one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
+one_image_mode = "true";  % "true"时只取第一个fig文件，且隐藏subplot标签
 if strcmp(text_type,"eng")
     nation_names = ["Asian", "Caucasian", "South Asian", "African"];
     attribute_names_new = ["Preference", "Attractiveness", "Feminine", "Cooperative", ...
@@ -575,7 +575,7 @@ s.labels_row2 = {};
 s.markers_row2 = {};
 s.markers_colors = [];
 s.markers_face_colors = [];
-s.n_col1=5; 
+s.n_col1=3; 
 s.n_col2=5;
 s.if_label=true;
 s.leg_x_shift=-0.08;
@@ -596,11 +596,20 @@ for i_fig=1:length(dir_figs)
     figFiles{i_fig1}=dir_figs(i_fig).name;
     i_fig1=i_fig1+1;
 end
+
+s.fontSizeScale=1.2;
+s.tickFontScale = 0.9;          
 if strcmp(one_image_mode, "true")
     s.if_label = false;
+    s.colGap1_scale = 1.5; 
+    s.iconTextGap=0.04;
+    s.leg_x_shift=-0.2;
+    s.marginL=0.2;
+    concatenate_figs_legend1(save_folder, figFiles, 1,"none","draw",s,0.09,1.2);
+else
+    concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
 end
-s.fontSizeScale=1.2;
-concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
+
 
 % concatenate_images1(save_folder,2);
 % concatenate_images1(fullfile(save_folder_name, Dtype,"attr", "comparison", iOr, "C_h"),2);

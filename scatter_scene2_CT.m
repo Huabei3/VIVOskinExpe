@@ -21,7 +21,7 @@ elseif strcmp(text_type,"ch")
 end
 targetFontSize=12;
 interpreter_type = "tex"; % "tex" 或 "latex"
-one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
+one_image_mode = "true";  % "true"时只取第一个fig文件，且隐藏subplot标签
 
 %% 定义i和r两组lastParts
 lastParts_i = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
@@ -965,17 +965,23 @@ for i_obs=1:length(obs_types_plot)
         figFiles{i_fig1} = dir_figs(i_fig).name;
         i_fig1 = i_fig1 + 1;
     end
+
+    s.fontSizeScale=1.2;
     if strcmp(one_image_mode, "true")
         s.if_label = false;
-    end
-    s.fontSizeScale=1.2;
-    if strcmp(variable_type,"nation")
-        concatenate_figs_legend1(save_folder, figFiles, 2, "none", "draw", s, 0.09, 0.3);
+        s.marginL=0.15;
+        s.leg_x_shift=-0.05;
+        concatenate_figs_legend1(save_folder, figFiles, 1, "none", "draw", s, 0.09, 1);
+
     else
-        s.row_gap = -0.12;
-        s.rowStep = 0.25;  % 控制两行之间的间距
-        s.leg_x_shift=0.16;
-        concatenate_figs_legend1(save_folder, figFiles, 5, "none", "draw", s,0.03, 0.7);
+        if strcmp(variable_type,"nation")
+            concatenate_figs_legend1(save_folder, figFiles, 2, "none", "draw", s, 0.09, 0.3);
+        else
+            s.row_gap = -0.12;
+            s.rowStep = 0.25;  % 控制两行之间的间距
+            s.leg_x_shift=0.16;
+            concatenate_figs_legend1(save_folder, figFiles, 5, "none", "draw", s,0.03, 0.7);
+        end
     end
     
     %% 合并图片

@@ -48,7 +48,7 @@ plot_style = {'^','<','v'};
 genders = ["f", "m"]; % 定义性别数组
 targetFontSize=12;
 interpreter_type = "tex"; % "tex" 或 "latex"
-one_image_mode = "false";  % "true"时只取第一个fig文件，且隐藏subplot标签
+one_image_mode = "true";  % "true"时只取第一个fig文件，且隐藏subplot标签
 % obs_types = ["model_group"];
 obs_types = ["non_model"];
 % obs_types = ["non_model", "model_group", "model"];
@@ -283,7 +283,7 @@ if ~exist(output_folder, "dir")
 end
 for i_obs = 1:length(obs_types)
     obs_type = obs_types(i_obs);
-    if strcmp(variable_type, "hml")
+if strcmp(variable_type, "hml")
     target_idx_loop = 1:length(target_indices);
     attr_loop = [1];
 elseif strcmp(variable_type, "attr")
@@ -537,6 +537,15 @@ end  % end of for i_idx
             s.colGap2_scale=1.8;
             concatenate_figs_legend1(output_folder1, figFiles, 1, ...
                 legend_file,"draw",s,0.1,0.9);
+        elseif strcmp(one_image_mode,"true")
+            s.if_label = false;
+            s.marginL=0.2;
+            s.leg_x_shift=-0.2;
+            s.colGap1_scale = 1.2; 
+            s.iconTextGap=0.04;
+
+            concatenate_figs_legend1(output_folder, figFiles, 1, "none", "draw", s, 0.09, 0.8);
+            fullfile(pwd,output_folder)
         else
             s.leg_x_shift=-0.06;
             s.fontSizeScale=1.2;

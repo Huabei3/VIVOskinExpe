@@ -574,6 +574,7 @@ Dtypes=["noCAT","efit_p"];
 s.label_type="CT";
 save_folder1=strrep(save_folder,Dtypes(2),Dtypes(1));
 adjust_fig(save_folder1, opts);
+%%
 fullfile(pwd,save_folder1)
 dir_figs=dir(fullfile(save_folder,"inon_model01Asian_CTadjusted.fig"));
 dir_figs=[dir_figs;dir(fullfile(save_folder1, ...
@@ -591,7 +592,23 @@ s.fontSizeScale = 1.2;          % 标题/标签放大 1.2 倍
 % s.posY_bottom = 0.15;          % 整体上移
 s.label_x_offset=-0.02;
 s.label_y_offset=-0.02;
-concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
+% one_image_mode="true";
+one_image_mode="false";
+if strcmp(one_image_mode, "true")
+    s.colGap1_scale = 1.5; 
+    s.iconTextGap=0.04;
+    s.leg_x_shift=-0.2;
+    s.marginL=0.2;
+    s.row_gap = -0.15;         % 行间距：负值使行更近
+    s.colorbarGap = -0.2;      % colorbar距内容右边界的距离
+    s.colorbar_mode = 'cover_rows';    % 单一共享colorbar
+    s.colorbar_y_start = 0.15;        % colorbar 底部起点（normalized，0=底部，1=顶部）
+    s.colorbar_y_end = 0.95;          % colorbar 顶部终点
+    concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
+else
+    concatenate_figs_legend1(save_folder, figFiles, 2,"none","draw",s,0.09,0.35);
+end
+
     
 fullfile(pwd,save_folder)
 % fullfile(pwd,save_folder1)

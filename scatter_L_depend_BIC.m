@@ -96,6 +96,7 @@ a_BIC = cell(n_attributes, n_nations, n_formulas);
 RSS_BIC = NaN(n_attributes, n_nations, n_formulas);
 BIC_val = NaN(n_attributes, n_nations, n_formulas);
 k_val = NaN(n_attributes, n_nations, n_formulas);
+n_BIC = NaN(n_attributes, n_nations);            % 样本量（同 attribute×nation，不随 formula 变化）
 
 %% ========== 遍历 attribute × nation × formula ==========
 obs_type = "non_model";
@@ -133,6 +134,7 @@ for idx_attribute = 1:n_attributes
         C_all = sqrt(par_all_valid(:,4).^2 + par_all_valid(:,5).^2);
 
         fprintf('  %s: n=%d 数据点\n', nation, length(L_all));
+        n_BIC(idx_attribute, i_nation) = length(L_all);  % 记录样本量
 
         % 对每个候选公式进行拟合
         for j = 1:n_formulas
@@ -150,12 +152,13 @@ for idx_attribute = 1:n_attributes
     end
 end
 
-%% ========== 按 formula 分别保存结果 ==========
+%% ========== 保存结果 ==========
 base_output_folder = fullfile('AnalyseResults_p', Dtype, scale_type_origin, ...
     "model_fullpara", CT_type, "new", iOr, obs_type, "BIC");
 if ~exist(base_output_folder, 'dir')
     mkdir(base_output_folder);
 end
+fprintf('\n输出路径: %s\n', fullfile(pwd, base_output_folder));
 
 for j = 1:n_formulas
     formula_name = char(formula_names(j));
@@ -164,34 +167,57 @@ for j = 1:n_formulas
         mkdir(formula_folder);
     end
 
-    % 提取当前 formula 的所有 attribute × nation 数据
+    % --- (A) 按 attribute 逐个保存 *_BIC_curve_params.mat ---
+    for idx_attr = 1:n_attributes
+        attribute = attributes(idx_attr);
+        attr_name = char(attribute_names_new(idx_attr));
+        attr_serial = sprintf("%02d%s", attribute, attr_name);
+
+        a_val_all = squeeze(a_BIC(idx_attr, :, j));   % cell [n_nations × 1]
+        RSS_all   = RSS_BIC(idx_attr, :, j)';          % [n_nations × 1]
+        BIC_all   = BIC_val(idx_attr, :, j)';           % [n_nations × 1]
+        k_all     = k_val(idx_attr, :, j)';             % [n_nations × 1]
+        n_all     = n_BIC(idx_attr, :)';                % [n_nations × 1]  样本量
+
+        save_file = fullfile(formula_folder, ...
+            strcat(attr_serial, '_BIC_curve_params.mat'));
+        save(save_file, ...
+            'a_val_all', 'RSS_all', 'BIC_all', 'k_all', 'n_all', ...
+            'nations', 'attribute', 'attr_name', 'formula_name', ...
+            'Dtype', 'CT_type', 'iOr', 'obs_type');
+    end
+
+    % --- (B) formula 级别汇总 BIC_{formula}.mat ---
     a_BIC_one   = a_BIC(:, :, j);
     RSS_BIC_one = RSS_BIC(:, :, j);
     BIC_val_one = BIC_val(:, :, j);
     k_val_one   = k_val(:, :, j);
 
-    output_file = fullfile(formula_folder, strcat('BIC_', formula_name, '.mat'));
-    save(output_file, 'a_BIC_one', 'RSS_BIC_one', 'BIC_val_one', 'k_val_one', ...
+    summary_file = fullfile(formula_folder, strcat('BIC_', formula_name, '.mat'));
+    save(summary_file, ...
+        'a_BIC_one', 'RSS_BIC_one', 'BIC_val_one', 'k_val_one', ...
         'attributes', 'attribute_names_new', 'nations', 'formula_name', ...
-        'Dtype', 'CT_type', 'iOr', 'obs_type');
-    fprintf('已保存: %s\n', output_file);
+        'n_BIC', 'Dtype', 'CT_type', 'iOr', 'obs_type');
+
+    fprintf('已保存 formula: %s (%d attributes + 汇总)\n', formula_name, n_attributes);
 end
 
-%% ========== 同时保存汇总文件 BIC_results_all.mat ==========
+%% ========== 全局汇总 BIC_results_all.mat ==========
 parent_folder = fileparts(base_output_folder);  % 去掉末尾 "BIC"，回到 obs_type 层
 save(fullfile(parent_folder, 'BIC_results_all.mat'), ...
-    'a_BIC', 'RSS_BIC', 'BIC_val', 'k_val', ...
+    'a_BIC', 'RSS_BIC', 'BIC_val', 'k_val', 'n_BIC', ...
     'attributes', 'attribute_names_new', 'nations', ...
     'fit_CL_types', 'formula_names', 'Dtype', 'CT_type', 'iOr', 'obs_type');
 fprintf('汇总文件已保存: %s\n', fullfile(parent_folder, 'BIC_results_all.mat'));
 
-%% ========== 也保存一份到 BIC 文件夹根目录 ==========
+% BIC 文件夹根目录也存一份
 save(fullfile(base_output_folder, 'BIC_results_all.mat'), ...
-    'a_BIC', 'RSS_BIC', 'BIC_val', 'k_val', ...
+    'a_BIC', 'RSS_BIC', 'BIC_val', 'k_val', 'n_BIC', ...
     'attributes', 'attribute_names_new', 'nations', ...
     'fit_CL_types', 'formula_names', 'Dtype', 'CT_type', 'iOr', 'obs_type');
 
 fprintf('\n========== 完成！==========\n');
-fprintf('结果已按 formula 分别保存至: %s\n', fullfile(pwd, base_output_folder));
+fprintf('按 attribute 拆分的 *_BIC_curve_params.mat 已保存至: %s\n', ...
+    fullfile(pwd, base_output_folder));
 fprintf('汇总文件: %s\n', fullfile(pwd, parent_folder, 'BIC_results_all.mat'));
-fprintf('运行 XLSX_BIC_res.m 可将结果写入 XLSX 文件。\n');
+fprintf('现在可直接运行 XLSX_BIC_res.m 或 gen_BIC_tables.m。\n');

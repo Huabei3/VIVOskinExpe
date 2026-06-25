@@ -57,6 +57,7 @@ h_table=[mean(h),max(h),min(h)];
 all_LabCh = [all_L, all_a, all_b, C, h];
 % 保存数据
 save(fullfile(save_folder, "VIVOskin.mat"), "all_LabCh", "model_names");
+fullfile(pwd,save_folder)
 % 设置坐标轴范围
 L_limits = [min(all_L) - 5, max(all_L) + 5];
 a_limits = [min(all_a) - 5, max(all_a) + 5];

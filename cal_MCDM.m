@@ -19,6 +19,7 @@ lastParts = {'f04i', 'f05i', 'f06i', 'm04i', 'm05i', 'm06i',...
 % Dtype='efit_p_free';
 Dtype='efit_p';
 scale_type_origin="unscaled";
+
 MCDM_global=zeros(20,10,n_para,20);
 %%
 for i_lastPart = 1:length(lastParts)
@@ -220,8 +221,11 @@ hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attribu
 colors = hsv2rgb(hsv_matrix);
 
 bar_width = 0.8 / size(MCDM_global_1, 2); % 计算每个 bar 的宽度
-
+del_fair_ruddy = "true"; % "true"时不绘制attribute==9:10的数据
 for attribute = 1:size(MCDM_global_1, 2)
+    if strcmp(del_fair_ruddy, "true") && any(attribute == [9, 10])
+        continue;
+    end
     x = (1:size(nation_indices, 1)) + (attribute - 1) * bar_width - bar_width * (size(MCDM_global_1, 2) - 1) / 2;
     bar(x, MCDM_nation(:, attribute), bar_width, 'FaceColor', colors(attribute, :));
 end
@@ -284,8 +288,11 @@ hsv_matrix = [hue_values', 0.8 * ones(num_attributes, 1), 0.8 * ones(num_attribu
 colors = hsv2rgb(hsv_matrix);
 n_nation=4;
 bar_width = 0.8 /num_attributes; % 计算每个 bar 的宽度
-
-for attribute = 1:num_attributes
+for attribute = 1:8
+% for attribute = 1:num_attributes
+    if strcmp(del_fair_ruddy, "true") && any(attribute == [9, 10])
+        continue;
+    end
     x = (1:size(nation_indices, 1)) + (attribute - 1) * bar_width - bar_width * (size(MCDM_global_1, 2) - 1) / 2;
     bar(x, MCDM_nation(:, attribute), bar_width, 'FaceColor', colors(attribute, :));
 end
@@ -346,6 +353,9 @@ adjust_fig(MCDM_folder, opts);
 %%
 %-----------------
 s.labels_row1 = attribute_names;
+if strcmp(del_fair_ruddy, "true")
+    s.labels_row1 = attribute_names(1:8);
+end
 s.labels_row2 = {};
 s.markers_row2 = {};
 s.markers_colors = [];

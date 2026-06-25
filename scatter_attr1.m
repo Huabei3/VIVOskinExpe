@@ -9,7 +9,8 @@ scale_type_origin="unscaled";
 scale_time="late";
 targetFontSize=12;
 interpreter_type = "tex"; % "tex" 或 "latex"
-one_image_mode = "true";  % "true"时只取第一个fig文件，且隐藏subplot标签
+
+del_fair_ruddy = "true";   % "true"时不绘制attribute==9:10的数据
 %% 定义所有需要处理的 attribute
 attributes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -288,6 +289,10 @@ for i_obs=1:length(obs_types)
         hold on;
         set(gcf, 'Color', 'white');
         for attribute = attributes
+            % 当del_fair_ruddy为true时，跳过attribute==9:10的绘制
+            if strcmp(del_fair_ruddy, "true") && any(attribute == [9, 10])
+                continue;
+            end
             attribute_serial = strcat(sprintf("%02d", attribute), ...
                 attribute_names_new(attribute));
             attribute_serial=ch2eng(attribute_serial);
@@ -407,7 +412,7 @@ for i_obs=1:length(obs_types)
     save_folder = fullfile("ellip_pic_p", Dtype,scale_type,"attr1", obs_type,iOr,text_type);
     concatenate_images1(save_folder,4);
     %%
-
+    
     opts.lim_min=0; 
     opts.lim_max=40;  
     opts.targetFontSize=12;
@@ -420,12 +425,20 @@ for i_obs=1:length(obs_types)
     adjust_fig(save_folder, opts);
     %-----------------
     %%
+    one_image_mode = "false"; 
     s.labels_row1 = attribute_names_new;
+    if strcmp(del_fair_ruddy, "true")
+        s.labels_row1 = attribute_names_new(1:8);
+    end
     s.labels_row2 = {};
     s.markers_row2 = {};
     s.markers_colors = [];
     s.markers_face_colors = [];
-    s.n_col1=3;
+    if strcmp(one_image_mode, "true")
+        s.n_col1=3;
+    else
+        s.n_col1=5;
+    end
     s.n_col2=5;
     s.if_label=true;
     s.interpreter_type ='tex';
@@ -449,6 +462,9 @@ for i_obs=1:length(obs_types)
     end
     s.tickFontScale = 0.9;          
     s.fontSizeScale = 1.2;    
+    s.leg_x_shift=-0.02;
+    s.iconTextGap=0.01;
+    s.colGap1_scale = 1.01; 
 
     if strcmp(one_image_mode, "true")
         s.colGap1_scale = 1.5; 
@@ -457,7 +473,7 @@ for i_obs=1:length(obs_types)
         s.marginL=0.2;
         concatenate_figs_legend1(save_folder, figFiles, 1,"none","draw",s,0.09,1.1);
     else
-        concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.09,2);
+        concatenate_figs_legend1(save_folder, figFiles, 4,"none","draw",s,0.05,2);
     end
     %--------------------------------
     

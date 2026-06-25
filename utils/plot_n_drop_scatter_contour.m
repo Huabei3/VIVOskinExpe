@@ -1,4 +1,4 @@
-function plot_n_drop_scatter_contour(ipr_fig, nation, dropped_lastPart, attr_name, pcn_n, train_indices, pic_folder)
+function plot_n_drop_scatter_contour(ipr_fig, nation_serial, dropped_lastPart, attr_name, pcn_n, train_indices, pic_folder)
 % plot_n_drop_scatter_contour
 % 封装 scatter_L_depend_n_drop1.m 的绘图逻辑
 %
@@ -87,8 +87,6 @@ function plot_n_drop_scatter_contour(ipr_fig, nation, dropped_lastPart, attr_nam
     ylim([lim_min, lim_max]);
     xlabel('{\ita*}');  ylabel('{\itb*}');
     n_undrop = length(train_indices);
-    nation_serial = sprintf("%02d%s", find(strcmp({'AS','CA','SA','AF','all'}, nation)), ...
-        strrep(nation,' ','_'));
     title_str = sprintf('%s | %s | drop=%s | undrop=%d | attr=%s | L=%.1f', ...
         nation_serial, pcn_n, dropped_lastPart, n_undrop, attr_name, ipr_fig.L_val_model);
     title(title_str, 'Interpreter', 'none');

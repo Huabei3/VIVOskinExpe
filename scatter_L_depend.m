@@ -41,7 +41,7 @@ genders = ["f", "m"]; % 定义性别数组
 
 obs_types = ["non_model", "model_group", "model"];
 % 定义人种对应的lastParts索引
-max_classify=1;
+max_classify=0;
 if max_classify==1
     nations = ["AS", "CA", "DA", "all"];
     nation_indices = cell(5, 1); % 5个人种（包括"all"）

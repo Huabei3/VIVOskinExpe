@@ -1,6 +1,7 @@
 %% plot_param_vs_L_fitted_v2.m — 重写版
 %  彻底放弃 copyobj-from-fig 方案，合并图直接在目标 figure 上绘制。
-%  子图宽度按 xlim 范围比例分配，axis equal 自然填满，无内部留白。
+%  子图宽度按 xlim 范围比例分配。所有子图统一 pbaspect('auto')，
+%  plot box 填满 axes 框，高度一致，宽度可独立压缩。
 
 close all; clc; clear;
 addpath("utils\")
@@ -81,7 +82,8 @@ function draw_one_ax(ax, Y_cell, L_cell, a_fit, fit_f, xlim_v, xlab, colors)
         Yfit = fit_f(a_fit(iN,:), Lfit);
         plot(ax, Yfit, Lfit, '-', 'Color',colors(iN,:), 'LineWidth',2);
     end
-    axis(ax, 'equal');  xlim(ax, xlim_v);  ylim(ax, [0,70]);
+    xlim(ax, xlim_v);  ylim(ax, [0,70]);
+    pbaspect(ax, 'auto');  % 所有子图统一：plot box 填满 axes，x/y 独立缩放
     box(ax, 'on');  ax.FontSize = 10;
     xlabel(ax, xlab, 'FontSize',12);
     ylabel(ax, '\itL^*', 'FontSize',12);
@@ -115,7 +117,7 @@ main_fig = figure('Name','All Params vs L*','Units','pixels', ...
 marginL   = 0.06;    % 左留白
 marginR   = 0.03;    % 右留白
 marginTop = 0.06;    % 顶部留白
-legendH   = 0.22;    % 底部 legend 高度（含间距）
+legendH   = 0.26;    % 底部 legend 高度（含间距），拉远~1.2fs
 gap       = 0.008;   % 子图间最小间距
 
 availableW = 1 - marginL - marginR;
@@ -126,8 +128,9 @@ availableH = 1 - marginTop - legendH;
 w_raw = x_ranges / 70 * availableH * figH / figW;
 
 % ---- 手动调整个别子图宽度（1=正常，<1=压缩，>1=扩宽）----
+% 所有子图统一 pbaspect('auto')，plot box 撑满 axes，高度一致，宽度可独立压缩
 w_scale = ones(N,1);
-w_scale(5) = 0.6;   % theta: xlim [0,100] 太宽，压缩到 60%
+w_scale(5) = 0.55;   % theta: xlim [0,100] 太宽，压缩到 55%
 w_raw = w_raw .* w_scale;
 total_w = sum(w_raw) + gap*(N-1);
 

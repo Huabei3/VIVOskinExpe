@@ -172,7 +172,7 @@ for i_attr = 1:length(ATTR_NAMES)
     % 安全处理：确保 NaN 全部替换为 '--'（防止 cell 数组中残留数值 NaN）
     for r = 1:size(sheet_data, 1)
         for c = 1:size(sheet_data, 2)
-            if iscell(sheet_data) && isnumeric(sheet_data{r, c}) && isnan(sheet_data{r, c})
+            if isnumeric(sheet_data{r, c}) && any(isnan(sheet_data{r, c}), 'all')
                 sheet_data{r, c} = '--';
             end
         end

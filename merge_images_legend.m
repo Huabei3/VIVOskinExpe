@@ -171,6 +171,6 @@ function merge_images(source_folder, add_labels)
 end
 
 %%
-source_folder="D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\compare_thesis_pre\include_this";
+source_folder="D:\work\VIVOskinExpe\analyze\ellip_pic_p\efit_p\compare_thesis_pre\exclude_this";
 % merge_images(source_folder, true);  % true表示添加标签，(a)和(b)
 merge_images(source_folder, false); % false表示不添加标签

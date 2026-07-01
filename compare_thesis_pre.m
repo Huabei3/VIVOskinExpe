@@ -548,8 +548,8 @@ for s_idx = 1:1
         interval=round((view_settings{s_idx,1}(2)-view_settings{s_idx,1}(1))/4);
     end
     
-    xticks(view_settings{s_idx,1}(1):interval:view_settings{s_idx,1}(2));
-    yticks(view_settings{s_idx,1}(3):interval:view_settings{s_idx,1}(4));
+    xticks(current_lims(1):interval:current_lims(2));
+    yticks(current_lims(3):interval:current_lims(4));
     % --- 3. 针对不同图片的特殊处理 ---
     % if s_idx == 1
     %     % 第一张图：让标签离轴远一点

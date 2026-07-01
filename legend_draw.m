@@ -568,7 +568,7 @@ end
 % legend_type="mini scene";
 % legend_type="compare";
 % legend_type="VIVOskin";
-legend_type="VIVOskin_eng";
+% legend_type="VIVOskin_eng";
 % legend_type="region";
 % legend_type="comp_withOPPO_oriSkin";
 

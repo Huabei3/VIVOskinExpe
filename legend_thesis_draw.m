@@ -187,7 +187,8 @@ colors=[[0.7 0 0];[0 0.5 0];[0 0 0];[1 0.5 0];[0.2 0.2 1];
     [1 0 1];[0.5 0.5 0.5];
     [1, 0.75, 0.8];[0.6, 0.2, 0.8];[0.6, 0.4, 0.2]];
 colors(1:2,:)=colors_temp(1:2,:);
-if strcmp(label_type, "include_this")||strcmp(label_type, "only_my")||strcmp(label_type, "include_VIVO")
+if strcmp(label_type, "include_this")||strcmp(label_type, "only_my")||...
+    strcmp(label_type, "include_VIVO")||strcmp(label_type, "exclude_this")
     % 定义6个实验的标签数据
     % 格式：{英文标签, 中文标签, [R,G,B], 标识符}
     % 这里使用不同的颜色，您可以根据需要修改颜色值
@@ -203,6 +204,13 @@ if strcmp(label_type, "include_this")||strcmp(label_type, "only_my")||strcmp(lab
             {'PMC chart (South Asian)', 'PMCC（南亚人）', colors(3,:), 's'} 
             {'PMC chart (African)', 'PMCC（非洲人）', colors(4,:), 's'} 
         };
+    elseif strcmp(label_type, "exclude_this")
+        experiment_labels = {
+            {'PMC chart (Asian)', 'PMCC（亚洲人）', colors(1,:), 's'}  
+            {'PMC chart (Caucasian)', 'PMCC（高加索人）', colors(2,:), 's'}  
+            {'PMC chart (South Asian)', 'PMCC（南亚人）', colors(3,:), 's'} 
+            {'PMC chart (African)', 'PMCC（非洲人）', colors(4,:), 's'} 
+            };
     else
         experiment_labels = {
             {'Exp 1', '实验一', [0,0,0], 'x'};      

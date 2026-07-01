@@ -60,13 +60,20 @@ if ~exist(output_dir,'dir'), mkdir(output_dir); end
 
 %% ====== 定义 6 张子图 ======
 % col: {Y_cell, a_fit, fit_func, xlabel_str, xlim_vec, safe_name}
+% defs = {
+%   C_cell,  a_CL_all(1:4,:),         @(a,L)a(1)*log(L)+a(2),           '\itC^*_{\rmab}',  [0,30],   'Cstar';
+%   h_cell,  a_hue_angle_all(1:4,:),  @(a,L)a(1)*ones(size(L)),         '\ith \rm(°)',     [30,60],  'h';
+%   al_cell, a_long_axis_all(1:4,:),  @(a,L)a(1)*L.^3+a(2)*L.^2+a(3)*L+a(4), '\ita_{\rmmaj}', [0,20], 'along';
+%   as_cell, a_short_axis_all(1:4,:), @(a,L)a(1)*L.^3+a(2)*L.^2+a(3)*L+a(4), '\itb_{\rmmin}', [0,20], 'ashort';
+%   th_cell, a_theta_all(1:4,:),      @(a,L)(a(1)-270)*ones(size(L)),   '\itθ \rm(°)',     [0,100],  'theta';
+%   al_cell2,a_alpha_all(1:4,:),      @(a,L)a(1)*ones(size(L)),         '\itα',            [-5,10],  'alpha';
+% };
+
+
 defs = {
   C_cell,  a_CL_all(1:4,:),         @(a,L)a(1)*log(L)+a(2),           '\itC^*_{\rmab}',  [0,30],   'Cstar';
-  h_cell,  a_hue_angle_all(1:4,:),  @(a,L)a(1)*ones(size(L)),         '\ith \rm(°)',     [30,60],  'h';
   al_cell, a_long_axis_all(1:4,:),  @(a,L)a(1)*L.^3+a(2)*L.^2+a(3)*L+a(4), '\ita_{\rmmaj}', [0,20], 'along';
   as_cell, a_short_axis_all(1:4,:), @(a,L)a(1)*L.^3+a(2)*L.^2+a(3)*L+a(4), '\itb_{\rmmin}', [0,20], 'ashort';
-  th_cell, a_theta_all(1:4,:),      @(a,L)(a(1)-270)*ones(size(L)),   '\itθ \rm(°)',     [0,100],  'theta';
-  al_cell2,a_alpha_all(1:4,:),      @(a,L)a(1)*ones(size(L)),         '\itα',            [-5,10],  'alpha';
 };
 N = size(defs,1);
 x_ranges = cellfun(@(v)diff(v), defs(:,5));
@@ -111,14 +118,15 @@ fprintf('  Done.\n');
 fprintf('===== Building merged figure =====\n');
 figW = 2000;  figH = 420;
 main_fig = figure('Name','All Params vs L*','Units','pixels', ...
-                  'Position',[100,100,figW,figH], 'Visible','off');
+                  'Position',[100,100,figW,figH], 'Visible','on');
 
 % ------ 布局参数（normalized）------
 marginL   = 0.06;    % 左留白
 marginR   = 0.03;    % 右留白
 marginTop = 0.06;    % 顶部留白
 legendH   = 0.26;    % 底部 legend 高度（含间距），拉远~1.2fs
-gap       = 0.008;   % 子图间最小间距
+gap       = 0.04;   % 子图间最小间距
+% gap       = -0.001;
 
 availableW = 1 - marginL - marginR;
 availableH = 1 - marginTop - legendH;
@@ -130,27 +138,27 @@ w_raw = x_ranges / 70 * availableH * figH / figW;
 % ---- 手动调整个别子图宽度（1=正常，<1=压缩，>1=扩宽）----
 % 所有子图统一 pbaspect('auto')，plot box 撑满 axes，高度一致，宽度可独立压缩
 w_scale = ones(N,1);
-w_scale(5) = 0.55;   % theta: xlim [0,100] 太宽，压缩到 55%
+for i = 1:N
+    switch defs{i,6}
+        case 'theta', w_scale(i) = 0.2;   % xlim [0,100] 太宽，压缩到 20%
+    end
+end
 w_raw = w_raw .* w_scale;
 total_w = sum(w_raw) + gap*(N-1);
 
-% 如果 total_w < availableW，均匀扩大间距和边距
-if total_w <= availableW
-    extra = availableW - total_w;
-    extra_gap = extra / N;  % 每个子图左右各半份 = per-subplot extra
-else
-    extra_gap = 0;
+% 如果 total_w < availableW，剩余空间加在左右边距，gap 直接控制子图间距（不被稀释）
+if total_w > availableW
     % 总宽不足 → 缩放 w_raw
     scale = (availableW - gap*(N-1)) / sum(w_raw);
     w_raw = w_raw * scale;
 end
 
-% 计算每个 axes 的 left
+% 计算每个 axes 的 left，gap 就是相邻子图的实际间距
 left_pos = zeros(N,1);
 cursor = marginL;
 for sp = 1:N
-    left_pos(sp) = cursor + extra_gap/2;
-    cursor = left_pos(sp) + w_raw(sp) + extra_gap/2 + gap;
+    left_pos(sp) = cursor;
+    cursor = left_pos(sp) + w_raw(sp) + gap;
 end
 
 % 逐子图绘制
@@ -159,12 +167,17 @@ for sp = 1:N
               'Position', [left_pos(sp), legendH, w_raw(sp), availableH]);
     hold(ax, 'on');
     draw_one_ax(ax, defs{sp,1}, L_cell, defs{sp,2}, defs{sp,3}, defs{sp,5}, defs{sp,4}, colors);
+    % 右下角序号 (a)~(f)，放在box外面
+    text(ax, 1.1, -0.12, ['(', char('a' + sp - 1), ')'], ...
+         'Units', 'normalized', 'Clipping', 'off', ...
+         'FontSize', 10, 'FontWeight', 'bold', ...
+         'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom');
     hold(ax, 'off');
 end
 
 % ------ 手动 legend（远离主图 ~1 fontsize）------
 legAx = axes('Parent',main_fig,'Units','normalized', ...
-             'Position',[0.08, 0.0, 0.84, legendH-0.08], ...
+             'Position',[marginL, 0.0, total_w, legendH-0.08], ...
              'Color','none','Visible','off');
 hold(legAx,'on'); xlim(legAx,[0,1]); ylim(legAx,[0,1]);
 nation_labels = {"亚洲人","高加索人","南亚人","非洲人"};
